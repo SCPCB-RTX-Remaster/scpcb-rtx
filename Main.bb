@@ -8324,7 +8324,7 @@ Function LoadEntities()
 	For i = 0 To 6
 		DecalTextures(i) = LoadTexture_Strict("GFX\decal" + (i + 1) + ".png", 1 + 2)
 	Next
-	DecalTextures(7) = LoadTexture_Strict("GFX\items\INVpaperstrips.jpg", 1 + 2)
+	DecalTextures(7) = LoadTexture_Strict("GFX\items\INVpaperstrips.png", 1 + 2)
 	For i = 8 To 12
 		DecalTextures(i) = LoadTexture_Strict("GFX\decalpd"+(i-7)+".jpg", 1 + 2)	
 	Next
