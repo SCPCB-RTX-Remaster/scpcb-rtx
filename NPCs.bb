@@ -7125,7 +7125,7 @@ Function Console_SpawnNPC(c_input$, c_state$ = "")
 			n.NPCs = CreateNPC(NPCtype966, EntityX(Collider), EntityY(Collider) + 0.2, EntityZ(Collider))
 			consoleMSG = "SCP-966 instance spawned."
 			
-		Case "1048-a", "scp1048-a", "scp-1048-a", "scp1048a", "scp-1048a"
+		Case "1048a", "1048-a", "scp1048-a", "scp-1048-a", "scp1048a", "scp-1048a"
 			n.NPCs = CreateNPC(NPCtype1048a, EntityX(Collider), EntityY(Collider) + 0.2, EntityZ(Collider))
 			consoleMSG = "SCP-1048-A spawned."
 			
@@ -7442,7 +7442,7 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 	
 	temp# = 0.5 / MeshWidth(n\obj)
 	ScaleEntity n\obj, temp, temp, temp
-	MeshCullBox (n\obj, -MeshWidth(ClassDObj), -MeshHeight(ClassDObj), -MeshDepth(ClassDObj), MeshWidth(ClassDObj)*2, MeshHeight(ClassDObj)*2, MeshDepth(ClassDObj)*2)
+	MeshCullBox (n\obj, -MeshWidth(ClassDObj), -MeshHeight(ClassDObj), -MeshDepth(ClassDObj)*4, MeshWidth(ClassDObj)*2, MeshHeight(ClassDObj)*2, MeshDepth(ClassDObj)*8)
 	
 	SetNPCFrame(n,n\Frame)
 	
