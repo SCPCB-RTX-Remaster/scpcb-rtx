@@ -1218,7 +1218,7 @@ Function UpdateMainMenu()
 
 								DrawFrame(x,y,490* MenuScale, 70 * MenuScale)
 								If m\Icon = 0 And m\Iconpath <> "" Then
-									m\Icon = LoadImage_Strict(m\IconPath)
+									m\Icon = LoadImage_Strict(m\IconPath, 1)
 									m\DisabledIcon = CreateGrayScaleImage(m\Icon)
 									ResizeImage(m\Icon, 64 * MenuScale, 64 * MenuScale)
 									ResizeImage(m\DisabledIcon, 64 * MenuScale, 64 * MenuScale)

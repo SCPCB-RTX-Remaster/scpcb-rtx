@@ -24,7 +24,7 @@ ModelExtensions[4] = "obj"
 ;more informative alternative to MAVs outside of debug mode, makes it immiediately obvious whether or not someone is loading resources
 ;likely to cause more crashes than 'clean' CB, as this prevents anyone from loading any assets that don't exist, regardless if they are ever used
 ;added zero checks since blitz load functions return zero sometimes even if the filetype exists
-Function LoadImage_Strict(file$)
+Function LoadImage_Strict(file$, flags%=0)
 	Local ext$ = File_GetExtension(file)
 	Local fileNoExt$ = Left(file, Len(file) - Len(ext))
 	Local tmp%
@@ -39,7 +39,7 @@ Function LoadImage_Strict(file$)
 			EndIf
 			Local modPath$ = m\Path + fileNoExt + usedExtension
 			If FileType(modPath) = 1 Then
-				tmp = LoadImage(modPath)
+				tmp = LoadImage(modPath, flags)
 				If tmp <> 0 Then
 					Return tmp
 				Else If DebugResourcePacks Then
@@ -50,7 +50,7 @@ Function LoadImage_Strict(file$)
 	Next
 
 	If FileType(file$)<>1 Then RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
-	tmp = LoadImage(file$)
+	tmp = LoadImage(file$, flags)
 	Return tmp
 	;attempt to load the image again
 	If tmp = 0 Then tmp2 = LoadImage(file)
