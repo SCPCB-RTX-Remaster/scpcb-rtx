@@ -55,7 +55,7 @@ Global SelectedMap% = -1
 
 LoadSaveGames()
 
-Global CurrLoadGamePage% = 0
+Global CurrLoadGamePage%
 Global EntriesPerPage%
 Global PagingFrameHeight%
 
@@ -445,7 +445,7 @@ Function UpdateMainMenu()
 
 					SeedRnd GetRandomSeed()
 
-					SetErrorMsg(7, GetSeedString())
+					SetErrorMsg(7, GetSeedString(False))
 
 					LoadEntities()
 					LoadAllSounds()
@@ -946,7 +946,7 @@ Function UpdateMainMenu()
 					;[End Block]
 				ElseIf MainMenuTab = 7 ;Advanced
 					;[Block]
-					height = 355 * MenuScale
+					height = (355 + (CurrFrameLimit > 0.0) * 30) * MenuScale
 					DrawFrame(x, y, width, height)	
 					
 					y = y + 20*MenuScale

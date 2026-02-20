@@ -2,7 +2,7 @@ Const VersionNumber$ = "1.3.12-pre11"
 ;Only change this if the version given isn't working with the current build version - ENDSHN
 Const CompatibleNumber$ = "1.3.12-pre10"
 
-InitErrorMsgs(10, True)
+InitErrorMsgs(11, True)
 SetErrorMsg(0, "An error occured in SCP - Containment Breach v" + VersionNumber)
 SetErrorMsg(1, "Please send us the generated minidump along with a screenshot of this window!")
 SetErrorMsg(2, "---------------------------------------------------")
@@ -204,7 +204,7 @@ Next
 LoadLocalization(I_Loc, StringsFile)
 
 ; Exclusive fullscreen ONLY supports the reported resolutions
-If LauncherEnabled And (Not IsRestart) And (Not HasCLIFlag("nolauncher")) Lor Fullscreen And (Not GfxMode3DExists(GraphicWidth, GraphicHeight, 32-16*Bit16Mode)) Then
+If (LauncherEnabled Lor HasCLIFlag("launcher")) And (Not IsRestart) And (Not HasCLIFlag("nolauncher")) Lor Fullscreen And (Not GfxMode3DExists(GraphicWidth, GraphicHeight, 32-16*Bit16Mode)) Then
 	UpdateLauncher()
 EndIf
 
@@ -3165,12 +3165,14 @@ While IsRunning
 		
 		If InfiniteStamina% Then Stamina = Min(100, Stamina + (100.0-Stamina)*0.01*FPSfactor)
 		
+		CatchErrors("Uncaught (UpdateWorld)")
 		If FPSfactor=0
 			UpdateWorld(0)
 		Else
 			UpdateWorld()
 			ManipulateNPCBones()
 		EndIf
+		CatchErrors("UpdateWorld")
 		RenderWorld2()
 		
 		BlurVolume = Min(CurveValue(0.0, BlurVolume, 20.0),0.95)
@@ -4936,6 +4938,7 @@ Function DrawGUI()
 			FreeImage SelectedScreen\img : SelectedScreen\img = 0
 			SelectedScreen = Null
 			MouseUp1 = False
+			MouseXSpeed() : MouseYSpeed() : MouseZSpeed() : mouse_x_speed_1#=0.0 : mouse_y_speed_1#=0.0
 		EndIf
 	EndIf
 	
@@ -10219,14 +10222,16 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 	If it2 <> Null Then EntityType (it2\collider, HIT_ITEM)
 End Function
 
-Global Keyboard294Layers%, Keyboard294X%, Keyboard294Y%, Keyboard294Width%, Keyboard294Height%, Keyboard294TileWidth#, Keyboard294TileHeight#
+Global Keyboard294Layers%, Keyboard294X%, Keyboard294Y%, Keyboard294Width%, Keyboard294Height%, Keyboard294TileWidth#, Keyboard294TileHeight#, Keyboard294ResetLayerOnInput%
 Global Keyboard294ActiveLayer%
 Dim Keyboard294$(0,0,0)
 
 Function Load294()
+	Dim Keyboard294(0, 0, 0)
 	Local f% = ReadFile(DetermineModdedPath("Data\SCP-294Keyboard.ini"))
 	Local row% = -1
 	Local layer% = -1
+	Keyboard294ResetLayerOnInput = False
 	While Not Eof(f)
 		Local l$ = Trim(ReadLine(f))
 		If l <> "" And Instr(l, "#") <> 1 And Instr(l, ";") <> 1 Then
@@ -10267,6 +10272,8 @@ Function Load294()
 							Keyboard294TileWidth = Float(value)
 						Case "tile.height"
 							Keyboard294TileHeight = Float(value)
+						Case "reset layer on input"
+							Keyboard294ResetLayerOnInput = ParseINIInt(value)
 						Default
 							RuntimeErrorExt("Unknown key "+Chr(34)+key+Chr(34)+" in SCP-294 keyboard.")
 					End Select
@@ -10315,6 +10322,8 @@ Function Use294()
 				If xtemp => 0 And xtemp < Keyboard294Width Then
 					PlaySound_Strict ButtonSFX
 
+					Local oldLayer = Keyboard294ActiveLayer
+
 					strtemp = ""
 					Local pressedKey$ = Keyboard294(Keyboard294ActiveLayer, xtemp, ytemp)
 					Select pressedKey
@@ -10329,8 +10338,14 @@ Function Use294()
 						Case "LAYER_DOWN"
 							Keyboard294ActiveLayer = (Keyboard294ActiveLayer - 1 + Keyboard294Layers) Mod Keyboard294Layers
 						Default
-							strtemp = pressedKey
+							If Left(pressedKey, 10) = "LAYER_SET_" Then
+								Keyboard294ActiveLayer = Int(Right(pressedKey, Len(pressedKey) - 10))
+							Else
+								strtemp = pressedKey
+							EndIf
 					End Select
+
+					If Keyboard294ResetLayerOnInput And oldLayer = Keyboard294ActiveLayer Then Keyboard294ActiveLayer = 0
 				EndIf
 			EndIf
 			
@@ -11401,6 +11416,8 @@ End Function
 
 
 Function RenderWorld2()
+	CatchErrors("Uncaught (RenderWorld2)")
+
 	CameraProjMode ark_blur_cam,0
 	CameraProjMode Camera,1
 	
@@ -11567,6 +11584,8 @@ Function RenderWorld2()
 			SetFont Font1
 		EndIf
 	EndIf
+
+	CatchErrors("RenderWorld2")
 End Function
 
 
