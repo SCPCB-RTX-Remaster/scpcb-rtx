@@ -5530,6 +5530,7 @@ Function FillRoom(r.Rooms)
 		If Not dt\AllowRemoteControl Then
 			door\AutoClose = False
 		EndIf
+		door\locked = dt\Locked
 		If dt\DeleteHalf Then FreeEntity door\obj2 : door\obj2 = 0
 		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
 		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, r\z + dt\Button1RotZ, True)
