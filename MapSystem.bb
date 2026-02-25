@@ -8314,15 +8314,17 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 End Function
 
 Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
+	CatchErrors("Uncaught (UpdateChunks)")
+
 	Local ch.Chunk,StrTemp$,i%,x#,z#,ch2.Chunk,y#,n.NPCs,j%
 	Local ChunkX#,ChunkZ#,ChunkMaxDistance#=3*40
 	
-	ChunkX# = Int(EntityX(Collider)/40)
-	ChunkZ# = Int(EntityZ(Collider)/40)
+	ChunkX# = Int(EntityX(Collider)/40)*40
+	ChunkZ# = Int(EntityZ(Collider)/40)*40
 	
 	y# = EntityY(PlayerRoom\obj)
-	x# = -ChunkMaxDistance#+(ChunkX*40)
-	z# = -ChunkMaxDistance#+(ChunkZ*40)
+	x# = -ChunkMaxDistance#+ChunkX
+	z# = -ChunkMaxDistance#+ChunkZ
 	
 	Local CurrChunkData% = 0, MaxChunks% = GetINIInt("Data\1499chunks.INI","general","count")
 	
@@ -8340,14 +8342,13 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 			CurrChunkData = CHUNKDATA(Abs(((x+32)/40) Mod 64),Abs(((z+32)/40) Mod 64))
 			;ch2 = CreateChunk(Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
 			ch2 = CreateChunk(CurrChunkData%,x#,y#,z#)
-			ch2\IsSpawnChunk = False
 		EndIf
 		x#=x#+40.0
-		If x# > (ChunkMaxDistance#+(ChunkX*40))
+		If x# > (ChunkMaxDistance#+ChunkX)
 			z#=z#+40.0
-			x# = -ChunkMaxDistance#+(ChunkX*40)
+			x# = -ChunkMaxDistance#+ChunkX
 		EndIf
-	Until z# > (ChunkMaxDistance#+(ChunkZ*40))
+	Until z# > (ChunkMaxDistance#+ChunkZ)
 	
 	For ch = Each Chunk
 ;		If DebugHUD
@@ -8356,7 +8357,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 ;			HideEntity ch\ChunkPivotDebug
 ;		EndIf
 		If (Not ch\IsSpawnChunk)
-			If Distance(EntityX(Collider),EntityZ(Collider),EntityX(ch\ChunkPivot),EntityZ(ch\ChunkPivot))>ChunkMaxDistance
+			If Abs(ChunkX-ch\x)>ChunkMaxDistance Lor Abs(ChunkZ-ch\z)>ChunkMaxDistance
 				FreeEntity ch\ChunkPivot
 				Delete ch
 			EndIf
@@ -8415,6 +8416,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 	EndIf
 	
+	CatchErrors("UpdateChunks")
 End Function
 
 Function HideChunks()
