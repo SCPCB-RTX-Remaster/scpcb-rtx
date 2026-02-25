@@ -8273,7 +8273,7 @@ Type Chunk
 	Field PlatForm%
 End Type
 
-Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
+Function CreateChunk.Chunk(r.Rooms,obj%,x#,y#,z#,isSpawnChunk%=False)
 	Local ch.Chunk = New Chunk
 	Local i%, chp.ChunkPart
 	
@@ -8306,7 +8306,7 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 		Next
 	EndIf
 	
-	ch\PlatForm = CopyEntity(PlayerRoom\Objects[0],ch\ChunkPivot)
+	ch\PlatForm = CopyEntity(r\Objects[0],ch\ChunkPivot)
 	EntityType ch\PlatForm,HIT_MAP
 	EntityPickMode ch\PlatForm,2
 	
@@ -8340,8 +8340,8 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 		If (Not chunkfound)
 			CurrChunkData = CHUNKDATA(Abs(((x+32)/40) Mod 64),Abs(((z+32)/40) Mod 64))
-			;ch2 = CreateChunk(Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
-			ch2 = CreateChunk(CurrChunkData%,x#,y#,z#)
+			;ch2 = CreateChunk(r,Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
+			ch2 = CreateChunk(r,CurrChunkData%,x#,y#,z#)
 		EndIf
 		x#=x#+40.0
 		If x# > (ChunkMaxDistance#+ChunkX)
