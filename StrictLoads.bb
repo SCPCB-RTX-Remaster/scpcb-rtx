@@ -17,6 +17,11 @@ Global ModelExtensions$[ModelExtensionCount]
 ModelExtensions[0] = "b3d"
 ModelExtensions[1] = "x"
 
+Const SoundExtensionCount = 2
+Global SoundExtensions$[SoundExtensionCount]
+SoundExtensions[0] = "ogg"
+SoundExtensions[1] = "wav"
+
 ;basic wrapper functions that check to make sure that the file exists before attempting to load it, raises an RTE if it doesn't
 ;more informative alternative to MAVs outside of debug mode, makes it immiediately obvious whether or not someone is loading resources
 ;likely to cause more crashes than 'clean' CB, as this prevents anyone from loading any assets that don't exist, regardless if they are ever used
@@ -101,7 +106,7 @@ Function PlaySound_Strict%(sndHandle%)
 								ConsoleOpen = True
 							EndIf
 						Else
-							If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedPath(snd\name))
+							If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 						EndIf
 						If snd\internalHandle = 0 Then
 							CreateConsoleMsg("Failed to load Sound: " + Chr(34) + snd\name + Chr(34))
@@ -127,7 +132,7 @@ Function PlaySound_Strict%(sndHandle%)
 							ConsoleOpen = True
 						EndIf
 					Else
-						If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedPath(snd\name))
+						If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 					EndIf
 						
 					If snd\internalHandle = 0 Then
@@ -152,8 +157,31 @@ Function PlaySound_Strict%(sndHandle%)
 	Return 0
 End Function
 
+Function DetermineModdedSoundPath$(File$)
+	Local ext$ = File_GetExtension(File)
+	Local fileNoExt$ = Left(File, Len(File) - Len(ext))
+	Local tmp%
+
+	For m.ActiveMods = Each ActiveMods
+		For i = 0 To SoundExtensionCount
+			Local usedExtension$
+			If i = SoundExtensionCount Then
+				usedExtension = ext
+			Else
+				usedExtension = SoundExtensions[i]
+			EndIf
+			Local modPath$ = m\Path + fileNoExt + usedExtension
+			If FileType(modPath) = 1 Then
+				Return modPath
+			EndIf
+		Next
+	Next
+
+	Return File
+End Function
+
 Function LoadSound_Strict(file$)
-	file = DetermineModdedPath(file)
+	file = DetermineModdedSoundPath(file)
 	Local snd.Sound = New Sound
 	snd\name = file
 	snd\internalHandle = 0
@@ -183,7 +211,7 @@ Type Stream
 End Type
 
 Function StreamSound_Strict(file$,volume#=1.0,custommode=2)
-	file = DetermineModdedPath(file)
+	file = DetermineModdedSoundPath(file)
 	If FileType(file$)<>1
 		CreateConsoleMsg("Sound " + Chr(34) + file$ + Chr(34) + " not found.")
 		If ConsoleOpening

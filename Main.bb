@@ -3011,7 +3011,7 @@ While IsRunning
 	
 	If MainMenuOpen Then
 		If ShouldPlay = 21 Then
-			EndBreathSFX = LoadSound(DetermineModdedPath("SFX\Ending\MenuBreath.ogg"))
+			EndBreathSFX = LoadSound(DetermineModdedSoundPath("SFX\Ending\MenuBreath.ogg"))
 			EndBreathCHN = PlaySound(EndBreathSFX)
 			ShouldPlay = 66
 		ElseIf ShouldPlay = 66
