@@ -4118,6 +4118,8 @@ Function UpdateNPCs()
 								
 								;echo if player gets close
 								If dist<2.0 And (Not NoTarget) Then 
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									n\State=Rand(1,4)
 								EndIf 							
 							EndIf
@@ -4149,6 +4151,8 @@ Function UpdateNPCs()
 								BlurTimer = ((Sin(MilliSecs()/50)+1.0)*200)/dist
 								
 								If (Not Wearing714) And (WearingGasMask<3) And (WearingHazmat<3) And dist<16 Then
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									If StaminaEffect<1.5 Then
 										Msg = I_Loc\Message_966Sleep[Rand(4)]
 										MsgTimer = 7*70
@@ -4252,6 +4256,8 @@ Function UpdateNPCs()
 											n\CurrSpeed = CurveValue(0,n\CurrSpeed,10.0)
 										EndIf
 									Else
+										If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 										n\Angle = VectorYaw(EntityX(Collider)-EntityX(n\Collider),0,EntityZ(Collider)-EntityZ(n\Collider))
 										n\CurrSpeed = CurveValue(n\Speed,n\CurrSpeed,10.0)
 										
