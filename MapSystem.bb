@@ -5529,10 +5529,10 @@ Function FillRoom(r.Rooms)
 		EndIf
 		door\locked = dt\Locked
 		If dt\DeleteHalf Then FreeEntity door\obj2 : door\obj2 = 0
-		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
-		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, r\z + dt\Button1RotZ, True)
-		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
-		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, r\z + dt\Button2RotZ, True)
+		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ <> 0 Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
+		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ <> 0 Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, dt\Button1RotZ, True)
+		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ <> 0 Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
+		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ <> 0 Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, dt\Button2RotZ, True)
 		dt = dt\Successor
 	Wend
 	
