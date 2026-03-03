@@ -1,14 +1,4 @@
-# SCP - Containment Breach RTX Remaster
-
->[!WARNING]
->Beware - the source code is perhaps more horrifying than the game itself!
-
-The game is based on the works of the [SCP Foundation community](http://www.scp-wiki.net/). This game and the source code are licensed under the [Creative Commons Attribution-ShareAlike 3.0 License](http://creativecommons.org/licenses/by-sa/3.0/).
-
-# Credits
-
-## RTX Remaster
- 
+﻿# RTX Remaster Credits
 - **Nick Ward** ("Inward 3D")
 - **Kuro** ("Kuro")
 - **Itzslain** ("Itzslain")
@@ -18,9 +8,9 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Elisha Riedlinger** ("elishacloud")
 - **Jimmy** ("jimmythetimmythejim")
 
-## SCP - Containment Breach
+# SCP - Containment Breach Credits
 
-### Programmers
+## Programmers
 
 - **Joonas Rikkonen** ("Regalis")
 - **CommanderMark**
@@ -31,7 +21,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Sam Lynch** ("InnocentSam")
 - **Shaun Gaylard** ("ENDSHN")
 
-### 3D Modellers
+## 3D Modellers
 
 - **Joonas Rikkonen** ("Regalis")
 - **Apocryphos**
@@ -55,7 +45,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Tom Malinowski**
 - **Vladislav Borisevich** ("Vane Brain")
 
-### Sound Effects and Music
+## Sound Effects and Music
 
 - **Joonas Rikkonen** ("Regalis")
 - **Caleb Yu** ("Omniary")
@@ -71,7 +61,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Vladislav Borisevich** ("Vane Brain")
 - **Walach**
 
-### Voice Actors
+## Voice Actors
 
 - **Aaron Mckee** ("TheVolgun")
 - **Brendan Sussman** ("DukeLovesYou")
@@ -84,7 +74,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **SolidBaker**
 - **Tallfellow**
 
-### Graphics and Sprites
+## Graphics and Sprites
 
 - **Joonas Rikkonen** ("Regalis")
 - **Anon4743**
@@ -98,7 +88,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Shaun Gaylard** ("ENDSHN")
 - **Vladislav Borisevich** ("Vane Brain")
 
-### Writers
+## Writers
 
 - **Joonas Rikkonen** ("Regalis")
 - **Caleb Yu** ("Omniary")
@@ -107,7 +97,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **Steelpoint**
 - **Vladislav Borisevich** ("Vane Brain")
 
-### Testers
+## Testers
 
 - **Christian Rieß**
 - **Emil215p**
@@ -119,7 +109,7 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 - **TheHappyJammer**
 - **Zadrakos**
 
-### Other Contributors
+## Other Contributors
 
 - **Agent G**
 - **Gage Allen** ("Lotims")
@@ -186,5 +176,4 @@ The game is based on the works of the [SCP Foundation community](http://www.scp-
 > 
 > SCP-CB has been a big collaborative effort with dozens (maybe even hundreds?) of people creating material and giving ideas and feedback for the game, and I'm sure I've forgotten to mention some of you here. If you've contributed something to the game and would like your name to be added here, drop me a message on the Undertow Games forum or contact@undertowgames.com!
 > 
-
 > **- Joonas Rikkonen ("Regalis")**
