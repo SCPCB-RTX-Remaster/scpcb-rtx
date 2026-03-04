@@ -2211,7 +2211,7 @@ Function FillRoom(r.Rooms)
 			sc\angle = 45 + 180
 			sc\turn = 45
 			sc\ScrTexture = 1
-			EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+			EntityTexture sc\ScrObj, CCTVTexture
 			
 			TurnEntity(sc\CameraObj, 40, 0, 0)
 			EntityParent(sc\obj, r\obj)
@@ -2224,7 +2224,7 @@ Function FillRoom(r.Rooms)
 			sc\angle = 45
 			sc\turn = 45
 			sc\ScrTexture = 1
-			EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+			EntityTexture sc\ScrObj, CCTVTexture
 			
 			TurnEntity(sc\CameraObj, 40, 0, 0)
 			EntityParent(sc\obj, r\obj)				
@@ -2273,6 +2273,10 @@ Function FillRoom(r.Rooms)
 			PositionEntity(sc\ScrObj, r\x + 668 * RoomScale, 1.1, r\z - 96.0 * RoomScale)
 			TurnEntity(sc\ScrObj, 0, 90, 0)
 			EntityParent(sc\ScrObj, r\obj)
+			EntityTexture sc\ScrObj, MonitorTextureOffline
+			EntityBlend (sc\ScrObj, 3)
+			EntityFX sc\ScrObj, 1+8
+			HideEntity sc\ScrOverlay
 			
 			sc.SecurityCams = CreateSecurityCam(r\x - 384.0 * RoomScale, r\y + 384 * RoomScale, r\z - 512.0 * RoomScale, r, True)
 			sc\angle = 45 + 90 + 180
@@ -2283,6 +2287,10 @@ Function FillRoom(r.Rooms)
 			
 			PositionEntity(sc\ScrObj, r\x + 96.0 * RoomScale, 1.1, r\z - 668.0 * RoomScale)
 			EntityParent(sc\ScrObj, r\obj)
+			EntityTexture sc\ScrObj, MonitorTextureOffline
+			EntityBlend (sc\ScrObj, 3)
+			EntityFX sc\ScrObj, 1+8
+			HideEntity sc\ScrOverlay
 			;[End Block]
 		Case "gatea"
 			;[Block]
@@ -4159,11 +4167,10 @@ Function FillRoom(r.Rooms)
 			PositionEntity(sc\ScrObj, r\x - 1716.0 * RoomScale, r\y + 160.0 * RoomScale, r\z + 176.0 * RoomScale, True)
 			TurnEntity sc\ScrObj, 0, 90, 0
 			ScaleSprite sc\ScrObj, 896.0*0.5*RoomScale, 896.0*0.5*RoomScale
+			EntityTexture sc\ScrObj, LampDemonsTexture
 			
 			EntityParent(sc\ScrObj, r\obj)
 			;EntityBlend(sc\ScrObj, 2)
-			
-			CameraZoom (sc\Cam, 1.5)
 			
 			HideEntity sc\obj
 			HideEntity sc\CameraObj
@@ -4176,6 +4183,11 @@ Function FillRoom(r.Rooms)
 			RotateEntity r\Objects[0], 0,-90,0,True
 			
 			r\Objects[1] = sc\ScrObj
+
+			lampdemonhash = LoadMesh_Strict("GFX\Map\Props\ldhash.b3d")
+			ShowEntity lampdemonhash
+			EntityParent lampdemonhash,r\Objects[0]
+			PositionEntity lampdemonhash, EntityX(r\Objects[0])-2.0,EntityY(r\Objects[0]),EntityZ(r\Objects[0]), True
 			
 			;[End Block]
 		Case "endroom"
@@ -4192,9 +4204,9 @@ Function FillRoom(r.Rooms)
 			;[End Block]
 		Case "coffin"
 			;[Block]
-			d = CreateDoor(r\zone, r\x, 0, r\z - 448.0 * RoomScale, 0, r, False, True, 2)
-			d\AutoClose = False : d\open = False
-			PositionEntity(d\buttons[0], r\x - 384.0 * RoomScale, 0.7, r\z - 280.0 * RoomScale, True)
+			r\RoomDoors[0] = CreateDoor(r\zone, r\x, 0, r\z - 448.0 * RoomScale, 0, r, False, True, 2)
+			r\RoomDoors[0]\AutoClose = False : r\RoomDoors[0]\open = False
+			PositionEntity(r\RoomDoors[0]\buttons[0], r\x - 384.0 * RoomScale, 0.7, r\z - 280.0 * RoomScale, True)
 			
 			sc.SecurityCams = CreateSecurityCam(r\x - 320.0 * RoomScale, r\y + 704 * RoomScale, r\z + 288.0 * RoomScale, r, True)
 			sc\angle = 45 + 180
@@ -6331,14 +6343,14 @@ Function CreateSecurityCam.SecurityCams(x#, y#, z#, r.Rooms, screen% = False)
 		Local scale# = RoomScale * 4.5 * 0.4
 		
 		sc\ScrObj = CreateSprite()
-		EntityFX sc\ScrObj, 17
 		SpriteViewMode(sc\ScrObj, 2)
 		sc\ScrTexture = 0
-		EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+		EntityTexture sc\ScrObj, CCTVTexture
 		ScaleSprite(sc\ScrObj, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
+		EntityBlend (sc\ScrObj, 3)
+		EntityFX sc\ScrObj, 1+8
 		
 		sc\ScrOverlay = CreateSprite(sc\ScrObj)
-		;	scaleSprite(sc\scrOverlay , 0.5, 0.4)
 		ScaleSprite(sc\ScrOverlay, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
 		MoveEntity(sc\ScrOverlay, 0, 0, -0.0005)
 		EntityTexture(sc\ScrOverlay, MonitorTexture)
@@ -6346,14 +6358,6 @@ Function CreateSecurityCam.SecurityCams(x#, y#, z#, r.Rooms, screen% = False)
 		EntityBlend(sc\ScrOverlay , 3)
 		
 		sc\MonitorObj = CopyEntity(Monitor, sc\ScrObj)
-		
-		ScaleEntity(sc\MonitorObj, scale, scale, scale)
-		
-		sc\Cam = CreateCamera()
-		CameraViewport(sc\Cam, 0, 0, 512, 512)
-		CameraRange sc\Cam, 0.05, 8.0 ;6.0
-		CameraZoom(sc\Cam, 0.8)
-		HideEntity(sc\Cam)	
 	End If
 	
 	PositionEntity(sc\obj, x, y, z)
@@ -6480,34 +6484,9 @@ Function UpdateSecurityCams()
 							If EntityVisible(Camera,sc\ScrObj) Then
 								;sc\InSight = True
 								If CoffinCam = Null Or Rand(5)=5 Or sc\CoffinEffect <> 3 Then
-									HideEntity(Camera)
-									ShowEntity(sc\Cam)
-									Cls
-									
-									UpdateRoomLights(sc\Cam)
-									
-									SetBuffer BackBuffer()
-									RenderWorld
-									CopyRect 0,0,512,512,0,0,BackBuffer(),TextureBuffer(ScreenTexs[sc\ScrTexture])
-									
-									HideEntity(sc\Cam)
-									ShowEntity(Camera)										
+									CoffinCamera$ = "False"
 								Else
-									HideEntity(Camera)
-									ShowEntity (CoffinCam\room\obj)
-									EntityAlpha(GetChild(CoffinCam\room\obj,2),1)
-									ShowEntity(CoffinCam\Cam)
-									Cls
-									
-									UpdateRoomLights(CoffinCam\Cam)
-									
-									SetBuffer BackBuffer()
-									RenderWorld
-									CopyRect 0,0,512,512,0,0,BackBuffer(),TextureBuffer(ScreenTexs[sc\ScrTexture])
-									
-									HideEntity (CoffinCam\room\obj)
-									HideEntity(CoffinCam\Cam)
-									ShowEntity(Camera)										
+									CoffinCamera$ = "True"
 								EndIf
 							EndIf
 						EndIf

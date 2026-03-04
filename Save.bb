@@ -369,6 +369,8 @@ Function SaveGame(file$)
 		WriteFloat f, e\EventState
 		WriteFloat f, e\EventState2	
 		WriteFloat f, e\EventState3	
+		WriteFloat f, e\EventState4
+		WriteFloat f, e\EventState5
 		WriteFloat f, EntityX(e\room\obj)
 		WriteFloat f, EntityZ(e\room\obj)
 		WriteString f, e\EventStr
@@ -1039,6 +1041,8 @@ Function LoadGame(file$)
 		e\EventState =ReadFloat(f)
 		e\EventState2 =ReadFloat(f)		
 		e\EventState3 =ReadFloat(f)
+		e\EventState4 = ReadFloat(f)
+		e\EventState5 = ReadFloat(f)
 		x = ReadFloat(f)
 		z = ReadFloat(f)
 		For  r.Rooms = Each Rooms
@@ -1781,6 +1785,8 @@ Function LoadGameQuick(file$)
 		e\EventState = ReadFloat(f)
 		e\EventState2 = ReadFloat(f)
 		e\EventState3 = ReadFloat(f)		
+		e\EventState4 = ReadFloat(f)
+		e\EventState5 = ReadFloat(f)
 		x = ReadFloat(f)
 		z = ReadFloat(f)
 		For r.Rooms = Each Rooms

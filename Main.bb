@@ -3,7 +3,7 @@ Const VersionNumber$ = "1.3.12"
 Const CompatibleNumber$ = "1.3.12"
 
 InitErrorMsgs(11, True)
-SetErrorMsg(0, "An error occured in SCP - Containment Breach v" + VersionNumber)
+SetErrorMsg(0, "An error occured in SCP - Containment Breach RTX Remaster v" + VersionNumber)
 SetErrorMsg(1, "Please send us the generated minidump along with a screenshot of this window!")
 SetErrorMsg(2, "---------------------------------------------------")
 SetErrorMsg(3, "OS: " + SystemProperty("os") + " " + (32 + (GetEnv("ProgramFiles(X86)") <> 0) * 32) + " Bit (Build: " + SystemProperty("osbuild") + ")")
@@ -29,9 +29,7 @@ Global ModsFile$ = DataDir + "\mods.ini"
 Const OptionDefaultFile$ = "defaults.ini"
 
 Function InitDataDir$()
-	Local dir$ = GetEnv("AppData") + "\Undertow Games"
-	If FileType(dir) <> 2 Then CreateDir(dir)
-	dir = dir + "\SCP - Containment Breach"
+	Local dir$ = GetEnv("AppData") + "\SCP-CB RTX Remaster"
 	If FileType(dir) <> 2 Then CreateDir(dir)
 	Return dir
 End Function
@@ -668,7 +666,7 @@ Function UpdateConsole()
 					
 					Select Lower(StrTemp)
 						Case "1",""
-							CreateConsoleMsg("LIST OF COMMANDS - PAGE 1/3")
+							CreateConsoleMsg("LIST OF COMMANDS - PAGE 1/4")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("- asd")
 							CreateConsoleMsg("- status")
@@ -687,11 +685,11 @@ Function UpdateConsole()
 							CreateConsoleMsg("- spawnitem [item name]")
 							CreateConsoleMsg("- itemlist")
 							CreateConsoleMsg("******************************")
-							CreateConsoleMsg("Use "+Chr(34)+"help 2/3"+Chr(34)+" to find more commands.")
+							CreateConsoleMsg("Use "+Chr(34)+"help 2/3/4"+Chr(34)+" to find more commands.")
 							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
 							CreateConsoleMsg("******************************")
 						Case "2"
-							CreateConsoleMsg("LIST OF COMMANDS - PAGE 2/3")
+							CreateConsoleMsg("LIST OF COMMANDS - PAGE 2/4")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("- spawn [npc type] [state]")
 							CreateConsoleMsg("- 096state")
@@ -704,13 +702,12 @@ Function UpdateConsole()
 							CreateConsoleMsg("- 173state")
 							CreateConsoleMsg("- disable173")
 							CreateConsoleMsg("- enable173")
-							CreateConsoleMsg("- halloween")
 							CreateConsoleMsg("- scp-420-j")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
 							CreateConsoleMsg("******************************")
 						Case "3"
-							CreateConsoleMsg("LIST OF COMMANDS - PAGE 3/3")
+							CreateConsoleMsg("LIST OF COMMANDS - PAGE 3/4")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("- wireframe")
 							CreateConsoleMsg("- showfps")
@@ -723,6 +720,23 @@ Function UpdateConsole()
 							CreateConsoleMsg("- ending")
 							CreateConsoleMsg("- unlockexits")
 							CreateConsoleMsg("- omni")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
+							CreateConsoleMsg("******************************")
+						Case "4"
+							CreateConsoleMsg("LIST OF COMMANDS - PAGE 4/4")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("- halloween")
+							CreateConsoleMsg("- regalis")
+							CreateConsoleMsg("- peanut")
+							CreateConsoleMsg("- inward3d")
+							CreateConsoleMsg("- simoxus")
+							CreateConsoleMsg("- kuro")
+							CreateConsoleMsg("- jimmy")
+							CreateConsoleMsg("- itzslain")
+							CreateConsoleMsg("- jevediah")
+							CreateConsoleMsg("- reader")
+							CreateConsoleMsg("- rjk")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
 							CreateConsoleMsg("******************************")
@@ -860,7 +874,121 @@ Function UpdateConsole()
 							CreateConsoleMsg("and relies on the amount of achievements")
 							CreateConsoleMsg("unlocked in the current save.")
 							CreateConsoleMsg("******************************")
-							
+						Case "regalis", "original", "vanilla"
+							CreateConsoleMsg("HELP - regalis")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This will change the model for SCP-173")
+							CreateConsoleMsg("to an optimized version visually identical")
+							CreateConsoleMsg("to the original model from Vanilla v1.3.11")
+							CreateConsoleMsg("-if it already isn't that model.")
+							CreateConsoleMsg("******************************")
+						Case "inward3d", "inward", "remastered"
+							CreateConsoleMsg("HELP - inward3d")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This will change the model for SCP-173")
+							CreateConsoleMsg("to the wiki accurate remastered model")
+							CreateConsoleMsg("that was made by Inward 3D specifically")
+							CreateConsoleMsg("for the RTX Remaster of Containment Breach.")
+							CreateConsoleMsg("-if it already isn't that model.")
+							CreateConsoleMsg("Inward 3D is the guy who created 90%")
+							CreateConsoleMsg("Iof this mod.")
+							CreateConsoleMsg("******************************")
+						Case "simoxus"
+							CreateConsoleMsg("HELP - simoxus")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for Simoxus :3")
+							CreateConsoleMsg("Simoxus is one of the people who helped")
+							CreateConsoleMsg("in sourcing textures, and mainly SFX,")
+							CreateConsoleMsg("Mostly did 90% of SFX related Remaster work.")
+							CreateConsoleMsg("******************************")
+						Case "kuro", "guitaristkuro"
+							CreateConsoleMsg("HELP - kuro")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for kuro :)")
+							CreateConsoleMsg("kuro is one of the people who helped")
+							CreateConsoleMsg("in early development of the RTX Mod,")
+							CreateConsoleMsg("Mostly worked in the RTX Remix Toolkit,")
+							CreateConsoleMsg("playtesting, or just providing a second")
+							CreateConsoleMsg("opinion on ideas or designs.")
+							CreateConsoleMsg("******************************")
+						Case "jimmy", "jimmythetimmythejim"
+							CreateConsoleMsg("HELP - jimmy")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for Jimmy :O")
+							CreateConsoleMsg("Jimmy is the one who did a good")
+							CreateConsoleMsg("85% of sourcing the textures of the")
+							CreateConsoleMsg("game's GFX. He was a HUGE help; I cannot")
+							CreateConsoleMsg("emphasize how important his efforts were")
+							CreateConsoleMsg("to the project as a whole.")
+							CreateConsoleMsg("******************************")
+						Case "jevediah"
+							CreateConsoleMsg("HELP - jevediah")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for Jevediah ;]")
+							CreateConsoleMsg("Jevediah is one of the people who helped")
+							CreateConsoleMsg("in early development of the RTX Mod,")
+							CreateConsoleMsg("especially getting the mod even working with")
+							CreateConsoleMsg("the game despite being on DirectX 7, he")
+							CreateConsoleMsg("Has been a Huge help for miscellaneous")
+							CreateConsoleMsg("tasks, he even helped in reforming and")
+							CreateConsoleMsg("the instruments for the song for the trailer.")
+							CreateConsoleMsg("******************************")
+						Case "itzslain"
+							CreateConsoleMsg("HELP - itzslain")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for ItzSlain :>")
+							CreateConsoleMsg("ItzSlain as of the time of writting,")
+							CreateConsoleMsg("works on the Ultimate Edition Reborn")
+							CreateConsoleMsg("Multiplayer mod for SCP Containment Breach")
+							CreateConsoleMsg("or SCP-CB UERM. he was extremely helpful")
+							CreateConsoleMsg("in the coding side of this mod, and even")
+							CreateConsoleMsg("taught me; Inward 3D the basics of coding")
+							CreateConsoleMsg("in BlitzBasic, making this entire thing possible.")
+							CreateConsoleMsg("******************************")
+						Case "reader", "thescpreader"
+							CreateConsoleMsg("HELP - reader")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for Reader :D")
+							CreateConsoleMsg("Reader or formerly 'TheSCPReader'")
+							CreateConsoleMsg("was the first person I collabed with")
+							CreateConsoleMsg("on SCP Content on YouTube, and that video")
+							CreateConsoleMsg("is still up to this day, he was super helpful")
+							CreateConsoleMsg("really early on in archiving found sources")
+							CreateConsoleMsg("and quite frankly, I probably wouldn't have")
+							CreateConsoleMsg("cared about SCP-CB as much as I do without")
+							CreateConsoleMsg("him to talk about it with back in 2017.")
+							CreateConsoleMsg("******************************")
+						Case "rjk", "riley"
+							CreateConsoleMsg("HELP - rjk")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("This is an easteregg for Riley <3")
+							CreateConsoleMsg("Riley is my lovely fiance at the time")
+							CreateConsoleMsg("of writting, and while she might not")
+							CreateConsoleMsg("take interest in SCP as I do, she's been")
+							CreateConsoleMsg("supportive of me working as long hours as")
+							CreateConsoleMsg("I have to make something really great, even")
+							CreateConsoleMsg("understanding that I don't stand to make a")
+							CreateConsoleMsg("cent from it. But still being there for me")
+							CreateConsoleMsg("because she knows it's important to me.")
+							CreateConsoleMsg("RJK, If you are reading this; I love you.")
+							CreateConsoleMsg("~~~~~~~~~ Forever And Always ~~~~~~~~~~")
+							CreateConsoleMsg("******************************")
+						Case "peanut", "peanutmode"
+							CreateConsoleMsg("HELP - peanut")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("SCP-173 will make you go nuts.")
+							CreateConsoleMsg("******************************")
+                        Case "izumi kato", "untitled 2004"
+							CreateConsoleMsg("HELP - izumi kato")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("Izumi Kato is the original artist")
+							CreateConsoleMsg("******************************")
 						Default
 							CreateConsoleMsg("There is no help available for that command.",255,150,0)
 					End Select
@@ -1123,19 +1251,112 @@ Function UpdateConsole()
 					;[End Block]
 				Case "halloween"
 					;[Block]
-					HalloweenTex = Not HalloweenTex
-					If HalloweenTex Then
-						Local tex = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
-						EntityTexture Curr173\obj, tex, 0, 0
-						FreeTexture tex
-						CreateConsoleMsg("173 JACK-O-LANTERN ON")
+					If Loaded173Model$ = "Regalis" Then
+						HalloweenTex = Not HalloweenTex
+						If HalloweenTex Then
+							Local tex = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
+							EntityTexture Curr173\obj, tex, 0, 0
+							FreeTexture tex
+							CreateConsoleMsg("173 JACK-O-LANTERN ON")
+						Else
+							Local tex2 = LoadTexture_Strict("GFX\npcs\173regalis.jpg", 1)
+							EntityTexture Curr173\obj, tex2, 0, 0
+							FreeTexture tex2
+							CreateConsoleMsg("173 JACK-O-LANTERN OFF")
+						EndIf
 					Else
-						Local tex2 = LoadTexture_Strict("GFX\npcs\173texture.jpg", 1)
-						EntityTexture Curr173\obj, tex2, 0, 0
-						FreeTexture tex2
-						CreateConsoleMsg("173 JACK-O-LANTERN OFF")
+						CreateConsoleMsg("The Halloween texture for SCP-173 is only for the Original Model, type 'regalis' in console to switch the model.")
 					EndIf
 					;[End Block]
+				Case "Regalis", "regalis", "regalis scp-173", "og scp-173", "original scp-173", "vanilla", "vanilla scp-173", "undertow scp-173", "old scp-173"
+					;[Block]
+					If Loaded173Model$ <> "Regalis" Then
+					IzumiKatoTex = IzumiKatoTex
+						Loaded173Model$ = "Regalis"
+						FreeEntity(Curr173\obj)
+						Curr173\obj = LoadMesh_Strict("GFX\npcs\173Regalis.b3d")
+						Local tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempb,tempb,tempb
+						CreateConsoleMsg("SCP-173 is now the Original Model.")
+					Else
+						CreateConsoleMsg("SCP-173 is already set to the Original Model.")
+					EndIf
+				    ;[End Block]
+				Case "Remastered", "remastered", "remastered scp-173", "inward3d", "Inward3D", "Inward3d", "Inward 3D", "inward 3d scp-173", "inward3d scp-173", "inward scp-173", "173_2", "Wiki Accurate", "wiki accurate scp-173"
+					;[Block]
+					If Loaded173Model$ <> "Inward3D" Then
+					HalloweenTex = HalloweenTex
+					   If Intro173Over$ = "True" Then
+					    Loaded173Model$ = "Inward3D"
+						FreeEntity(Curr173\obj)
+					    Curr173\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
+						tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempb,tempb,tempb
+						CreateConsoleMsg("SCP-173 is now the Remastered Model.")
+					   EndIf 
+					   If Intro173Over$ = "False" Then
+					   Loaded173Model$ = "Inward3D"
+						FreeEntity(Curr173\obj)
+					    Curr173\obj = LoadMesh_Strict("GFX\npcs\173_HT.b3d")
+						tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempb,tempb,tempb
+						CreateConsoleMsg("SCP-173 is now the Remastered Model.")
+					   EndIf 
+					Else
+						CreateConsoleMsg("SCP-173 is already set to the Remastered Model.")
+					EndIf
+					;[End Block]
+				Case "Izumi Kato", "izumi kato scp-173", "Untitled 2004", "untitled 2004", "untitled 2004 scp-173"
+					;[Block]
+					If Loaded173Model$ <> "Inward3D" Then
+					HalloweenTex = HalloweenTex
+					   If Intro173Over$ = "True" Then
+					    Loaded173Model$ = "Inward3D"
+						FreeEntity(Curr173\obj)
+					    Curr173\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
+						tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempb,tempb,tempb
+					   EndIf 
+					   If Intro173Over$ = "False" Then
+					   Loaded173Model$ = "Inward3D"
+						FreeEntity(Curr173\obj)
+					    Curr173\obj = LoadMesh_Strict("GFX\npcs\173_HT.b3d")
+						tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempb,tempb,tempb
+					   EndIf 
+					   If Loaded173Model$ = "Inward3D" Then 
+					         IzumiKato$ = "True"
+							  IzumiKatoTex = Not IzumiKatoTex
+					          If IzumiKatoTex Then
+						Local tex3 = LoadTexture_Strict("GFX\npcs\IzumiKatotexture.jpg", 1)
+						EntityTexture Curr173\obj, tex3, 0, 0
+						FreeTexture tex3
+						CreateConsoleMsg("SCP-173 is now Untitled 2004.")
+					   Else
+					   IzumiKato$ = "False"
+						Local tex4 = LoadTexture_Strict("GFX\npcs\173texture.jpg", 1)
+						EntityTexture Curr173\obj, tex4, 0, 0
+						FreeTexture tex4
+						CreateConsoleMsg("SCP-173 is now the Remastered Model.")
+					      EndIf
+					   EndIf 
+					EndIf
+					;[End Block]
+				Case "Peanut", "peanut", "peanut mode", "peanutmode", "peanut173", "Peanut mode", "Peanutmode", "Peanut173", "nut", "Nut"
+					;[Block]
+					If Loaded173Model$ <> "Peanut" Then
+					HalloweenTex = HalloweenTex
+					IzumiKatoTex = IzumiKatoTex
+						Loaded173Model$ = "Peanut"
+						FreeEntity(Curr173\obj)
+						Curr173\obj = LoadMesh_Strict("GFX\npcs\173Peanut.b3d")
+						Local tempc# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			            ScaleEntity Curr173\obj, tempc,tempc,tempc
+						CreateConsoleMsg("SCP-173 is now the Peanut.")
+					Else
+						CreateConsoleMsg("SCP-173 is already the Peanut... if this is driving you nuts, type 'regalis' or 'inward3d' to switch back.")
+					EndIf
+					;[Block]
 				Case "sanic"
 					;[Block]
 					SuperMan = Not SuperMan
@@ -1672,6 +1893,7 @@ Global BlurVolume#, BlurTimer#
 
 Global LightBlink#, LightFlash#
 
+Global SCP173Model$ = GetOptionInt("graphics", "SCP-173 Model")
 Global BumpEnabled% = GetOptionInt("graphics", "bump mapping enabled")
 Global HUDenabled% = GetOptionInt("graphics", "HUD enabled")
 
@@ -2603,7 +2825,7 @@ Type Events
 	Field EventName$
 	Field room.Rooms
 	
-	Field EventState#, EventState2#, EventState3#
+	Field EventState#, EventState2#, EventState3#, EventState4#, EventState5#
 	Field SoundCHN%, SoundCHN2%
 	Field Sound, Sound2
 	Field SoundCHN_isStream%, SoundCHN2_isStream%
@@ -2890,10 +3112,11 @@ Global ButtonOBJ%, ButtonKeyOBJ%, ButtonCodeOBJ%, ButtonScannerOBJ%
 
 Dim DecalTextures%(20)
 
-Global Monitor%, MonitorTexture%
+Global Monitor%, MonitorTexture%, MonitorTextureOffline%
+Global CCTVTexture%, LampDemonsTexture%, CurrentVideo%
 Global CamBaseOBJ%, CamOBJ%
 
-Global LiquidObj%,MTFObj%,GuardObj%,ClassDObj%
+Global LiquidObj%,nvmeshash%,nvmeshashred%,nvmeshashblue%,lampdemonhash%,MTFObj%,GuardObj%,ClassDObj%
 Global ApacheObj%,ApacheRotorObj%
 
 Global UnableToMove% = False
@@ -3033,6 +3256,12 @@ While IsRunning
 		RestoreSanity = True
 		ShouldEntitiesFall = True
 		
+		If PlayerRoom\RoomTemplate\Name$ <> "room2sl" Then
+			Room2slCanChange$ = "False"
+		EndIf 
+
+		UpdateSecurityCamsRTX()
+
 		If FPSfactor > 0 And PlayerRoom\RoomTemplate\Name <> "dimension1499" Then UpdateSecurityCams()
 		
 		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And (Not IsAnyMenuOpen()) Then 
@@ -3757,7 +3986,8 @@ Function QuickLoadEvents()
 					e\EventStr = "load5"
 				ElseIf e\EventStr = "load5"
 					For i = 3 To 6
-						PositionEntity e\room\Objects[i], EntityX(e\room\Objects[0],True), EntityY(e\room\Objects[0],True), EntityZ(e\room\Objects[0],True), True
+						EntityParent (e\room\Objects[i],e\room\Objects[0])
+						PositionEntity e\room\Objects[i], EntityX(e\room\Objects[0]-0.6,True), EntityY(e\room\Objects[0]-2.7,True), EntityZ(e\room\Objects[0],True), True
 						RotateEntity e\room\Objects[i], -90, EntityYaw(e\room\Objects[0],True), 0, True
 						ScaleEntity(e\room\Objects[i], 0.05, 0.05, 0.05, True)
 					Next
@@ -4077,8 +4307,10 @@ End Function
 Function UpdateMenuState()
 	If IsAnyMenuOpen() Then
 		PauseSounds()
+		;BlitzMovie_Pause()
 	Else
 		ResumeSounds()
+		;BlitzMovie_Play()
 		MouseXSpeed() : MouseYSpeed() : MouseZSpeed() : mouse_x_speed_1#=0.0 : mouse_y_speed_1#=0.0
 	EndIf
 	FlushKeys()
@@ -4732,20 +4964,26 @@ Function MouseLook()
 	If (Not WearingNightVision=0) Then
 		ShowEntity(NVOverlay)
 		If WearingNightVision=2 Then
-			EntityColor(NVOverlay, 0,100,255)
+			EntityColor(NVOverlay, 89,103,255)
 			AmbientLightRooms(AmbientLightNVG)
+			ShowEntity nvmeshashblue
 		ElseIf WearingNightVision=3 Then
-			EntityColor(NVOverlay, 255,0,0)
+			EntityColor(NVOverlay, 255,89,89)
 			AmbientLightRooms(AmbientLightNVG)
+			ShowEntity nvmeshashred
 		Else
-			EntityColor(NVOverlay, 0,255,0)
+			EntityColor(NVOverlay, 89,255,103)
 			AmbientLightRooms(AmbientLightNVG)
+			ShowEntity nvmeshash
 		EndIf
 		EntityTexture(Fog, FogNVTexture)
 	Else
 		AmbientLightRooms(AmbientLight)
 		HideEntity(NVOverlay)
 		EntityTexture(Fog, FogTexture)
+		HideEntity nvmeshash
+		HideEntity nvmeshashred
+		HideEntity nvmeshashblue
 	EndIf
 	
 	For i = 0 To 5
@@ -7220,6 +7458,16 @@ Function DrawHUD()
 		Text x - 50, 100, "Player Rotation: (" + f2s(EntityPitch(Collider), 3) + ", " + f2s(EntityYaw(Collider), 3) + ", " + f2s(EntityRoll(Collider), 3) + ")"
 		Text x - 50, 120, "Camera Rotation: (" + f2s(EntityPitch(Camera), 3)+ ", " + f2s(EntityYaw(Camera), 3) +", " + f2s(EntityRoll(Camera), 3) + ")"
 		Text x - 50, 150, "Room: " + PlayerRoom\RoomTemplate\Name
+		Text x - 50, 270, "Current BlitzMovie AVI: "+ moviefile2
+		Text x - 50, 300, "Is Monitor in view:"+ MonitorInView
+		Text x - 50, 320, "Room2sl Has priority over Monitors:"+ Room2slCanChange
+		Text x - 50, 350, "No other monitor has priority; - So Lockroom:"+ LockroomCanChange
+		Text x - 50, 370, "Is Coffin Camera Active:"+ CoffinCamera 
+		Text x - 50, 400, "Current SCP-173 Model:"+ Loaded173Model
+		Text x - 50, 420, "Intro Sequence Skipped:"+ Intro173Over
+		Text x - 50, 450, "Is Femur Breaker Victim Dead:"+ VictimDead
+		Text x - 50, 470, "Is Room2sl Door Open:"+ Room2slDoorOpen
+		Text x - 50, 790, "PlayerZone:"+ PlayerZone
 		For ev.Events = Each Events
 			If ev\room = PlayerRoom Then
 				Text x - 50, 170, "Room event: " + ev\EventName   
@@ -7230,22 +7478,21 @@ Function DrawHUD()
 				Exit
 			EndIf
 		Next
-		Text x - 50, 280, "Room coordinates: (" + Floor(EntityX(PlayerRoom\obj) / 8.0 + 0.5) + ", " + Floor(EntityZ(PlayerRoom\obj) / 8.0 + 0.5) + ", angle: "+PlayerRoom\angle + ")"
-		Text x - 50, 300, "Stamina: " + f2s(Stamina, 3)
-		Text x - 50, 320, "Death timer: " + f2s(KillTimer, 3)               
-		Text x - 50, 340, "Blink timer: " + f2s(BlinkTimer, 3)
-		Text x - 50, 360, "Injuries: " + Injuries
-		Text x - 50, 380, "Bloodloss: " + Bloodloss
+		Text x - 50, 520, "Room coordinates: (" + Floor(EntityX(PlayerRoom\obj) / 8.0 + 0.5) + ", " + Floor(EntityZ(PlayerRoom\obj) / 8.0 + 0.5) + ", angle: "+PlayerRoom\angle + ")"
+		Text x - 50, 540, "Stamina: " + f2s(Stamina, 3)
+		Text x - 50, 560, "Death timer: " + f2s(KillTimer, 3)               
+		Text x - 50, 580, "Blink timer: " + f2s(BlinkTimer, 3)
+		Text x - 50, 600, "Injuries: " + Injuries
+		Text x - 50, 620, "Bloodloss: " + Bloodloss
 		If Curr173 <> Null
-			Text x - 50, 410, "SCP - 173 Position (collider): (" + f2s(EntityX(Curr173\Collider), 3) + ", " + f2s(EntityY(Curr173\Collider), 3) + ", " + f2s(EntityZ(Curr173\Collider), 3) + ")"
-			Text x - 50, 430, "SCP - 173 Position (obj): (" + f2s(EntityX(Curr173\obj), 3) + ", " + f2s(EntityY(Curr173\obj), 3) + ", " + f2s(EntityZ(Curr173\obj), 3) + ")"
-			;Text x - 50, 410, "SCP - 173 Idle: " + Curr173\Idle
-			Text x - 50, 450, "SCP - 173 State: " + Curr173\State
+			Text x - 50, 650, "SCP - 173 Position (collider): (" + f2s(EntityX(Curr173\Collider), 3) + ", " + f2s(EntityY(Curr173\Collider), 3) + ", " + f2s(EntityZ(Curr173\Collider), 3) + ")"
+			Text x - 50, 670, "SCP - 173 Position (obj): (" + f2s(EntityX(Curr173\obj), 3) + ", " + f2s(EntityY(Curr173\obj), 3) + ", " + f2s(EntityZ(Curr173\obj), 3) + ")"
+			Text x - 50, 690, "SCP - 173 State: " + Curr173\State
 		EndIf
 		If Curr106 <> Null
-			Text x - 50, 470, "SCP - 106 Position: (" + f2s(EntityX(Curr106\obj), 3) + ", " + f2s(EntityY(Curr106\obj), 3) + ", " + f2s(EntityZ(Curr106\obj), 3) + ")"
-			Text x - 50, 490, "SCP - 106 Idle: " + Curr106\Idle
-			Text x - 50, 510, "SCP - 106 State: " + Curr106\State
+			Text x - 50, 710, "SCP - 106 Position: (" + f2s(EntityX(Curr106\obj), 3) + ", " + f2s(EntityY(Curr106\obj), 3) + ", " + f2s(EntityZ(Curr106\obj), 3) + ")"
+			Text x - 50, 730, "SCP - 106 Idle: " + Curr106\Idle
+			Text x - 50, 750, "SCP - 106 State: " + Curr106\State
 		EndIf
 		offset% = 0
 		For npc.NPCs = Each NPCs
@@ -8223,6 +8470,21 @@ Function LoadEntities()
 	
 	LiquidObj = LoadMesh_Strict("GFX\items\cupliquid.x") ;optimized the cups dispensed by 294
 	HideEntity LiquidObj
+
+	nvmeshash = LoadMesh_Strict("GFX\Map\Props\nvhash.b3d")
+	PositionEntity nvmeshash, EntityX(Camera),EntityY(Camera),EntityZ(Camera), True
+	EntityParent(nvmeshash,Camera)
+	HideEntity nvmeshash
+
+	nvmeshashred = LoadMesh_Strict("GFX\Map\Props\nvhashr.b3d")
+	PositionEntity nvmeshashred, EntityX(Camera),EntityY(Camera),EntityZ(Camera), True
+	EntityParent(nvmeshashred,Camera)
+	HideEntity nvmeshashred
+
+	nvmeshashblue = LoadMesh_Strict("GFX\Map\Props\nvhashb.b3d")
+	PositionEntity nvmeshashblue, EntityX(Camera),EntityY(Camera),EntityZ(Camera), True
+	EntityParent(nvmeshashblue,Camera)
+	HideEntity nvmeshashblue
 	
 	MTFObj = LoadAnimMesh_Strict("GFX\npcs\MTF2.b3d") ;optimized MTFs
 	GuardObj = LoadAnimMesh_Strict("GFX\npcs\guard.b3d") ;optimized Guards
@@ -8390,6 +8652,12 @@ Function LoadEntities()
 	Monitor = LoadMesh_Strict("GFX\map\monitor.b3d")
 	HideEntity Monitor
 	MonitorTexture = LoadTexture_Strict("GFX\monitortexture.jpg")
+
+	MonitorTextureOffline = LoadTexture_Strict("GFX\monitortextureoffline.jpg")
+
+	CCTVTexture=CreateTexture(1024,1024)
+	LampDemonsTexture=CreateTexture(1024,1024)
+	;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
 	
 	CamBaseOBJ = LoadMesh_Strict("GFX\map\cambase.x")
 	HideEntity(CamBaseOBJ)
@@ -8700,6 +8968,7 @@ Function InitNewGame()
 		EndIf
 		
 		If (r\RoomTemplate\Name = "start" And IntroEnabled = False) Then 
+			Intro173Over$ = "True"
 			PositionEntity (Collider, EntityX(r\obj)+3584*RoomScale, 704*RoomScale, EntityZ(r\obj)+1024*RoomScale)
 			PlayerRoom = r
 			it = CreateItem("docORI", 1, 1, 1)
@@ -8720,7 +8989,16 @@ Function InitNewGame()
 			EntityType (it\collider, HIT_ITEM)
 			EntityParent(it\collider, 0)
 			ItemAmount = ItemAmount + 1
+			IntroFinished$ = "False"
 		ElseIf (r\RoomTemplate\Name = "173" And IntroEnabled) Then
+			Intro173Over$ = "False"
+			IntroFinished$ = "False"
+			If Loaded173Model$ = "Inward3D" Then
+				FreeEntity(Curr173\obj)
+				Curr173\obj = LoadMesh_Strict("GFX\npcs\173_HT.b3d")
+				tempb# = (GetINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(Curr173\obj))			
+			    ScaleEntity Curr173\obj, tempb,tempb,tempb
+			EndIf
 			PositionEntity (Collider, EntityX(r\obj), 1.0, EntityZ(r\obj))
 			PlayerRoom = r
 		EndIf
@@ -8898,6 +9176,17 @@ Function NullGame(playbuttonsfx%=True)
 	QuickLoad_CurrEvent = Null
 	
 	DeathMSG$=""
+
+	moviefile2$ = "GFX\offline.avi"
+	VictimDead$ = "False" 
+	CoffinDoorOpen$ = "False"
+	CoffinCamera$ = "False"
+	IntroFinished$ = "NotSet"
+	MonitorInView$ = "False"
+	Room2slDoorOpen$ = "False"
+	Room2slCanChange$ = "False"
+	LockroomCanChange$ = "False"
+	lockroom173active$ = "False"
 	
 	SelectedMap = -1
 	
@@ -9003,6 +9292,9 @@ Function NullGame(playbuttonsfx%=True)
 	EyeStuck = 0
 	
 	ShouldPlay = 0
+
+	;BlitzMovie_Stop()
+	;BlitzMovie_Close()
 	
 	KillTimer = 0
 	FallTimer = 0
