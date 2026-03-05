@@ -1,10 +1,12 @@
-;SCP - Containment Breach
+;SCP - Containment Breach RTX Remaster
 
-;    The game is based on the works of the SCP Foundation community (http://www.scp-wiki.net/).
+;    This is a modded version of SCP - Containment Breach for RTX, remastering many assets
+;    The game itself is based on the works of the SCP Foundation community (http://www.scp-wiki.net/).
 
 ;    The source code is licensed under Creative Commons Attribution-ShareAlike 3.0 License.
 ;    http://creativecommons.org/licenses/by-sa/3.0/
 
 ;    See Credits.txt for a list of contributors
 
+Include "RTX.bb"
 Include "Main.bb"

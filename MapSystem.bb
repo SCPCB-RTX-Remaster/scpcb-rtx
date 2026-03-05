@@ -158,6 +158,7 @@ Function FreeTextureCache()
 End Function
 
 Function LoadRMesh(file$,rt.RoomTemplates)
+	Local path$ = StripFilename(file)
 	file = DetermineModdedPath(file)
 
 	CatchErrors("Uncaught (LoadRMesh " + Chr(34) + file + Chr(34) + ")")
@@ -200,10 +201,6 @@ Function LoadRMesh(file$,rt.RoomTemplates)
 		Default RuntimeErrorExt Chr(34)+file+Chr(34)+" is Not RMESH ("+isRMesh+")"
 	End Select
 	
-	file=StripFilename(file)
-	; Modded rooms must try loading textures starting from the vanilla root.
-	If Left(file, 5) = "Mods\" Then file = Right(file, Len(file) - Instr(file, "\", 6))
-	
 	Local count%,count2%
 	
 	Local obj%=CreatePivot()
@@ -220,13 +217,13 @@ Function LoadRMesh(file$,rt.RoomTemplates)
 	Local u#,v#
 	
 	For i=1 To count ;drawn mesh
-		EntityParent ReadMesh(file, f, blankTexture, Alpha, Opaque), collisionMeshes
+		EntityParent ReadMesh(path, f, blankTexture, Alpha, Opaque), collisionMeshes
 	Next
 	
 	If version >= 0 Then
 		Local noCollCount% = ReadInt(f)
 		For i=1 To noCollCount
-			ReadMesh(file, f, blankTexture, Alpha, Opaque, False)
+			ReadMesh(path, f, blankTexture, Alpha, Opaque, False)
 		Next
 	EndIf
 
@@ -1848,6 +1845,8 @@ Function UpdateGrid(grid.Grids)
 	Next
 End Function
 
+Const MT_HEIGHT# = 16.0
+
 Function PlaceGrid_MapCreator(r.Rooms)
 	Local x,y,i
 	Local Meshes[7]
@@ -1871,44 +1870,44 @@ Function PlaceGrid_MapCreator(r.Rooms)
 				Local tile_entity = CopyEntity(Meshes[tile_type-1])
 				RotateEntity tile_entity,0,angle,0
 				ScaleEntity tile_entity,RoomScale,RoomScale,RoomScale,True
-				PositionEntity tile_entity,r\x+x*2.0,8.0,r\z+y*2.0,True
+				PositionEntity tile_entity,r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 				
 				Select r\grid\grid[x+(y*gridsz)]
 					Case ROOM1, ROOM2
-						AddLight%(Null, r\x+x*2.0, 8.0+(372.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null, r\x+x*2.0, MT_HEIGHT+(372.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 					Case ROOM2C,ROOM3,ROOM4
-						AddLight%(Null,r\x+x*2.0, 8.0+(416.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null,r\x+x*2.0, MT_HEIGHT+(416.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 					Case ROOM4+1
-						dr=CreateDoor(r\zone,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*240.0*RoomScale),8.0,r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*240.0*RoomScale),EntityYaw(tile_entity,True)+90.0,Null,False,3,False,"")
+						dr=CreateDoor(r\zone,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*240.0*RoomScale),MT_HEIGHT,r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*240.0*RoomScale),EntityYaw(tile_entity,True)+90.0,Null,False,3,False,"")
 						PositionEntity dr\buttons[0],EntityX(dr\buttons[0],True)+(Cos(EntityYaw(tile_entity,True))*0.05),EntityY(dr\buttons[0],True)+0.0,EntityZ(dr\buttons[0],True)+(Sin(EntityYaw(tile_entity,True))*0.05),True
 						
-						AddLight%(Null, r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*555.0*RoomScale), 8.0+(469.0*RoomScale), r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null, r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*555.0*RoomScale), MT_HEIGHT+(469.0*RoomScale), r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
 						
 						Local tempInt2=CreatePivot()
 						RotateEntity tempInt2,0,EntityYaw(tile_entity,True)+180.0,0,True
-						PositionEntity tempInt2,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*552.0*RoomScale),8.0+(240.0*RoomScale),r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*552.0*RoomScale)
+						PositionEntity tempInt2,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*552.0*RoomScale),MT_HEIGHT+(240.0*RoomScale),r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*552.0*RoomScale)
 						If r\RoomDoors[1]=Null Then
 							r\RoomDoors[1]=dr
 							r\Objects[3]=tempInt2
-							PositionEntity r\Objects[0],r\x+x*2.0,8.0,r\z+y*2.0,True
+							PositionEntity r\Objects[0],r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 							DebugLog "Created door 1 successfully!"
 						ElseIf r\RoomDoors[1]<>Null And r\RoomDoors[3]=Null Then
 							r\RoomDoors[3]=dr
 							r\Objects[5]=tempInt2
-							PositionEntity r\Objects[1],r\x+x*2.0,8.0,r\z+y*2.0,True
+							PositionEntity r\Objects[1],r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 							DebugLog "Created door 2 successfully!"
 						EndIf
 					Case ROOM4+2
-						AddLight%(Null, r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), 8.0+(396.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
-						it = CreateItem("scp500",r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tile_entity,True))*1226.0*RoomScale),8.0+(80.0*RoomScale),r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tile_entity,True))*1226.0*RoomScale))
+						AddLight%(Null, r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), MT_HEIGHT+(396.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
+						it = CreateItem("scp500",r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tile_entity,True))*1226.0*RoomScale),MT_HEIGHT+(80.0*RoomScale),r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tile_entity,True))*1226.0*RoomScale))
 						EntityType (it\collider, HIT_ITEM)
 						
-						it = CreateItem("nvgoggles",r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), 8.0+(80.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale))
+						it = CreateItem("nvgoggles",r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), MT_HEIGHT+(80.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale))
 						EntityType (it\collider, HIT_ITEM)
 				End Select
 				
 				r\grid\Entities[x+(y*gridsz)]=tile_entity
-				wayp.WayPoints = CreateWaypoint(r\x+(x*2.0),8.2,r\z+(y*2.0),Null,r)
+				wayp.WayPoints = CreateWaypoint(r\x+(x*2.0),MT_HEIGHT+0.2,r\z+(y*2.0),Null,r)
 				r\grid\waypoints[x+(y*gridsz)]=wayp
 				
 				If y<gridsz-1 Then
@@ -2216,7 +2215,7 @@ Function FillRoom(r.Rooms)
 			sc\angle = 45 + 180
 			sc\turn = 45
 			sc\ScrTexture = 1
-			EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+			EntityTexture sc\ScrObj, CCTVTexture
 			
 			TurnEntity(sc\CameraObj, 40, 0, 0)
 			EntityParent(sc\obj, r\obj)
@@ -2229,7 +2228,7 @@ Function FillRoom(r.Rooms)
 			sc\angle = 45
 			sc\turn = 45
 			sc\ScrTexture = 1
-			EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+			EntityTexture sc\ScrObj, CCTVTexture
 			
 			TurnEntity(sc\CameraObj, 40, 0, 0)
 			EntityParent(sc\obj, r\obj)				
@@ -2278,6 +2277,10 @@ Function FillRoom(r.Rooms)
 			PositionEntity(sc\ScrObj, r\x + 668 * RoomScale, 1.1, r\z - 96.0 * RoomScale)
 			TurnEntity(sc\ScrObj, 0, 90, 0)
 			EntityParent(sc\ScrObj, r\obj)
+			EntityTexture sc\ScrObj, MonitorTextureOffline
+			EntityBlend (sc\ScrObj, 3)
+			EntityFX sc\ScrObj, 1+8
+			HideEntity sc\ScrOverlay
 			
 			sc.SecurityCams = CreateSecurityCam(r\x - 384.0 * RoomScale, r\y + 384 * RoomScale, r\z - 512.0 * RoomScale, r, True)
 			sc\angle = 45 + 90 + 180
@@ -2288,6 +2291,10 @@ Function FillRoom(r.Rooms)
 			
 			PositionEntity(sc\ScrObj, r\x + 96.0 * RoomScale, 1.1, r\z - 668.0 * RoomScale)
 			EntityParent(sc\ScrObj, r\obj)
+			EntityTexture sc\ScrObj, MonitorTextureOffline
+			EntityBlend (sc\ScrObj, 3)
+			EntityFX sc\ScrObj, 1+8
+			HideEntity sc\ScrOverlay
 			;[End Block]
 		Case "gatea"
 			;[Block]
@@ -4164,11 +4171,10 @@ Function FillRoom(r.Rooms)
 			PositionEntity(sc\ScrObj, r\x - 1716.0 * RoomScale, r\y + 160.0 * RoomScale, r\z + 176.0 * RoomScale, True)
 			TurnEntity sc\ScrObj, 0, 90, 0
 			ScaleSprite sc\ScrObj, 896.0*0.5*RoomScale, 896.0*0.5*RoomScale
+			EntityTexture sc\ScrObj, LampDemonsTexture
 			
 			EntityParent(sc\ScrObj, r\obj)
 			;EntityBlend(sc\ScrObj, 2)
-			
-			CameraZoom (sc\Cam, 1.5)
 			
 			HideEntity sc\obj
 			HideEntity sc\CameraObj
@@ -4181,6 +4187,11 @@ Function FillRoom(r.Rooms)
 			RotateEntity r\Objects[0], 0,-90,0,True
 			
 			r\Objects[1] = sc\ScrObj
+
+			lampdemonhash = LoadMesh_Strict("GFX\Map\Props\ldhash.b3d")
+			ShowEntity lampdemonhash
+			EntityParent lampdemonhash,r\Objects[0]
+			PositionEntity lampdemonhash, EntityX(r\Objects[0])-2.0,EntityY(r\Objects[0]),EntityZ(r\Objects[0]), True
 			
 			;[End Block]
 		Case "endroom"
@@ -4197,9 +4208,9 @@ Function FillRoom(r.Rooms)
 			;[End Block]
 		Case "coffin"
 			;[Block]
-			d = CreateDoor(r\zone, r\x, 0, r\z - 448.0 * RoomScale, 0, r, False, True, 2)
-			d\AutoClose = False : d\open = False
-			PositionEntity(d\buttons[0], r\x - 384.0 * RoomScale, 0.7, r\z - 280.0 * RoomScale, True)
+			r\RoomDoors[0] = CreateDoor(r\zone, r\x, 0, r\z - 448.0 * RoomScale, 0, r, False, True, 2)
+			r\RoomDoors[0]\AutoClose = False : r\RoomDoors[0]\open = False
+			PositionEntity(r\RoomDoors[0]\buttons[0], r\x - 384.0 * RoomScale, 0.7, r\z - 280.0 * RoomScale, True)
 			
 			sc.SecurityCams = CreateSecurityCam(r\x - 320.0 * RoomScale, r\y + 704 * RoomScale, r\z + 288.0 * RoomScale, r, True)
 			sc\angle = 45 + 180
@@ -5534,11 +5545,12 @@ Function FillRoom(r.Rooms)
 		If Not dt\AllowRemoteControl Then
 			door\AutoClose = False
 		EndIf
+		door\locked = dt\Locked
 		If dt\DeleteHalf Then FreeEntity door\obj2 : door\obj2 = 0
-		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
-		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, r\z + dt\Button1RotZ, True)
-		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
-		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, r\z + dt\Button2RotZ, True)
+		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ <> 0 Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
+		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ <> 0 Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, dt\Button1RotZ, True)
+		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ <> 0 Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
+		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ <> 0 Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, dt\Button2RotZ, True)
 		dt = dt\Successor
 	Wend
 	
@@ -5673,7 +5685,8 @@ Function UpdateRooms()
 		EndIf
 	Next
 	
-	MapFound(Floor(EntityX(PlayerRoom\obj) / 8.0), Floor(EntityZ(PlayerRoom\obj) / 8.0)) = 1
+	Local mapX = Floor(EntityX(PlayerRoom\obj) / 8.0), mapZ = Floor(EntityZ(PlayerRoom\obj) / 8.0)
+	If mapX <= MapWidth And mapZ <= MapHeight Then MapFound(mapX, mapZ) = 1
 	PlayerRoom\found = True
 	
 	TempLightVolume = Max(TempLightVolume / 4.5, 1.0)
@@ -6333,14 +6346,14 @@ Function CreateSecurityCam.SecurityCams(x#, y#, z#, r.Rooms, screen% = False)
 		Local scale# = RoomScale * 4.5 * 0.4
 		
 		sc\ScrObj = CreateSprite()
-		EntityFX sc\ScrObj, 17
 		SpriteViewMode(sc\ScrObj, 2)
 		sc\ScrTexture = 0
-		EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
+		EntityTexture sc\ScrObj, CCTVTexture
 		ScaleSprite(sc\ScrObj, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
+		EntityBlend (sc\ScrObj, 3)
+		EntityFX sc\ScrObj, 1+8
 		
 		sc\ScrOverlay = CreateSprite(sc\ScrObj)
-		;	scaleSprite(sc\scrOverlay , 0.5, 0.4)
 		ScaleSprite(sc\ScrOverlay, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
 		MoveEntity(sc\ScrOverlay, 0, 0, -0.0005)
 		EntityTexture(sc\ScrOverlay, MonitorTexture)
@@ -6348,14 +6361,6 @@ Function CreateSecurityCam.SecurityCams(x#, y#, z#, r.Rooms, screen% = False)
 		EntityBlend(sc\ScrOverlay , 3)
 		
 		sc\MonitorObj = CopyEntity(Monitor, sc\ScrObj)
-		
-		ScaleEntity(sc\MonitorObj, scale, scale, scale)
-		
-		sc\Cam = CreateCamera()
-		CameraViewport(sc\Cam, 0, 0, 512, 512)
-		CameraRange sc\Cam, 0.05, 8.0 ;6.0
-		CameraZoom(sc\Cam, 0.8)
-		HideEntity(sc\Cam)	
 	End If
 	
 	PositionEntity(sc\obj, x, y, z)
@@ -6483,30 +6488,9 @@ Function UpdateSecurityCams()
 								;sc\InSight = True
 								SetBuffer(TextureBuffer(ScreenTexs[sc\ScrTexture]), TextureBuffer(ScreenTexs[2]))
 								If CoffinCam = Null Or Rand(5)=5 Or sc\CoffinEffect <> 3 Then
-									HideEntity(Camera)
-									ShowEntity(sc\Cam)
-									Cls
-									
-									UpdateRoomLights(sc\Cam)
-									
-									RenderWorld
-									
-									HideEntity(sc\Cam)
-									ShowEntity(Camera)										
+									CoffinCamera$ = "False"
 								Else
-									HideEntity(Camera)
-									ShowEntity (CoffinCam\room\obj)
-									EntityAlpha(GetChild(CoffinCam\room\obj,2),1)
-									ShowEntity(CoffinCam\Cam)
-									Cls
-									
-									UpdateRoomLights(CoffinCam\Cam)
-									
-									RenderWorld
-									
-									HideEntity (CoffinCam\room\obj)
-									HideEntity(CoffinCam\Cam)
-									ShowEntity(Camera)										
+									CoffinCamera$ = "True"
 								EndIf
 								SetBuffer BackBuffer()
 							EndIf
@@ -8273,7 +8257,7 @@ Type Chunk
 	Field PlatForm%
 End Type
 
-Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
+Function CreateChunk.Chunk(r.Rooms,obj%,x#,y#,z#,isSpawnChunk%=False)
 	Local ch.Chunk = New Chunk
 	Local i%, chp.ChunkPart
 	
@@ -8306,7 +8290,7 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 		Next
 	EndIf
 	
-	ch\PlatForm = CopyEntity(PlayerRoom\Objects[0],ch\ChunkPivot)
+	ch\PlatForm = CopyEntity(r\Objects[0],ch\ChunkPivot)
 	EntityType ch\PlatForm,HIT_MAP
 	EntityPickMode ch\PlatForm,2
 	
@@ -8314,15 +8298,19 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 End Function
 
 Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
+	CatchErrors("Uncaught (UpdateChunks)")
+
+	If r\Objects[0] = 0 Then Return
+
 	Local ch.Chunk,StrTemp$,i%,x#,z#,ch2.Chunk,y#,n.NPCs,j%
 	Local ChunkX#,ChunkZ#,ChunkMaxDistance#=3*40
 	
-	ChunkX# = Int(EntityX(Collider)/40)
-	ChunkZ# = Int(EntityZ(Collider)/40)
+	ChunkX# = Int(EntityX(Collider)/40)*40
+	ChunkZ# = Int(EntityZ(Collider)/40)*40
 	
 	y# = EntityY(PlayerRoom\obj)
-	x# = -ChunkMaxDistance#+(ChunkX*40)
-	z# = -ChunkMaxDistance#+(ChunkZ*40)
+	x# = -ChunkMaxDistance#+ChunkX
+	z# = -ChunkMaxDistance#+ChunkZ
 	
 	Local CurrChunkData% = 0, MaxChunks% = GetINIInt("Data\1499chunks.INI","general","count")
 	
@@ -8338,16 +8326,15 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 		If (Not chunkfound)
 			CurrChunkData = CHUNKDATA(Abs(((x+32)/40) Mod 64),Abs(((z+32)/40) Mod 64))
-			;ch2 = CreateChunk(Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
-			ch2 = CreateChunk(CurrChunkData%,x#,y#,z#)
-			ch2\IsSpawnChunk = False
+			;ch2 = CreateChunk(r,Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
+			ch2 = CreateChunk(r,CurrChunkData%,x#,y#,z#)
 		EndIf
 		x#=x#+40.0
-		If x# > (ChunkMaxDistance#+(ChunkX*40))
+		If x# > (ChunkMaxDistance#+ChunkX)
 			z#=z#+40.0
-			x# = -ChunkMaxDistance#+(ChunkX*40)
+			x# = -ChunkMaxDistance#+ChunkX
 		EndIf
-	Until z# > (ChunkMaxDistance#+(ChunkZ*40))
+	Until z# > (ChunkMaxDistance#+ChunkZ)
 	
 	For ch = Each Chunk
 ;		If DebugHUD
@@ -8356,7 +8343,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 ;			HideEntity ch\ChunkPivotDebug
 ;		EndIf
 		If (Not ch\IsSpawnChunk)
-			If Distance(EntityX(Collider),EntityZ(Collider),EntityX(ch\ChunkPivot),EntityZ(ch\ChunkPivot))>ChunkMaxDistance
+			If Abs(ChunkX-ch\x)>ChunkMaxDistance Lor Abs(ChunkZ-ch\z)>ChunkMaxDistance
 				FreeEntity ch\ChunkPivot
 				Delete ch
 			EndIf
@@ -8415,6 +8402,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 	EndIf
 	
+	CatchErrors("UpdateChunks")
 End Function
 
 Function HideChunks()

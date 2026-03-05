@@ -89,14 +89,41 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			EntityType n\Collider, HIT_PLAYER
 			n\Gravity = True
 			
-			n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
+			;inward3d
+			If SCP173Model$ = "Remastered" Or "remastered" Or "remastered scp-173" Or "inward3d" Or "Inward3D" Or "Inward3d" Or "Inward 3D" Or "inward 3d scp-173" Or "inward3d scp-173" Or "inward scp-173" Or "173_2" Or "Wiki Accurate" Or "wiki accurate scp-173" Then 
+				Loaded173Model$ = "Inward3D"
+				n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
+			EndIf
 			
-			;On Halloween set jack-o-latern texture.
-			If (Left(CurrentDate(), 7) = "31 Oct ") Then
-				HalloweenTex = True
-				Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
-				EntityTexture n\obj, texFestive, 0, 0
-				FreeTexture texFestive
+			If SCP173Model$ = "Izumi Kato" Or "izumi kato scp-173" Or "Untitled 2004" Or "untitled 2004" Or "untitled 2004 scp-173" Then
+				IzumiKato$ = "True"
+				Loaded173Model$ = "Inward3D"
+				n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
+				IzumiKatoTex = Not IzumiKatoTex
+				If IzumiKatoTex Then
+					Local tex3 = LoadTexture_Strict("GFX\npcs\IzumiKatotexture.jpg", 1)
+					EntityTexture Curr173\obj, tex3, 0, 0
+					FreeTexture tex3
+				EndIf 
+			EndIf
+
+			If SCP173Model$ = "Regalis" Or "regalis" Or "regalis scp-173" Or "og scp-173" Or "original scp-173" Or "vanilla" Or "vanilla scp-173" Or "undertow scp-173" Or "old scp-173" Then
+				Loaded173Model$ = "Regalis"
+				n\obj = LoadMesh_Strict("GFX\npcs\173Regalis.b3d")
+
+				;On Halloween set jack-o-latern texture.
+				If (Left(CurrentDate(), 7) = "31 Oct ") Then
+					HalloweenTex = True
+					Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
+					EntityTexture n\obj, texFestive, 0, 0
+					FreeTexture texFestive
+				EndIf
+			ElseIf SCP173Model$ = "Peanut" Or "peanut" Or "peanut mode" Or "peanutmode" Or "peanut173" Or "Peanut" Or "Peanut mode" Or "Peanutmode" Or "Peanut173" Or "nut" Or "Nut"
+			    Loaded173Model$ = "Peanut"
+				n\obj = LoadMesh_Strict("GFX\npcs\173Peanut.b3d")
+			Else 
+				Loaded173Model$ = "Inward3D"
+				n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
 			EndIf
 			
 			temp# = (GetModdedINIFloat("DATA\NPCs.ini", "SCP-173", "scale") / MeshDepth(n\obj))			
@@ -1300,7 +1327,8 @@ Function UpdateNPCs()
 						;[End Block]
 					Case 4
 						;[Block]
-						CanSave = False
+						; Can't save if targeting the player.
+						CanSave = n\Target<>Null
 						
 						CurrCameraZoom = CurveValue(Max(CurrCameraZoom, (Sin(Float(MilliSecs())/20.0)+1.0) * 10.0),CurrCameraZoom,8.0)
 						
@@ -1484,7 +1512,8 @@ Function UpdateNPCs()
 						
 						;[End Block]
 					Case 1,2,3
-						CanSave = False
+						; Can't save if targeting the player.
+						CanSave = n\Target<>Null
 
 						;[Block]
 						;If n\Sound = 0 Then
@@ -1517,7 +1546,7 @@ Function UpdateNPCs()
 							;	If n\Frame > 423.9 Then n\State = 2 : n\Frame = 892
 							;EndIf
 						ElseIf n\State=2
-							AnimateNPC(n,677,737,0.3,False)
+							AnimateNPC(n,677,737,0.2,False)
 							If n\Frame=>737 Then n\State=3 : n\State2=0
 							;AnimateNPC(n, 833, 972, 0.3, False)
 							;If n\Frame=>972 Then n\State = 3 : n\State2=0
@@ -2041,6 +2070,10 @@ Function UpdateNPCs()
 								n\State2 = 70*2
 								n\PrevState = 0
 								PlaySound_Strict LoadTempSound("SFX\Room\Room2SL049Spawn.ogg")
+								If moviefile2$ <> "GFX\SLScene1.avi" And PlayerRoom\RoomTemplate\Name = "room2sl" Then
+									moviefile2$ = "GFX\SLScene1.avi"
+									;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
+								EndIf
 							ElseIf PlayerSeeAble% = 2 And n\State3 > 0.0
 								n\PathStatus = FindPath(n,EntityX(Collider),EntityY(Collider),EntityZ(Collider))
 							Else
@@ -4118,6 +4151,8 @@ Function UpdateNPCs()
 								
 								;echo if player gets close
 								If dist<2.0 And (Not NoTarget) Then 
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									n\State=Rand(1,4)
 								EndIf 							
 							EndIf
@@ -4149,6 +4184,8 @@ Function UpdateNPCs()
 								BlurTimer = ((Sin(MilliSecs()/50)+1.0)*200)/dist
 								
 								If (Not Wearing714) And (WearingGasMask<3) And (WearingHazmat<3) And dist<16 Then
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									If StaminaEffect<1.5 Then
 										Msg = I_Loc\Message_966Sleep[Rand(4)]
 										MsgTimer = 7*70
@@ -4252,6 +4289,8 @@ Function UpdateNPCs()
 											n\CurrSpeed = CurveValue(0,n\CurrSpeed,10.0)
 										EndIf
 									Else
+										If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 										n\Angle = VectorYaw(EntityX(Collider)-EntityX(n\Collider),0,EntityZ(Collider)-EntityZ(n\Collider))
 										n\CurrSpeed = CurveValue(n\Speed,n\CurrSpeed,10.0)
 										
