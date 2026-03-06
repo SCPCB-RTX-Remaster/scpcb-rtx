@@ -7921,16 +7921,9 @@ Function UpdateRoomLights(cam%)
 						If UpdateRoomLightsTimer=0.0 Then
 							ShowEntity r\LightSprites[i]
 							
-							If EntityDistance(cam%,r\Lights%[i])<8.5 Then
-								If r\LightHidden[i] Then
-									ShowEntity r\Lights%[i]
-									r\LightHidden[i] = False
-								EndIf
-							Else
-								If (Not r\LightHidden[i]) Then
-									HideEntity r\Lights%[i]
-									r\LightHidden[i] = True
-								EndIf
+							If r\LightHidden[i] Then
+								ShowEntity r\Lights%[i]
+								r\LightHidden[i] = False
 							EndIf
 							
 							If (EntityDistance(cam%,r\LightSprites2[i])<8.5 Or r\RoomTemplate\UseLightCones) Then
