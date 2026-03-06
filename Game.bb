@@ -8,5 +8,4 @@
 
 ;    See Credits.txt for a list of contributors
 
-Include "RTX.bb"
 Include "Main.bb"

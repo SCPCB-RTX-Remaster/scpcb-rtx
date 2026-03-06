@@ -151,6 +151,10 @@ Global ShowFPS = GetOptionInt("graphics", "show FPS")
 
 Global WireframeState
 Global HalloweenTex
+Global IzumiKatoTex
+Global IzumiKato$ = "False"
+Global Loaded173Model$ = "Inward3D"
+Global Intro173Over$ = "NA"
 
 Global BorderlessWindowed% = GetOptionInt("graphics", "borderless windowed")
 Global RealGraphicWidth%,RealGraphicHeight%
@@ -2830,7 +2834,7 @@ Type Events
 	Field EventName$
 	Field room.Rooms
 	
-	Field EventState#, EventState2#, EventState3#, EventState4#, EventState5#
+	Field EventState#, EventState2#, EventState3#
 	Field SoundCHN%, SoundCHN2%
 	Field Sound, Sound2
 	Field SoundCHN_isStream%, SoundCHN2_isStream%
@@ -3124,11 +3128,10 @@ Global ButtonOBJ%, ButtonKeyOBJ%, ButtonCodeOBJ%, ButtonScannerOBJ%
 
 Dim DecalTextures%(20)
 
-Global Monitor%, MonitorTexture%, MonitorTextureOffline%
-Global CCTVTexture%, LampDemonsTexture%, CurrentVideo%
+Global Monitor%, MonitorTexture%
 Global CamBaseOBJ%, CamOBJ%
 
-Global LiquidObj%,nvmeshash%,nvmeshashred%,nvmeshashblue%,lampdemonhash%,MTFObj%,GuardObj%,ClassDObj%
+Global LiquidObj%,nvmeshash%,nvmeshashred%,nvmeshashblue%,MTFObj%,GuardObj%,ClassDObj%
 Global ApacheObj%,ApacheRotorObj%
 
 Global UnableToMove% = False
@@ -3268,12 +3271,6 @@ While IsRunning
 		RestoreSanity = True
 		ShouldEntitiesFall = True
 		
-		If PlayerRoom\RoomTemplate\Name$ <> "room2sl" Then
-			Room2slCanChange$ = "False"
-		EndIf 
-
-		UpdateSecurityCamsRTX()
-
 		If FPSfactor > 0 And PlayerRoom\RoomTemplate\Name <> "dimension1499" Then UpdateSecurityCams()
 		
 		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And (Not IsAnyMenuOpen()) Then 
@@ -3954,8 +3951,7 @@ Function QuickLoadEvents()
 					e\EventStr = "load5"
 				ElseIf e\EventStr = "load5"
 					For i = 3 To 6
-						EntityParent (e\room\Objects[i],e\room\Objects[0])
-						PositionEntity e\room\Objects[i], EntityX(e\room\Objects[0]-0.6,True), EntityY(e\room\Objects[0]-2.7,True), EntityZ(e\room\Objects[0],True), True
+						PositionEntity e\room\Objects[i], EntityX(e\room\Objects[0],True), EntityY(e\room\Objects[0],True), EntityZ(e\room\Objects[0],True), True
 						RotateEntity e\room\Objects[i], -90, EntityYaw(e\room\Objects[0],True), 0, True
 						ScaleEntity(e\room\Objects[i], 0.05, 0.05, 0.05, True)
 					Next
@@ -4275,10 +4271,8 @@ End Function
 Function UpdateMenuState()
 	If IsAnyMenuOpen() Then
 		PauseSounds()
-		;BlitzMovie_Pause()
 	Else
 		ResumeSounds()
-		;BlitzMovie_Play()
 		MouseXSpeed() : MouseYSpeed() : MouseZSpeed() : mouse_x_speed_1#=0.0 : mouse_y_speed_1#=0.0
 	EndIf
 	FlushKeys()
@@ -7417,16 +7411,6 @@ Function DrawHUD()
 		Text x - 50, 100, "Player Rotation: (" + f2s(EntityPitch(Collider), 3) + ", " + f2s(EntityYaw(Collider), 3) + ", " + f2s(EntityRoll(Collider), 3) + ")"
 		Text x - 50, 120, "Camera Rotation: (" + f2s(EntityPitch(Camera), 3)+ ", " + f2s(EntityYaw(Camera), 3) +", " + f2s(EntityRoll(Camera), 3) + ")"
 		Text x - 50, 150, "Room: " + PlayerRoom\RoomTemplate\Name
-		Text x - 50, 270, "Current BlitzMovie AVI: "+ moviefile2
-		Text x - 50, 300, "Is Monitor in view:"+ MonitorInView
-		Text x - 50, 320, "Room2sl Has priority over Monitors:"+ Room2slCanChange
-		Text x - 50, 350, "No other monitor has priority; - So Lockroom:"+ LockroomCanChange
-		Text x - 50, 370, "Is Coffin Camera Active:"+ CoffinCamera 
-		Text x - 50, 400, "Current SCP-173 Model:"+ Loaded173Model
-		Text x - 50, 420, "Intro Sequence Skipped:"+ Intro173Over
-		Text x - 50, 450, "Is Femur Breaker Victim Dead:"+ VictimDead
-		Text x - 50, 470, "Is Room2sl Door Open:"+ Room2slDoorOpen
-		Text x - 50, 790, "PlayerZone:"+ PlayerZone
 		For ev.Events = Each Events
 			If ev\room = PlayerRoom Then
 				Text x - 50, 170, "Room event: " + ev\EventName   
@@ -7437,21 +7421,22 @@ Function DrawHUD()
 				Exit
 			EndIf
 		Next
-		Text x - 50, 520, "Room coordinates: (" + Floor(EntityX(PlayerRoom\obj) / 8.0 + 0.5) + ", " + Floor(EntityZ(PlayerRoom\obj) / 8.0 + 0.5) + ", angle: "+PlayerRoom\angle + ")"
-		Text x - 50, 540, "Stamina: " + f2s(Stamina, 3)
-		Text x - 50, 560, "Death timer: " + f2s(KillTimer, 3)               
-		Text x - 50, 580, "Blink timer: " + f2s(BlinkTimer, 3)
-		Text x - 50, 600, "Injuries: " + Injuries
-		Text x - 50, 620, "Bloodloss: " + Bloodloss
+		Text x - 50, 280, "Room coordinates: (" + Floor(EntityX(PlayerRoom\obj) / 8.0 + 0.5) + ", " + Floor(EntityZ(PlayerRoom\obj) / 8.0 + 0.5) + ", angle: "+PlayerRoom\angle + ")"
+		Text x - 50, 300, "Stamina: " + f2s(Stamina, 3)
+		Text x - 50, 320, "Death timer: " + f2s(KillTimer, 3)               
+		Text x - 50, 340, "Blink timer: " + f2s(BlinkTimer, 3)
+		Text x - 50, 360, "Injuries: " + Injuries
+		Text x - 50, 380, "Bloodloss: " + Bloodloss
 		If Curr173 <> Null
-			Text x - 50, 650, "SCP - 173 Position (collider): (" + f2s(EntityX(Curr173\Collider), 3) + ", " + f2s(EntityY(Curr173\Collider), 3) + ", " + f2s(EntityZ(Curr173\Collider), 3) + ")"
-			Text x - 50, 670, "SCP - 173 Position (obj): (" + f2s(EntityX(Curr173\obj), 3) + ", " + f2s(EntityY(Curr173\obj), 3) + ", " + f2s(EntityZ(Curr173\obj), 3) + ")"
-			Text x - 50, 690, "SCP - 173 State: " + Curr173\State
+			Text x - 50, 410, "SCP - 173 Position (collider): (" + f2s(EntityX(Curr173\Collider), 3) + ", " + f2s(EntityY(Curr173\Collider), 3) + ", " + f2s(EntityZ(Curr173\Collider), 3) + ")"
+			Text x - 50, 430, "SCP - 173 Position (obj): (" + f2s(EntityX(Curr173\obj), 3) + ", " + f2s(EntityY(Curr173\obj), 3) + ", " + f2s(EntityZ(Curr173\obj), 3) + ")"
+			;Text x - 50, 410, "SCP - 173 Idle: " + Curr173\Idle
+			Text x - 50, 450, "SCP - 173 State: " + Curr173\State
 		EndIf
 		If Curr106 <> Null
-			Text x - 50, 710, "SCP - 106 Position: (" + f2s(EntityX(Curr106\obj), 3) + ", " + f2s(EntityY(Curr106\obj), 3) + ", " + f2s(EntityZ(Curr106\obj), 3) + ")"
-			Text x - 50, 730, "SCP - 106 Idle: " + Curr106\Idle
-			Text x - 50, 750, "SCP - 106 State: " + Curr106\State
+			Text x - 50, 470, "SCP - 106 Position: (" + f2s(EntityX(Curr106\obj), 3) + ", " + f2s(EntityY(Curr106\obj), 3) + ", " + f2s(EntityZ(Curr106\obj), 3) + ")"
+			Text x - 50, 490, "SCP - 106 Idle: " + Curr106\Idle
+			Text x - 50, 510, "SCP - 106 State: " + Curr106\State
 		EndIf
 		offset% = 0
 		For npc.NPCs = Each NPCs
@@ -8603,12 +8588,6 @@ Function LoadEntities()
 	Monitor = LoadMesh_Strict("GFX\map\monitor.b3d")
 	HideEntity Monitor
 	MonitorTexture = LoadTexture_Strict("GFX\monitortexture.jpg")
-
-	MonitorTextureOffline = LoadTexture_Strict("GFX\monitortextureoffline.jpg")
-
-	CCTVTexture=CreateTexture(1024,1024)
-	LampDemonsTexture=CreateTexture(1024,1024)
-	;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
 	
 	CamBaseOBJ = LoadMesh_Strict("GFX\map\cambase.x")
 	HideEntity(CamBaseOBJ)
@@ -8942,10 +8921,8 @@ Function InitNewGame()
 			EntityType (it\collider, HIT_ITEM)
 			EntityParent(it\collider, 0)
 			ItemAmount = ItemAmount + 1
-			IntroFinished$ = "False"
 		ElseIf (r\RoomTemplate\Name = "173" And IntroEnabled) Then
 			Intro173Over$ = "False"
-			IntroFinished$ = "False"
 			If Loaded173Model$ = "Inward3D" Then
 				FreeEntity(Curr173\obj)
 				Curr173\obj = LoadMesh_Strict("GFX\npcs\173_HT.b3d")
@@ -9129,17 +9106,6 @@ Function NullGame(playbuttonsfx%=True)
 	QuickLoad_CurrEvent = Null
 	
 	DeathMSG$=""
-
-	moviefile2$ = "GFX\offline.avi"
-	VictimDead$ = "False" 
-	CoffinDoorOpen$ = "False"
-	CoffinCamera$ = "False"
-	IntroFinished$ = "NotSet"
-	MonitorInView$ = "False"
-	Room2slDoorOpen$ = "False"
-	Room2slCanChange$ = "False"
-	LockroomCanChange$ = "False"
-	lockroom173active$ = "False"
 	
 	SelectedMap = -1
 	
@@ -9245,9 +9211,6 @@ Function NullGame(playbuttonsfx%=True)
 	EyeStuck = 0
 	
 	ShouldPlay = 0
-
-	;BlitzMovie_Stop()
-	;BlitzMovie_Close()
 	
 	KillTimer = 0
 	FallTimer = 0

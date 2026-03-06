@@ -170,16 +170,7 @@ Function UpdateEvents()
 							ShowEntity Curr173\obj
 							If e\EventState > 900 And e\room\RoomDoors[5]\open Then
 								If e\EventState - FPSfactor <= 900 Then 
-									LightBlink = 3.0
-									PlaySound_Strict(IntroSFX(11))
-									BlinkTimer = -10
 									e\room\NPC[1]\Sound = LoadSound_Strict("SFX\Room\Intro\WhatThe.ogg")
-									IntroFinished$ = "TempScene"
-									If moviefile2$ <> "GFX\ABScene1.avi" Then
-										moviefile2$ = "GFX\ABScene1.avi"
-										;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
-										;BlitzMovie_Play()
-									EndIf
 									e\room\NPC[1]\SoundChn = PlaySound2(e\room\NPC[1]\Sound, Camera, e\room\NPC[1]\Collider)
 								EndIf
 								e\room\NPC[1]\State = 3
@@ -238,10 +229,6 @@ Function UpdateEvents()
                                                 PositionEntity Curr173\Collider, 0,0,0
                                             EndIf
 											ResetEntity Curr173\Collider
-											moviefile2$ = "GFX\ABLoop2.avi"
-											;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
-											;BlitzMovie_Play()
-											IntroFinished$ = "True"
 											Msg = Format(I_Loc\MessageHelp_Run, GetKeyName(KEY_SPRINT))
 											MsgTimer = 70*8
 										EndIf
@@ -1320,7 +1307,6 @@ Function UpdateEvents()
 										For r.Rooms = Each Rooms
 											If r\RoomTemplate\Name = "start" Then
 												DebugLog "tostart"
-												MonitorStartChange()
 												;Msg = "Press "+KeyName(KEY_SAVE)+" to save."
 												;MsgTimer = 70*8
 												
@@ -1419,7 +1405,6 @@ Function UpdateEvents()
 				EndIf
 				
 				If PlayerRoom = e\room Then
-					Monitor173Change()
 					If e\EventState >= 10 Then
 						CameraRange(Camera, 0.05, 15)
 						If e\room\NPC[7]<>Null Then
@@ -1578,9 +1563,8 @@ Function UpdateEvents()
 					If PlayerZone > 0 Then 
 						If EntityPitch(e\room\Levers[0],True) > 0 Then ;camera feed on
 							For sc.SecurityCams = Each SecurityCams
-								If sc\CoffinEffect=0 And sc\room\RoomTemplate\Name<>"room106" And sc\room\RoomTemplate\Name<>"room205" And sc\room\RoomTemplate\Name<>"room2sl" And sc\room\RoomTemplate\Name<>"start" And sc\room\RoomTemplate\Name<>"173" Then sc\CoffinEffect = 2
+								If sc\CoffinEffect=0 And sc\room\RoomTemplate\Name<>"room106" And sc\room\RoomTemplate\Name<>"room205" Then sc\CoffinEffect = 2
 								If sc\room = e\room Then sc\Screen = True
-								CoffinCamera$ = "True"
 							Next
 						Else ;camera feed off
 							For sc.SecurityCams = Each SecurityCams
@@ -1595,15 +1579,6 @@ Function UpdateEvents()
 				
 				If PlayerRoom = e\room Then
 					CoffinDistance = EntityDistance(Collider, e\room\Objects[1])
-
-					If e\room\RoomDoors[0]\open = True Then
-						CoffinDoorOpen$ = "True"
-					EndIf 
-					
-					If e\room\RoomDoors[0]\open = False Then
-						CoffinDoorOpen$ = "False"
-					EndIf 
-
 					If CoffinDistance < 1.5 Then 
 						GiveAchievement(Achv895)
 						If (Not Contained106) And e\EventName="coffin106" And e\EventState2 = 0 Then
@@ -1956,16 +1931,14 @@ Function UpdateEvents()
 				;[End Block]
 			Case "lockroom173"
 				;[Block]
-				If PlayerRoom = e\room then
+				If e\room\dist < 6.0  And e\room\dist > 0 Then
 					If Curr173\Idle > 1 Then
 						RemoveEvent(e)
-						lockroom173active$ = "False"
 					Else
 						If (Not EntityInView(Curr173\Collider, Camera)) Or EntityDistance(Curr173\Collider, Collider)>15.0 Then 
 							PositionEntity(Curr173\Collider, e\room\x + Cos(225-90 + e\room\angle) * 2, 0.6, e\room\z + Sin(225-90 + e\room\angle) * 2)
 							ResetEntity(Curr173\Collider)
 							RemoveEvent(e)
-							lockroom173active$ = "True"
 						EndIf						
 					EndIf
 				EndIf
@@ -4859,17 +4832,7 @@ Function UpdateEvents()
 								QuickLoad_CurrEvent = e
 							EndIf
 						Else
-							If  e\EventState = 3 or e\EventState = 2 Then
-								VictimDead$ = "True"
-								ShouldPlay = 10
-							EndIf
-
-							If  e\EventState3 < 2500 And e\EventState = 1 Then 
-								VictimDead$ = "False"
-							EndIf 
-
 							If e\EventState = 0 Then
-								VictimDead$ = "False"
 								;Instance 1
 								PositionEntity(e\room\NPC[0]\Collider, EntityX(e\room\Objects[4],True),EntityY(e\room\Objects[4],True)+0.2,EntityZ(e\room\Objects[4],True))
 								ResetEntity e\room\NPC[0]\Collider
@@ -6040,12 +6003,7 @@ Function UpdateEvents()
 						EndIf
 						
 						If e\EventState3 => 2500 Then
-							VictimDead$ = "Dying"
-							If moviefile2$ <> "GFX\FBScene1.avi" Then
-								moviefile2$ = "GFX\FBScene1.avi"
-								;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
-								;BlitzMovie_Play()
-							EndIf
+							
 							If e\EventState2 = 1 And e\EventState3-FPSfactor < 2500 Then
 								PositionEntity(Curr106\Collider, EntityX(e\room\Objects[6], True), EntityY(e\room\Objects[6], True), EntityZ(e\room\Objects[6], True))
 								Contained106 = False
@@ -6098,7 +6056,6 @@ Function UpdateEvents()
 								
 								If e\EventState2 = True Then ;magnets off -> 106 caught
 									Contained106 = True
-									e\EventState = 3
 								Else ;magnets off -> 106 comes out and attacks
 									PositionEntity(Curr106\Collider, EntityX(e\room\Objects[6], True), EntityY(e\room\Objects[6], True), EntityZ(e\room\Objects[6], True))
 									
@@ -6151,9 +6108,6 @@ Function UpdateEvents()
 			Case "room205"
 				;[Block]
 				If PlayerRoom = e\room Then
-					If e\EventState=0 Then
-						LampDemonState$ = "0"
-					EndIf
 					If e\EventState=0 Or e\EventStr <> "loaddone" Then
 						If e\EventStr = "" And QuickLoadPercent = -1
 							QuickLoadPercent = 0
@@ -6170,7 +6124,6 @@ Function UpdateEvents()
 						
 						If e\room\RoomDoors[1]\open = True
 							e\EventState = 1
-							LampDemonState$ = "1"
 							GiveAchievement(Achv205)
 						EndIf
 					Else
@@ -6178,7 +6131,6 @@ Function UpdateEvents()
 						If (e\EventState<65) Then
 							If (Distance(EntityX(Collider), EntityZ(Collider), EntityX(e\room\Objects[0],True), EntityZ(e\room\Objects[0],True))<2.0) Then
 								PlaySound_Strict(LoadTempSound("SFX\SCP\205\Enter.ogg"))
-								LampDemonState$ = "8"
 								
 								e\EventState = Max(e\EventState, 65)
 								
@@ -6207,35 +6159,29 @@ Function UpdateEvents()
 						Select e\EventState
 							Case 1
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								HideEntity(e\room\Objects[5])
 								HideEntity(e\room\Objects[4])
 								HideEntity(e\room\Objects[3])
 								;sitting
 								ShowEntity(e\room\Objects[6])
-								LampDemonState$ = "1"
 								Animate2(e\room\Objects[6], AnimTime(e\room\Objects[6]), 526, 530, 0.2)
 								If e\EventState2 > 20*70 Then e\EventState = e\EventState+1
 							Case 3
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								HideEntity(e\room\Objects[5])
 								HideEntity(e\room\Objects[4])
 								HideEntity(e\room\Objects[3])
 								;laying down
 								ShowEntity(e\room\Objects[6])
-								LampDemonState$ = "2"
 								Animate2(e\room\Objects[6], AnimTime(e\room\Objects[6]), 377, 525, 0.2)
 								If e\EventState2 > 30*70 Then e\EventState = e\EventState+1
 							Case 5
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								HideEntity(e\room\Objects[5])
 								HideEntity(e\room\Objects[4])
 								HideEntity(e\room\Objects[3])
 								;standing
 								ShowEntity(e\room\Objects[6])
-								LampDemonState$ = "3"
 								Animate2(e\room\Objects[6], AnimTime(e\room\Objects[6]), 228, 376, 0.2)
 								If e\EventState2 > 40*70 Then 
 									e\EventState = e\EventState+1
@@ -6243,13 +6189,11 @@ Function UpdateEvents()
 								EndIf	
 							Case 7
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								ShowEntity(e\room\Objects[6])
 								HideEntity(e\room\Objects[4])
 								HideEntity(e\room\Objects[3])
 								;first demon appears
 								ShowEntity(e\room\Objects[5])
-								LampDemonState$ = "4"
 								;le sexy demon pose
 								Animate2(e\room\Objects[5], AnimTime(e\room\Objects[5]), 500, 648, 0.2)
 								;TurnEntity(e\room\Objects[6], 0.0, DeltaYaw(e\room\Objects[6], e\room\Objects[5])*0.01, 0.0, True)
@@ -6259,13 +6203,11 @@ Function UpdateEvents()
 								EndIf
 							Case 9
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								ShowEntity(e\room\Objects[6])
 								ShowEntity(e\room\Objects[5])
 								HideEntity(e\room\Objects[3])
 								;second demon appears
 								ShowEntity(e\room\Objects[4])
-								LampDemonState$ = "5"
 								;idle
 								Animate2(e\room\Objects[4], AnimTime(e\room\Objects[4]), 2, 200, 0.2)
 								Animate2(e\room\Objects[5], AnimTime(e\room\Objects[5]), 4, 125, 0.2)
@@ -6278,13 +6220,11 @@ Function UpdateEvents()
 								EndIf
 							Case 11
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								ShowEntity(e\room\Objects[6])
 								ShowEntity(e\room\Objects[5])
 								ShowEntity(e\room\Objects[4])
 								;third demon
 								ShowEntity(e\room\Objects[3])
-								LampDemonState$ = "6"
 								;idle
 								Animate2(e\room\Objects[3], AnimTime(e\room\Objects[3]), 2, 226, 0.2)
 								Animate2(e\room\Objects[4], AnimTime(e\room\Objects[4]), 2, 200, 0.2)
@@ -6294,9 +6234,7 @@ Function UpdateEvents()
 								
 								If e\EventState2 > 85*70 Then e\EventState = e\EventState+1
 							Case 13
-								LampDemonState$ = "7"
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								ShowEntity(e\room\Objects[6])
 								ShowEntity(e\room\Objects[5])
 								ShowEntity(e\room\Objects[4])
@@ -6308,7 +6246,6 @@ Function UpdateEvents()
 								Animate2(e\room\Objects[5], AnimTime(e\room\Objects[5]), 2, 433, 0.05)
 							Case 66
 								ShowEntity e\room\Objects[1]
-								ShowEntity lampdemonhash
 								Animate2(e\room\Objects[3], AnimTime(e\room\Objects[3]), 492, 534, 0.1, False)
 								Animate2(e\room\Objects[4], AnimTime(e\room\Objects[4]), 434, 466, 0.1, False)
 								Animate2(e\room\Objects[5], AnimTime(e\room\Objects[5]), 434, 494, 0.1, False)
@@ -6322,11 +6259,6 @@ Function UpdateEvents()
 										e\EventState2 = 0										
 										e\EventState3 = 0
 										HideEntity e\room\Objects[1]
-										HideEntity lampdemonhash
-										HideEntity(e\room\Objects[3])
-										HideEntity(e\room\Objects[4])
-										HideEntity(e\room\Objects[5])
-										HideEntity(e\room\Objects[6])
 									EndIf
 								EndIf
 							Case 67
@@ -6349,16 +6281,13 @@ Function UpdateEvents()
 							Default
 								If (Rand(3)=1) Then ;this is the light flickering 
 									HideEntity e\room\Objects[1]
-									HideEntity lampdemonhash
 								Else
 									ShowEntity e\room\Objects[1]
-									ShowEntity lampdemonhash
 								EndIf
 								
 								e\EventState3 = e\EventState3 + FPSfactor
 								If (e\EventState3>50) Then
 									ShowEntity e\room\Objects[1]
-									ShowEntity lampdemonhash
 									e\EventState = e\EventState+1
 									e\EventState3=0
 								EndIf
@@ -7952,50 +7881,11 @@ Function UpdateEvents()
 				
 				;Camera-Spawning Code + SCP-049-Spawning (will now be loaded in the QuickLoadEvents function)
 				;[Block]
-				If PlayerRoom = e\room 
-					; Dist049Door1$ = EntityDistance(e\room\NPC[0]\Collider,e\room\Objects[7])
-					; Dist049Door2$ = e\EventState2
-					If e\EventState4 = 0 And Room2slDoorOpen$ = "He's Coming" Then e\EventState4 = 1
-						If e\EventState4 = 1 Then
-							e\EventState5 = e\EventState5 + FPSFactor
-						If e\EventState5 > 78 * 70 Then
-							Room2slDoorOpen$ = "He's Come"
-							MonitorRoom2slChange()
-							e\EventState4 = 0
-						EndIf
-					EndIf
-					;YOUR_TIMER_CONCLUDES
-					; Dist049Door3$ = "0"
-					If e\EventState2 = 6 And Room2slDoorOpen$ = "He's Come" Then
-						If EntityDistance(e\room\NPC[0]\Collider,e\room\Objects[7]) < 2.6 Then
-							Room2slDoorOpen$ = "He's Going Right"
-							Timer049 = 0
-						ElseIf EntityDistance(e\room\NPC[0]\Collider,e\room\Objects[7]) > 3.1 Then
-							Room2slDoorOpen$ = "He's Going Left"
-							Timer049 = 0
-						EndIf  
-					ElseIf e\EventState2 = 6 And EntityDistance(e\room\NPC[0]\Collider,e\room\Objects[7]) > 8 Then
-						Room2slDoorOpen$ = "True" 
-						Timer049 = 0
-					ElseIf e\EventState2 > 6 Or e\EventState2 < 1 Then ;Inward3d ;2
-						Timer049 = 0
-						If EntityY(Collider)>1.2 Then ;3
-							Room2slCanChange$ = "True"
-							If e\room\RoomDoors[0]\open = False And Room2slDoorOpen$ <> "He's Coming" And Room2slDoorOpen$ <> "He's Come" And Room2slDoorOpen$ <> "He's Going Left" And Room2slDoorOpen$ <> "He's Going Right" Then ;4
-								Room2slDoorOpen$ = "False" 
-							ElseIf e\room\RoomDoors[0]\open = True And Room2slDoorOpen$ <> "He's Coming" And Room2slDoorOpen$ <> "He's Come" And Room2slDoorOpen$ <> "He's Going Left" And Room2slDoorOpen$ <> "He's Going Right" Then
-								Room2slDoorOpen$ = "True"  
-							EndIf ;4
-						ElseIf EntityY(Collider)<1.2 Then
-							Room2slCanChange$ = "False"
-							LockroomCanChange$ = "True"
-							MonitorLockroomChange()
-						EndIf ;3
-						If e\EventStr = "" And QuickLoadPercent = -1 ;5
-							QuickLoadPercent = 0
-							QuickLoad_CurrEvent = e
-							e\EventStr = 0
-						EndIf
+				If PlayerRoom = e\room
+					If e\EventStr = "" And QuickLoadPercent = -1
+						QuickLoadPercent = 0
+						QuickLoad_CurrEvent = e
+						e\EventStr = 0
 					EndIf
 				EndIf
 				;[End Block]
@@ -8059,9 +7949,6 @@ Function UpdateEvents()
 							e\EventState2 = 2
 						EndIf
 					ElseIf e\EventState2 = 2
-						Room2slDoorOpen$ = "He's Coming"
-						MonitorRoom2slChange()
-						Timer049 = Timer049 + FPSFactor
 						If e\room\NPC[0]\PathStatus <> 1
 							e\room\NPC[0]\State3 = 1.0
 							e\EventState2 = 3
@@ -8143,26 +8030,21 @@ Function UpdateEvents()
 									Case 1
 										e\room\NPC[0]\PathStatus = FindPath(e\room\NPC[0],EntityX(e\room\Objects[16],True),EntityY(e\room\Objects[16],True),EntityZ(e\room\Objects[16],True))
 										e\room\NPC[0]\PrevState = 1
-										Dist049Door3$ = "1"
 										DebugLog "Path1"
 									Case 2
 										e\room\NPC[0]\PathStatus = FindPath(e\room\NPC[0],EntityX(e\room\Objects[15],True),EntityY(e\room\Objects[15],True),EntityZ(e\room\Objects[15],True))
 										e\room\NPC[0]\PrevState = 2
-										Dist049Door3$ = "2"
 										DebugLog "Path2"
 									Case 3
 										e\room\NPC[0]\PathStatus = FindPath(e\room\NPC[0],EntityX(e\room\Objects[17],True),EntityY(e\room\Objects[17],True),EntityZ(e\room\Objects[17],True))
 										e\room\NPC[0]\PrevState = 2
-										Dist049Door3$ = "3"
 										DebugLog "Path3"
 									Case 4
 										e\room\NPC[0]\PathStatus = FindPath(e\room\NPC[0],e\room\NPC[0]\PathX,0.1,e\room\NPC[0]\PathZ)
 										e\room\NPC[0]\PrevState = 2
-										Dist049Door3$ = "4"
 										DebugLog "Path4"
 									Case 5
 										e\EventState2 = 5
-										Dist049Door3$ = "5"
 								End Select
 								e\room\NPC[0]\PathTimer# = 0.0
 								e\room\NPC[0]\State3 = e\room\NPC[0]\State3 + 1

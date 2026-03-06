@@ -2070,10 +2070,6 @@ Function UpdateNPCs()
 								n\State2 = 70*2
 								n\PrevState = 0
 								PlaySound_Strict LoadTempSound("SFX\Room\Room2SL049Spawn.ogg")
-								If moviefile2$ <> "GFX\SLScene1.avi" And PlayerRoom\RoomTemplate\Name = "room2sl" Then
-									moviefile2$ = "GFX\SLScene1.avi"
-									;BlitzMovie_OpenDecodeToTexture(moviefile2$, CCTVTexture, 1)
-								EndIf
 							ElseIf PlayerSeeAble% = 2 And n\State3 > 0.0
 								n\PathStatus = FindPath(n,EntityX(Collider),EntityY(Collider),EntityZ(Collider))
 							Else
