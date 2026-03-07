@@ -559,7 +559,7 @@ Function ReadMesh%(file$, f%, blankTexture%, Alpha%, Opaque%, coll% = True)
 				If tex[j]<>0 Then
 					If temp1i=1 Then TextureBlend tex[j],5
 					If Instr(Lower(temp1s),"_lm")<>0 Then
-						TextureBlend tex[j],3
+						TextureBlend tex[j],5
 					EndIf
 					AddTextureToCache(tex[j])
 				EndIf
@@ -592,7 +592,6 @@ Function ReadMesh%(file$, f%, blankTexture%, Alpha%, Opaque%, coll% = True)
 				BrushTexture brush,tex[j],0,j+1+(bumptex<>0)
 			Next
 			
-			BrushTexture brush,AmbientLightRoomTex,0
 			If (bumptex<>0) Then
 				BrushTexture brush,bumptex,0,1
 			EndIf
@@ -8166,23 +8165,6 @@ Function TimeCheckpointMonitors()
 		EndIf
 	EndIf
 	
-End Function
-
-Function AmbientLightRooms(value%=0)
-	Local mesh%,surf%,brush%,tex0%
-	
-	If value=AmbientLightRoomVal Then Return
-	AmbientLightRoomVal = value
-	
-	Local oldbuffer% = BackBuffer() ;probably shouldn't make assumptions here but who cares, why wouldn't it use the backbuffer ;GetBuffer()
-	
-	SetBuffer TextureBuffer(AmbientLightRoomTex)
-	
-	ClsColor value,value,value
-	Cls
-	ClsColor 0,0,0
-	
-	SetBuffer oldbuffer
 End Function
 
 ;#########################################################################
