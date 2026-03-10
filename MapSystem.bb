@@ -25,8 +25,7 @@ End Function
 
 Function LoadMaterials(file$)
 	CatchErrors("Uncaught (LoadMaterials)")
-	;If Not BumpEnabled Then Return
-	
+
 	Local TemporaryString$
 	Local mat.Materials = Null
 	Local StrTemp$ = ""
@@ -41,22 +40,6 @@ Function LoadMaterials(file$)
 			mat.Materials = New Materials
 			
 			mat\name = Lower(TemporaryString)
-			
-			If BumpEnabled Then
-				StrTemp = GetINIString(file, TemporaryString, "bump")
-				If StrTemp <> "" Then 
-					mat\Bump =  LoadTexture_Strict(StrTemp)
-					
-					TextureBlend mat\Bump, 6
-					TextureBumpEnvMat mat\Bump,0,0,-0.012
-					TextureBumpEnvMat mat\Bump,0,1,-0.012
-					TextureBumpEnvMat mat\Bump,1,0,0.012
-					TextureBumpEnvMat mat\Bump,1,1,0.012
-					TextureBumpEnvOffset mat\Bump,0.5
-					TextureBumpEnvScale mat\Bump,1.0				
-				EndIf
-			EndIf
-			
 			mat\StepSound = (GetINIInt(file, TemporaryString, "stepsound")+1)
 		EndIf
 	Wend
@@ -109,33 +92,6 @@ Function AddTextureToCache(texture%)
 	If tc.Materials=Null Then
 		tc.Materials=New Materials
 		tc\name=StripPath(TextureName(texture))
-		If BumpEnabled Then
-			Local temp$=""
-			Local hasOverride%
-			For m.ActiveMods = Each ActiveMods
-				Local modMatPath$ = m\Path + MATERIALS_DATA_PATH
-				If FileType(modMatPath) = 1 Then
-					temp = GetINIString(modMatPath,tc\name,"bump")
-					If temp <> "" Lor FileType(modMatPath + ".OVERRIDE") = 1 Then
-						hasOverride = True
-						Exit
-					EndIf
-				EndIf
-			Next
-			If (Not hasOverride) And temp="" Then temp=GetINIString(MATERIALS_DATA_PATH,tc\name,"bump")
-			If temp<>"" Then
-				tc\Bump=LoadTexture_Strict(temp)
-				TextureBlend tc\Bump,6
-				TextureBumpEnvMat tc\Bump,0,0,-0.012
-				TextureBumpEnvMat tc\Bump,0,1,-0.012
-				TextureBumpEnvMat tc\Bump,1,0,0.012
-				TextureBumpEnvMat tc\Bump,1,1,0.012
-				TextureBumpEnvOffset tc\Bump,0.5
-				TextureBumpEnvScale tc\Bump,1.0
-			Else
-				tc\Bump=0
-			EndIf
-		EndIf
 		tc\Diff=0
 	EndIf
 	If tc\Diff=0 Then tc\Diff=texture
@@ -4583,35 +4539,6 @@ Function FillRoom(r.Rooms)
 			EntityPickMode r\Objects[6], 3
 			PositionEntity(r\Objects[6],r\x+784.0*RoomScale,-980.0*RoomScale,r\z+720.0*RoomScale,True)
 			
-			;If BumpEnabled Then 
-			;	
-			;	For i = 1 To CountSurfaces(r\Objects[6])
-			;		sf = GetSurface(r\Objects[6],i)
-			;		b = GetSurfaceBrush( sf )
-			;		t = GetBrushTexture(b,1)
-			;		texname$ =  StripPath(TextureName(t))
-			;		
-			;		mat.Materials=GetCache(texname)
-			;		If mat<>Null Then
-			;			If mat\Bump<>0 Then
-			;				t1 = GetBrushTexture(b,0)
-			;				
-			;				BrushTexture b, t1, 0, 0	
-			;				BrushTexture b, mat\Bump, 0, 1
-			;				BrushTexture b, t, 0, 2					
-			;				
-			;				PaintSurface sf,b
-			;				
-			;				If t1<>0 Then FreeTexture t1 : t1=0
-			;			EndIf
-			;		EndIf
-			;		
-			;		If t<>0 Then FreeTexture t : t=0
-			;		If b<>0 Then FreeBrush b : b=0
-			;	Next
-			;	
-			;EndIf
-			
 			EntityParent(r\Objects[6], r\obj)
 			
 			For n = 0 To 2 Step 2
@@ -4858,35 +4785,6 @@ Function FillRoom(r.Rooms)
 					Case 4
 						entity = r\Objects[11]							
 				End Select 
-				
-				;If BumpEnabled Then 
-				;	
-				;	For i = 1 To CountSurfaces(entity)
-				;		sf = GetSurface(entity,i)
-				;		b = GetSurfaceBrush( sf )
-				;		t = GetBrushTexture(b,1)
-				;		texname$ =  StripPath(TextureName(t))
-				;		mat.Materials=GetCache(texname)
-				;		If mat<>Null Then
-				;			If mat\Bump<>0 Then
-				;				t1 = GetBrushTexture(b,0)
-				;				
-				;				BrushTexture b, t1, 0, 0	
-				;				BrushTexture b, mat\Bump, 0, 1
-				;				BrushTexture b, t, 0, 2					
-				;				
-				;				PaintSurface sf,b
-				;				
-				;				If t1<>0 Then FreeTexture t1 : t1=0
-				;			EndIf
-				;		EndIf
-				;		
-				;		If t<>0 Then FreeTexture t : t=0
-				;		If b<>0 Then FreeBrush b : b=0
-				;	Next
-				;	
-				;EndIf
-				
 			Next
 			
 			For i = 8 To 11
