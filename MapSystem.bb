@@ -6308,8 +6308,6 @@ Function UpdateSecurityCams()
 									ShowEntity(sc\Cam)
 									Cls
 									
-									UpdateRoomLights(sc\Cam)
-									
 									RenderWorld
 									
 									HideEntity(sc\Cam)
@@ -6320,8 +6318,6 @@ Function UpdateSecurityCams()
 									EntityAlpha(GetChild(CoffinCam\room\obj,2),1)
 									ShowEntity(CoffinCam\Cam)
 									Cls
-									
-									UpdateRoomLights(CoffinCam\Cam)
 									
 									RenderWorld
 									
