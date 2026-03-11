@@ -1066,8 +1066,6 @@ Type Materials
 End Type
 
 Function LoadMaterials(file$)
-	;If Not BumpEnabled Then Return
-	
 	Local TemporaryString$
 	Local mat.Materials = Null
 	Local StrTemp$ = ""
@@ -1082,21 +1080,6 @@ Function LoadMaterials(file$)
 			mat.Materials = New Materials
 			
 			mat\name = Lower(TemporaryString)
-			
-;			If BumpEnabled Then
-;				StrTemp = GetINIString(file, TemporaryString, "bump")
-;				If StrTemp <> "" Then 
-;					mat\Bump =  LoadTexture_Strict(StrTemp)
-;					
-;					TextureBlend mat\Bump, 6
-;					TextureBumpEnvMat mat\Bump,0,0,-0.012
-;					TextureBumpEnvMat mat\Bump,0,1,-0.012
-;					TextureBumpEnvMat mat\Bump,1,0,0.012
-;					TextureBumpEnvMat mat\Bump,1,1,0.012
-;					TextureBumpEnvOffset mat\Bump,0.5
-;					TextureBumpEnvScale mat\Bump,1.0				
-;				EndIf
-;			EndIf
 			
 			mat\StepSound = (GetINIInt(file, TemporaryString, "stepsound")+1)
 		EndIf
@@ -1131,21 +1114,6 @@ Function AddTextureToCache(texture%)
 	If tc.Materials=Null Then
 		tc.Materials=New Materials
 		tc\name=StripPath(TextureName(texture))
-		If BumpEnabled Then
-			Local temp$=GetINIString("Data\materials.ini",tc\name,"bump")
-			If temp<>"" Then
-				tc\Bump=LoadTexture(temp)
-				TextureBlend tc\Bump,6
-				TextureBumpEnvMat tc\Bump,0,0,-0.012
-				TextureBumpEnvMat tc\Bump,0,1,-0.012
-				TextureBumpEnvMat tc\Bump,1,0,0.012
-				TextureBumpEnvMat tc\Bump,1,1,0.012
-				TextureBumpEnvOffset tc\Bump,0.5
-				TextureBumpEnvScale tc\Bump,1.0
-			Else
-				tc\Bump=0
-			EndIf
-		EndIf
 		tc\Diff=0
 	EndIf
 	If tc\Diff=0 Then tc\Diff=texture

@@ -172,8 +172,6 @@ Function ApplyWindowModeCLIOverrides()
 	If HasCLIFlag("window") Lor HasCLIFlag("windowed") Lor HasCLIFlag("sw") Lor HasCLIFlag("startwindowed") Then BorderlessWindowed = False : Fullscreen = False
 End Function
 
-Global EnableRoomLights% = GetOptionInt("graphics", "room lights enabled")
-
 Global TextureDetails% = GetOptionInt("graphics", "texture details")
 Global TextureFloat#
 Select TextureDetails%
@@ -1900,7 +1898,6 @@ Global BlurVolume#, BlurTimer#
 Global LightBlink#, LightFlash#
 
 Global SCP173Model$ = GetOptionInt("graphics", "SCP-173 Model")
-Global BumpEnabled% = GetOptionInt("graphics", "bump mapping enabled")
 Global HUDenabled% = GetOptionInt("graphics", "HUD enabled")
 
 Global Camera%, CameraShake#, CurrCameraZoom#
@@ -1915,7 +1912,7 @@ Global MouseSens# = GetOptionFloat("controls", "mouse sensitivity")
 
 Include "dreamfilter.bb"
 
-Dim LightSpriteTex(10)
+Dim LightSpriteTex(2)
 
 ;----------------------------------------------  Sounds -----------------------------------------------------
 
@@ -3116,7 +3113,7 @@ Global NVTexture%, NVOverlay%
 Global TeslaTexture%
 
 Global LightTexture%, Light%
-Dim LightSpriteTex%(5)
+Dim LightSpriteTex%(2)
 Global DoorOBJ%, DoorFrameOBJ%
 
 Global LeverOBJ%, LeverBaseOBJ%
@@ -3361,7 +3358,6 @@ While IsRunning
 					UpdateEndings()
 				EndIf
 				UpdateScreens()
-				UpdateRoomLights(Camera)
 			Else
 				UpdateDoors()
 				If QuickLoadPercent = -1 Or QuickLoadPercent = 100
@@ -3369,7 +3365,6 @@ While IsRunning
 				EndIf
 				UpdateScreens()
 				TimeCheckpointMonitors()
-				UpdateRoomLights(Camera)
 			EndIf
 			Update294()
 			UpdateDecals()
@@ -8409,30 +8404,6 @@ Function LoadEntities()
 	GuardObj = LoadAnimMesh_Strict("GFX\npcs\guard.b3d") ;optimized Guards
 	;GuardTex = LoadTexture_Strict("GFX\npcs\body.jpg") ;optimized the guards even more
 	
-	;If BumpEnabled Then
-	;	bump1 = LoadTexture_Strict("GFX\npcs\mtf_newnormal01.png")
-	;	;TextureBlend bump1, FE_BUMP ;USE DOT3
-	;		
-	;	For i = 2 To CountSurfaces(MTFObj)
-	;		sf = GetSurface(MTFObj,i)
-	;		b = GetSurfaceBrush( sf )
-	;		t1 = GetBrushTexture(b,0)
-	;		
-	;		Select Lower(StripPath(TextureName(t1)))
-	;			Case "MTF_newdiffuse02.png"
-	;				
-	;				BrushTexture b, bump1, 0, 0
-	;				BrushTexture b, t1, 0, 1
-	;				PaintSurface sf,b
-	;		End Select
-	;		FreeBrush b
-	;		FreeTexture t1
-	;	Next
-	;	FreeTexture bump1	
-	;EndIf
-	
-	
-	
 	ClassDObj = LoadAnimMesh_Strict("GFX\npcs\classd.b3d") ;optimized Class-D's and scientists/researchers
 	ApacheObj = LoadAnimMesh_Strict("GFX\apache.b3d") ;optimized Apaches (helicopters)
 	ApacheRotorObj = LoadAnimMesh_Strict("GFX\apacherotor.b3d") ;optimized the Apaches even more
@@ -8483,7 +8454,6 @@ Function LoadEntities()
 	
 	LightSpriteTex(0) = LoadTexture_Strict("GFX\light1.jpg", 1)
 	LightSpriteTex(1) = LoadTexture_Strict("GFX\light2.jpg", 1)
-	LightSpriteTex(2) = LoadTexture_Strict("GFX\lightsprite.jpg",1)
 	
 	DrawLoading(10)
 	
@@ -8518,24 +8488,6 @@ Function LoadEntities()
 	HideEntity LeverBaseOBJ
 	LeverOBJ = LoadMesh_Strict("GFX\map\leverhandle.x")
 	HideEntity LeverOBJ
-	
-	;For i = 0 To 1
-	;	HideEntity BigDoorOBJ(i)
-	;	;If BumpEnabled And 0 Then
-	;	If BumpEnabled
-	;		
-	;		Local bumptex = LoadTexture_Strict("GFX\map\containmentdoorsbump.jpg")
-	;		;TextureBlend bumptex, FE_BUMP
-	;		Local tex = LoadTexture_Strict("GFX\map\containment_doors.jpg")	
-	;		EntityTexture BigDoorOBJ(i), bumptex, 0, 0
-	;		EntityTexture BigDoorOBJ(i), tex, 0, 1
-	;		
-	;		;FreeEntity tex
-	;		;FreeEntity bumptex
-	;		FreeTexture tex
-	;		FreeTexture bumptex
-	;	EndIf
-	;Next
 	
 	DrawLoading(15)
 	
@@ -8856,14 +8808,6 @@ Function InitNewGame()
 	Next	
 	
 	For r.Rooms = Each Rooms
-		For i = 0 To MaxRoomLights-1
-			If r\Lights[i]<>0 Then
-				EntityParent(r\Lights[i],0)
-			Else
-				Exit
-			EndIf
-		Next
-		
 		If (Not r\RoomTemplate\DisableDecals) Then
 			If Rand(4) = 1 Then
 				de.Decals = CreateDecal(Rand(2, 3), EntityX(r\obj)+Rnd(- 2,2), 0.003, EntityZ(r\obj)+Rnd(-2,2), 90, Rand(360), 0)
