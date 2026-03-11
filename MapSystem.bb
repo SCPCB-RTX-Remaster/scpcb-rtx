@@ -6150,17 +6150,18 @@ Function CreateSecurityCam.SecurityCams(x#, y#, z#, r.Rooms, screen% = False)
 	If screen Then
 		sc\AllowSaving = True
 		
-		sc\RenderInterval = 12
+		sc\RenderInterval = 0 ;12
 		
 		Local scale# = RoomScale * 4.5 * 0.4
 		
 		sc\ScrObj = CreateSprite()
-		EntityFX sc\ScrObj, 17
+		;EntityFX sc\ScrObj, 17
 		SpriteViewMode(sc\ScrObj, 2)
 		sc\ScrTexture = 0
 		EntityTexture sc\ScrObj, ScreenTexs[sc\ScrTexture]
 		ScaleSprite(sc\ScrObj, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
-		
+		EntityBlend (sc\ScrObj, 3)
+		EntityFX sc\ScrObj, 1+8
 		sc\ScrOverlay = CreateSprite(sc\ScrObj)
 		ScaleSprite(sc\ScrOverlay, MeshWidth(Monitor) * scale * 0.95 * 0.5, MeshHeight(Monitor) * scale * 0.95 * 0.5)
 		MoveEntity(sc\ScrOverlay, 0, 0, -0.0005)
