@@ -7,7 +7,7 @@
         }
         string lightspeed_mod_name = "SCPCB-RTX-DX9-Proj"
         string lightspeed_mod_notes = "A RTX Remaster of SCP - Containment Breach on Dx9"
-        string lightspeed_mod_version = "0.12"
+        string lightspeed_mod_version = "0.13"
     }
     timeCodesPerSecond = 24
     upAxis = "Y"
@@ -964,10 +964,11 @@ over "RootNode"
             )
             {
                 float3[] extent = [(-5, -5, -0), (5, 5, 0)]
-                float inputs:intensity = 750
-                float inputs:radius = 4
+                color3f inputs:color = (0.87058824, 0.84705883, 0.8)
+                float inputs:intensity = 100
+                float inputs:radius = 5
                 float inputs:shaping:cone:angle = 180
-                float inputs:shaping:cone:softness
+                float inputs:shaping:cone:softness = 0.4
                 float inputs:shaping:focus
                 color3f inputs:shaping:focusTint
                 asset inputs:shaping:ies:file
@@ -977,33 +978,16 @@ over "RootNode"
                 uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
             }
 
-            def DiskLight "DiskLight_01" (
-                prepend apiSchemas = ["ShapingAPI"]
-            )
-            {
-                float3[] extent = [(-5, -5, -0), (5, 5, 0)]
-                float inputs:intensity = 750
-                float inputs:radius = 4
-                float inputs:shaping:cone:angle = 180
-                float inputs:shaping:cone:softness
-                float inputs:shaping:focus
-                color3f inputs:shaping:focusTint
-                asset inputs:shaping:ies:file
-                double3 xformOp:rotateXYZ = (-90, 0, 0)
-                double3 xformOp:scale = (1, 1, 1)
-                double3 xformOp:translate = (57.17736401810362, 439, -833.1533256636121)
-                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
-            }
-
             def DiskLight "DiskLight_02" (
                 prepend apiSchemas = ["ShapingAPI"]
             )
             {
                 float3[] extent = [(-5, -5, -0), (5, 5, 0)]
-                float inputs:intensity = 750
-                float inputs:radius = 4
+                color3f inputs:color = (0.87058824, 0.84705883, 0.8)
+                float inputs:intensity = 150
+                float inputs:radius = 5
                 float inputs:shaping:cone:angle = 180
-                float inputs:shaping:cone:softness
+                float inputs:shaping:cone:softness = 0.4
                 float inputs:shaping:focus
                 color3f inputs:shaping:focusTint
                 asset inputs:shaping:ies:file
@@ -1019,13 +1003,14 @@ over "RootNode"
             {
                 float3[] extent = [(-5, -5, -0), (5, 5, 0)]
                 color3f inputs:color = (0.88235295, 0.40392157, 0.40392157)
-                float inputs:intensity = 750
-                float inputs:radius = 4
+                float inputs:intensity = 5
+                float inputs:radius = 55
                 float inputs:shaping:cone:angle = 180
-                float inputs:shaping:cone:softness
-                float inputs:shaping:focus
+                float inputs:shaping:cone:softness = 0
+                float inputs:shaping:focus = 0
                 color3f inputs:shaping:focusTint
                 asset inputs:shaping:ies:file
+                custom float inputs:volumetric_radiance_scale = 1
                 double3 xformOp:rotateXYZ = (-90, 0, 0)
                 double3 xformOp:scale = (1, 1, 1)
                 double3 xformOp:translate = (-270.42116095177516, 438.9999999999999, 368.36086666894334)
@@ -1038,8 +1023,8 @@ over "RootNode"
             {
                 float3[] extent = [(-5, -5, -0), (5, 5, 0)]
                 color3f inputs:color = (0.8980392, 0.85490197, 0.7647059)
-                float inputs:intensity = 500
-                float inputs:radius = 3
+                float inputs:intensity = 150
+                float inputs:radius = 5
                 float inputs:shaping:cone:angle = 180
                 float inputs:shaping:cone:softness
                 float inputs:shaping:focus
@@ -1048,6 +1033,24 @@ over "RootNode"
                 double3 xformOp:rotateXYZ = (-90, 0, 0)
                 double3 xformOp:scale = (1, 1, 1)
                 double3 xformOp:translate = (993.8662109375, 439, 578.291015625)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+            }
+
+            def SphereLight "SphereLight" (
+                prepend apiSchemas = ["ShapingAPI"]
+            )
+            {
+                float3[] extent = [(-5, -5, -5), (5, 5, 5)]
+                float inputs:intensity = 100
+                float inputs:radius = 5
+                float inputs:shaping:cone:angle = 180
+                float inputs:shaping:cone:softness
+                float inputs:shaping:focus
+                color3f inputs:shaping:focusTint
+                asset inputs:shaping:ies:file
+                double3 xformOp:rotateXYZ = (0, 0, 0)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (9.822656512878893, 360.60551182940674, -834.8441600000006)
                 uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
             }
         }
