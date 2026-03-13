@@ -1898,6 +1898,7 @@ Global BlurVolume#, BlurTimer#
 Global LightBlink#, LightFlash#
 
 Global SCP173Model$ = GetOptionInt("graphics", "SCP-173 Model")
+Global BumpEnabled% = GetOptionInt("graphics", "bump mapping enabled")
 Global HUDenabled% = GetOptionInt("graphics", "HUD enabled")
 
 Global Camera%, CameraShake#, CurrCameraZoom#
@@ -8421,6 +8422,30 @@ Function LoadEntities()
 	GuardObj = LoadAnimMesh_Strict("GFX\npcs\guard.b3d") ;optimized Guards
 	;GuardTex = LoadTexture_Strict("GFX\npcs\body.jpg") ;optimized the guards even more
 	
+	;If BumpEnabled Then
+	;	bump1 = LoadTexture_Strict("GFX\npcs\mtf_newnormal01.png")
+	;	;TextureBlend bump1, FE_BUMP ;USE DOT3
+	;		
+	;	For i = 2 To CountSurfaces(MTFObj)
+	;		sf = GetSurface(MTFObj,i)
+	;		b = GetSurfaceBrush( sf )
+	;		t1 = GetBrushTexture(b,0)
+	;		
+	;		Select Lower(StripPath(TextureName(t1)))
+	;			Case "MTF_newdiffuse02.png"
+	;				
+	;				BrushTexture b, bump1, 0, 0
+	;				BrushTexture b, t1, 0, 1
+	;				PaintSurface sf,b
+	;		End Select
+	;		FreeBrush b
+	;		FreeTexture t1
+	;	Next
+	;	FreeTexture bump1	
+	;EndIf
+	
+	
+	
 	ClassDObj = LoadAnimMesh_Strict("GFX\npcs\classd.b3d") ;optimized Class-D's and scientists/researchers
 	ApacheObj = LoadAnimMesh_Strict("GFX\apache.b3d") ;optimized Apaches (helicopters)
 	ApacheRotorObj = LoadAnimMesh_Strict("GFX\apacherotor.b3d") ;optimized the Apaches even more
@@ -8505,6 +8530,24 @@ Function LoadEntities()
 	HideEntity LeverBaseOBJ
 	LeverOBJ = LoadMesh_Strict("GFX\map\leverhandle.x")
 	HideEntity LeverOBJ
+	
+	;For i = 0 To 1
+	;	HideEntity BigDoorOBJ(i)
+	;	;If BumpEnabled And 0 Then
+	;	If BumpEnabled
+	;		
+	;		Local bumptex = LoadTexture_Strict("GFX\map\containmentdoorsbump.jpg")
+	;		;TextureBlend bumptex, FE_BUMP
+	;		Local tex = LoadTexture_Strict("GFX\map\containment_doors.jpg")	
+	;		EntityTexture BigDoorOBJ(i), bumptex, 0, 0
+	;		EntityTexture BigDoorOBJ(i), tex, 0, 1
+	;		
+	;		;FreeEntity tex
+	;		;FreeEntity bumptex
+	;		FreeTexture tex
+	;		FreeTexture bumptex
+	;	EndIf
+	;Next
 	
 	DrawLoading(15)
 	
