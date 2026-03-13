@@ -172,8 +172,6 @@ Function ApplyWindowModeCLIOverrides()
 	If HasCLIFlag("window") Lor HasCLIFlag("windowed") Lor HasCLIFlag("sw") Lor HasCLIFlag("startwindowed") Then BorderlessWindowed = False : Fullscreen = False
 End Function
 
-Global EnableRoomLights% = GetOptionInt("graphics", "room lights enabled")
-
 Global TextureDetails% = GetOptionInt("graphics", "texture details")
 Global TextureFloat#
 Select TextureDetails%
@@ -1914,7 +1912,7 @@ Global MouseSens# = GetOptionFloat("controls", "mouse sensitivity")
 
 Include "dreamfilter.bb"
 
-Dim LightSpriteTex(10)
+Dim LightSpriteTex(2)
 
 ;----------------------------------------------  Sounds -----------------------------------------------------
 
@@ -3117,7 +3115,7 @@ Global NVTexture%, NVOverlay%
 Global TeslaTexture%
 
 Global LightTexture%, Light%
-Dim LightSpriteTex%(5)
+Dim LightSpriteTex%(2)
 Global DoorOBJ%, DoorFrameOBJ%
 
 Global LeverOBJ%, LeverBaseOBJ%
@@ -3362,7 +3360,6 @@ While IsRunning
 					UpdateEndings()
 				EndIf
 				UpdateScreens()
-				UpdateRoomLights(Camera)
 			Else
 				UpdateDoors()
 				If QuickLoadPercent = -1 Or QuickLoadPercent = 100
@@ -3370,7 +3367,6 @@ While IsRunning
 				EndIf
 				UpdateScreens()
 				TimeCheckpointMonitors()
-				UpdateRoomLights(Camera)
 			EndIf
 			Update294()
 			UpdateDecals()
@@ -8475,7 +8471,6 @@ Function LoadEntities()
 	
 	LightSpriteTex(0) = LoadTexture_Strict("GFX\light1.jpg", 1)
 	LightSpriteTex(1) = LoadTexture_Strict("GFX\light2.jpg", 1)
-	LightSpriteTex(2) = LoadTexture_Strict("GFX\lightsprite.jpg",1)
 	
 	DrawLoading(10)
 	
@@ -8830,14 +8825,6 @@ Function InitNewGame()
 	Next	
 	
 	For r.Rooms = Each Rooms
-		For i = 0 To MaxRoomLights-1
-			If r\Lights[i]<>0 Then
-				EntityParent(r\Lights[i],0)
-			Else
-				Exit
-			EndIf
-		Next
-		
 		If (Not r\RoomTemplate\DisableDecals) Then
 			If Rand(4) = 1 Then
 				de.Decals = CreateDecal(Rand(2, 3), EntityX(r\obj)+Rnd(- 2,2), 0.003, EntityZ(r\obj)+Rnd(-2,2), 90, Rand(360), 0)
