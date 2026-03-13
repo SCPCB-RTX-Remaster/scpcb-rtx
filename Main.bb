@@ -8285,7 +8285,7 @@ Function LoadEntities()
 	
 	;TextureLodBias
 	
-	AmbientLightRoomTex% = CreateTexture(2,2,257)
+    AmbientLightRoomTex% = CreateTexture(2,2,1+256+1024)
 	AmbientLight = GetModdedINIInt(MapOptions, "facility", "ambient light")
 	AmbientLightNVG = GetModdedINIInt(MapOptions, "facility", "ambient light nvg")
 
