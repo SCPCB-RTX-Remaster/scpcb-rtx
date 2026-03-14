@@ -8302,7 +8302,7 @@ Function LoadEntities()
 	
 	ScreenTexs[0] = CreateTexture(512, 512, 1+256+1024)
 	ScreenTexs[1] = CreateTexture(512, 512, 1+256+1024)
-	ScreenTexs[2] = CreateTexture(512, 512, 8192)
+	ScreenTexs[2] = CreateTexture(512, 512, 1+256+1024)
 	
 	CreateBlurImage()
 	CameraProjMode ark_blur_cam,0
@@ -8364,7 +8364,7 @@ Function LoadEntities()
 	Cls
 	SetBuffer BackBuffer()
 	
-	Dark = CreateSprite(ark_blur_cam)
+	Dark = CreateSprite(Camera)
 	ScaleSprite(Dark, 1.0, Max(Float(GraphicHeight) / Float(GraphicWidth), 0.8))
 	EntityTexture(Dark, DarkTexture)
 	EntityBlend (Dark, 1)
@@ -8381,7 +8381,7 @@ Function LoadEntities()
 	
 	TeslaTexture = LoadTexture_Strict("GFX\map\tesla.jpg", 1+2)
 	
-	Light = CreateSprite(ark_blur_cam)
+	Light = CreateSprite(Camera)
 	ScaleSprite(Light, 1.0, Max(Float(GraphicHeight) / Float(GraphicWidth), 0.8))
 	EntityTexture(Light, LightTexture)
 	EntityBlend (Light, 1)

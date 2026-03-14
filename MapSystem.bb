@@ -705,6 +705,8 @@ Const return_chance% = 27
 Const center = 5 ;(gridsize-1) / 2
 Const min_door_pos% = 3, max_door_pos% = 7
 
+Include "Drawportals.bb"
+
 Type Forest
 	Field TileMesh%[ROOM4] ; 0 is unused
 	Field DetailMesh%[4]
@@ -1467,10 +1469,12 @@ Function DestroyForest(fr.Forest, nullgrid%=True)
 End Function
 
 
-Function UpdateForest(fr.Forest)
+Function UpdateForest(fr.Forest,ent%)
 	CatchErrors("Uncaught (UpdateForest)")
 	;local variables
 	Local tx%,ty%
+	If Abs(EntityY(ent,True)-EntityY(fr\Forest_Pivot,True))<12.0 Then
+
 	
 	For tx% = 0 To gridsize-1
 		For ty% = 0 To gridsize-1
@@ -1486,7 +1490,8 @@ Function UpdateForest(fr.Forest)
 				EndIf
 			EndIf
 		Next
-	Next
+    Next
+EndIf 
 		
 	CatchErrors("UpdateForest")
 End Function
@@ -1728,7 +1733,7 @@ Type Rooms
 	
 	Field SoundCHN%
 	
-	Field fr.Forest
+	Field dp.DrawPortal, fr.Forest
 	
 	Field SoundEmitter%[MaxRoomEmitters]
 	Field SoundEmitterObj%[MaxRoomEmitters]
@@ -2062,16 +2067,16 @@ Function FillRoom(r.Rooms)
 			ScaleEntity r\Objects[4],46.0*RoomScale,45.0*RoomScale,46.0*RoomScale,True
 			EntityParent r\Objects[4],r\obj
 			
-;			;DrawPortal stuff
-;			Local dp.DrawPortal = CreateDrawPortal(r\x + 184.0 * RoomScale,164.25*RoomScale,r\z,0.0,0.0,0.0,328.5*RoomScale,328.5*RoomScale);,r\x,r\y+5.2,r\z,0.0,0.0,0.0)
-;			r\dp=dp
-;			EntityParent dp\portal,r\obj
-;			
-;			CameraClsColor dp\cam,98,133,162
-;			CameraRange dp\cam,RoomScale,8.0
-;			CameraFogRange dp\cam,0.5,8.0
-;			CameraFogColor dp\cam,98,133,162
-;			CameraFogMode dp\cam,1
+			;DrawPortal stuff
+			Local dp.DrawPortal = CreateDrawPortal(r\x + 184.0 * RoomScale,164.25*RoomScale,r\z,0.0,0.0,0.0,328.5*RoomScale,328.5*RoomScale);,r\x,r\y+5.2,r\z,0.0,0.0,0.0)
+			r\dp=dp
+			EntityParent dp\portal,r\obj
+			
+			CameraClsColor dp\cam,98,133,162
+			CameraRange dp\cam,RoomScale,8.0
+			CameraFogRange dp\cam,0.5,8.0
+			CameraFogColor dp\cam,98,133,162
+			CameraFogMode dp\cam,1
 			
 			;doors to observation booth
 			d = CreateDoor(r\zone, r\x + 928.0 * RoomScale,0,r\z + 640.0 * RoomScale,0,r,False,False,False,"ABCD")
@@ -2091,30 +2096,30 @@ Function FillRoom(r.Rooms)
 			EndIf
 			;EntityParent fr\Forest_Pivot,r\obj
 			
-;			PositionEntity dp\cam,EntityX(fr\Door[0],True),r\y+31.0,EntityZ(fr\Door[0],True),True
-;			dp\camyaw=EntityYaw(fr\Door[0],True)
-;			RotateEntity dp\cam, 0, dp\camyaw, 0, True
-;			MoveEntity dp\cam, 0,0,0.5
-;			
-;			;place the camera at the door
-;			For xtemp=0 To -1;gridsize-1
-;				If fr\grid[xtemp+((gridsize-1)*gridsize)]=3 Then
-;					PositionEntity dp\cam,r\x+(xtemp*8.0),r\y+30.5,r\z+((gridsize-2)*8.0)+0.2,True
-;					;make the camera point the right way
-;					ytemp=CreatePivot(r\obj)
-;					ztemp=CreatePivot()
-;					PositionEntity ytemp,EntityX(dp\cam,True),EntityY(dp\cam,True),EntityZ(dp\cam,True),True
-;					PositionEntity ztemp,EntityX(dp\cam,True),EntityY(dp\cam,True),EntityZ(dp\cam,True),True
-;					TranslateEntity ztemp,0.0,0.0,-10.0,True
-;					PointEntity ytemp,ztemp
-;					dp\campitch=EntityPitch(ytemp)
-;					dp\camyaw=EntityYaw(ytemp)
-;					r\Objects[4]=ytemp : ytemp = 0
-;					FreeEntity ztemp : ztemp = 0
-;				EndIf
-;			Next
-;			
-;			EntityParent dp\cam,fr\Forest_Pivot
+			PositionEntity dp\cam,EntityX(fr\Door[0],True),r\y+31.0,EntityZ(fr\Door[0],True),True
+			dp\camyaw=EntityYaw(fr\Door[0],True)
+			RotateEntity dp\cam, 0, dp\camyaw, 0, True
+			MoveEntity dp\cam, 0,0,0.5
+			
+			;place the camera at the door
+			For xtemp=0 To -1;gridsize-1
+				If fr\grid[xtemp+((gridsize-1)*gridsize)]=3 Then
+					PositionEntity dp\cam,r\x+(xtemp*8.0),r\y+30.5,r\z+((gridsize-2)*8.0)+0.2,True
+					;make the camera point the right way
+    				ytemp=CreatePivot(r\obj)
+					ztemp=CreatePivot()
+					PositionEntity ytemp,EntityX(dp\cam,True),EntityY(dp\cam,True),EntityZ(dp\cam,True),True
+					PositionEntity ztemp,EntityX(dp\cam,True),EntityY(dp\cam,True),EntityZ(dp\cam,True),True
+					TranslateEntity ztemp,0.0,0.0,-10.0,True
+					PointEntity ytemp,ztemp
+					dp\campitch=EntityPitch(ytemp)
+					dp\camyaw=EntityYaw(ytemp)
+					r\Objects[4]=ytemp : ytemp = 0
+					FreeEntity ztemp : ztemp = 0
+				EndIf
+			Next
+			
+			EntityParent dp\cam,fr\Forest_Pivot
 			
 			it = CreateItem("doc8601", r\x + 672.0 * RoomScale, r\y + 176.0 * RoomScale, r\z + 335.0 * RoomScale)
 			RotateEntity it\collider, 0, r\angle+10, 0
@@ -6304,16 +6309,20 @@ Function UpdateSecurityCams()
 						If BlinkTimer > - 5 And EntityInView(sc\ScrObj, Camera)Then
 							If EntityVisible(Camera,sc\ScrObj) Then
 								;sc\InSight = True
-								SetBuffer(TextureBuffer(ScreenTexs[sc\ScrTexture]), TextureBuffer(ScreenTexs[2]))
+								;SetBuffer(TextureBuffer(ScreenTexs[sc\ScrTexture]), TextureBuffer(ScreenTexs[2]))
 								If CoffinCam = Null Or Rand(5)=5 Or sc\CoffinEffect <> 3 Then
 									HideEntity(Camera)
 									ShowEntity(sc\Cam)
 									Cls
 									
+									;UpdateRoomLights(sc\Cam)
+									
+									SetBuffer TextureBuffer(ScreenTexs[sc\ScrTexture])
 									RenderWorld
+									SetBuffer BackBuffer()
 									
 									HideEntity(sc\Cam)
-									ShowEntity(Camera)										
+									ShowEntity(Camera)												
 								Else
 									HideEntity(Camera)
 									ShowEntity (CoffinCam\room\obj)

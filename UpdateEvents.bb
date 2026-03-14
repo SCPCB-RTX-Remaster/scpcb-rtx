@@ -6311,20 +6311,20 @@ Function UpdateEvents()
 				;e\EventState3 = monster spawn timer
 				
 				Local fr.Forest=e\room\fr
-				
 				If PlayerRoom = e\room And fr<>Null Then 
 					
-					;Local dp.DrawPortal
+					Local dp.DrawPortal
 					
 					If e\EventState=1.0 Then ;the player is in the forest
 						CurrStepSFX = 2
 						
 						Curr106\Idle = True
 						
-						;ShowEntity fr\DetailEntities[0]
-						;ShowEntity fr\DetailEntities[1]
+						ShowEntity fr\DetailEntities[0]
+						ShowEntity fr\DetailEntities[1]
 						
-						UpdateForest(fr)
+						UpdateForest(fr,Collider)
+						
 						
 						If e\EventStr = "" And QuickLoadPercent = -1
 							QuickLoadPercent = 0
@@ -6377,11 +6377,12 @@ Function UpdateEvents()
 						;EndIf
 						
 						For i = 0 To 1
-							If EntityDistance(fr\Door[i], Collider)<0.8 Then
+							If EntityDistance(fr\Door[i], Collider)<0.5 Then
 								If EntityInView(fr\Door[i], Camera) Then
 									DrawHandIcon = True
 									If MouseHit1 Then
-										If i=e\EventState2 Then
+									     If i=1 Then
+										;If i=e\EventState2 Then
 											BlinkTimer = -10
 											
 											PlaySound_Strict(LoadTempSound("SFX\Door\WoodenDoorOpen.ogg"))
@@ -6391,7 +6392,7 @@ Function UpdateEvents()
 											;SetAnimTime e\room\Objects[3], 0.0
 											;SetAnimTime e\room\Objects[4], 0.0
 											
-											;dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
+											dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
 											PositionEntity Collider, EntityX(e\room\Objects[2],True),0.5,EntityZ(e\room\Objects[2],True)
 											
 											RotateEntity Collider, 0, EntityYaw(e\room\obj,True)+e\EventState2*180, 0
@@ -6401,6 +6402,8 @@ Function UpdateEvents()
 											
 											UpdateDoorsTimer = 0
 											UpdateDoors()
+
+											;e\EventState = 0.0
 											
 											SecondaryLightOn = PrevSecondaryLightOn
 											;SecondaryLightOn = 0.0
@@ -6430,32 +6433,84 @@ Function UpdateEvents()
 							CameraFogColor Camera,98*x,133*x,162*x
 						EndIf
 						
-					Else
+				    Else
 						
-						If (Not Contained106) Then Curr106\Idle = False
-						
+						dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
+					    If dp<>Null Then
+						;
+						;If (Not Contained106) Then Curr106\Idle = False
+						;EndIf 
 						;dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
 						
-						;HideEntity fr\DetailEntities[0]
-						;HideEntity fr\DetailEntities[1]
+						HideEntity fr\DetailEntities[0]
+						HideEntity fr\DetailEntities[1]
 						
-						If EntityYaw(e\room\Objects[3])=0.0 Then
+						    If EntityYaw(e\room\Objects[3])=0.0 Then
 							HideEntity fr.Forest\Forest_Pivot
-							If (Abs(Distance(EntityX(e\room\Objects[3],True),EntityZ(e\room\Objects[3],True),EntityX(Collider,True),EntityZ(Collider,True)))<1.0) Then
+							    If (Abs(Distance(EntityX(e\room\Objects[3],True),EntityZ(e\room\Objects[3],True),EntityX(Collider,True),EntityZ(Collider,True)))<1.0) Then
 								DrawHandIcon = True
 								
-								If SelectedItem = Null Then
-									If MouseHit1 Then
+								    If SelectedItem = Null Then
+									    If MouseHit1 Then
 										PlaySound_Strict(LoadTempSound("SFX\Door\WoodenDoorBudge.ogg"))
 										Msg = I_Loc\Message_860Doorbudge
 										MsgTimer = 5*70
-									EndIf
-								ElseIf SelectedItem\itemtemplate\name="scp860" 
-									If MouseHit1 Then
+									    EndIf
+								    ElseIf SelectedItem\itemtemplate\name="scp860" 
+									    If MouseHit1 Then
 										PlaySound_Strict(LoadTempSound("SFX\Door\WoodenDoorOpen.ogg"))
 										ShowEntity fr.Forest\Forest_Pivot
-										SelectedItem = Null
 										
+										SelectedItem = Null
+										RotateEntity e\room\Objects[3], 0, 0.5, 0
+										RotateEntity e\room\Objects[3], 0, 359.5, 0
+										EndIf
+									EndIf
+								EndIf
+							Else
+								ShowEntity fr.Forest\Forest_Pivot
+								RotateEntity e\room\Objects[3], 0, CurveAngle(80, EntityYaw(e\room\Objects[3]), 40), 0
+								RotateEntity e\room\Objects[4], 0, CurveAngle(260, EntityYaw(e\room\Objects[4]), 40), 0
+								;Animate2(e\room\Objects[3], AnimTime(e\room\Objects[3]), 0, 8, 0.1, False)
+								;Animate2(e\room\Objects[4], AnimTime(e\room\Objects[4]), 0, 8, 0.1, False)
+								
+								If EntityInView(dp\portal,Camera) And EntityY(Collider)<6.0 Then
+									
+									dp\camyaw=EntityYaw(Camera,True)
+									dp\campitch = EntityPitch(Camera,True)
+									dp\camroll = EntityRoll(Camera,True)
+									dp\camZoom = Min(1.0+(CurrCameraZoom/400.0),1.1)
+									;PositionEntity dp\cam,EntityX(e\room\Objects[4],True)+(EntityX(Camera,True)-e\room\x),EntityY(e\room\Objects[4],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(e\room\Objects[4],True)+(EntityZ(Camera,True)-e\room\z),True
+									
+									pvt = CreatePivot()
+									PositionEntity pvt, EntityX(Camera),EntityY(Camera),EntityZ(Camera)
+									PointEntity pvt, dp\portal
+									
+									ang# = WrapAngle(EntityYaw(pvt)-EntityYaw(dp\portal,True))
+									
+									PositionEntity pvt, EntityX(fr\Door[0],True),EntityY(fr\Door[0],True),EntityZ(fr\Door[0],True)
+									RotateEntity pvt, 0, EntityYaw(fr\Door[0],True),0
+									MoveEntity pvt, 0,0,-1.8
+									
+									If ang > 90 And ang < 270 Then
+										dp\camyaw=dp\camyaw-180.0
+										PositionEntity dp\cam,EntityX(pvt,True)-(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(fr\Door[0],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)-(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
+									Else
+										dp\camyaw=dp\camyaw
+										PositionEntity dp\cam,EntityX(pvt,True)+(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(fr\Door[0],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)+(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
+									EndIf
+									
+									;MoveEntity dp\cam, 0,0,1.5
+									FreeEntity pvt
+									
+									HideEntity(Camera)
+									UpdateForest(fr,dp\cam)
+									UpdateDrawPortal(dp)
+									ShowEntity(Camera)
+								EndIf
+								
+								;teleport the player to the forest
+								If (Distance(EntityX(dp\portal,True),EntityZ(dp\portal,True),EntityX(Collider,True),EntityZ(Collider,True))<0.15) And EntityY(Collider)<6.0 Then 
 										BlinkTimer = -10
 										
 										e\EventState=1.0
@@ -6489,12 +6544,11 @@ Function UpdateEvents()
 										FreeEntity pvt
 										
 										ResetEntity Collider
-									EndIf
 								EndIf
 							EndIf
 						EndIf
-						
 					EndIf
+						
 					
 				Else
 					If (fr=Null) Then
