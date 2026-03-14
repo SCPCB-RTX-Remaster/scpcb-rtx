@@ -1474,24 +1474,22 @@ Function UpdateForest(fr.Forest,ent%)
 	;local variables
 	Local tx%,ty%
 	If Abs(EntityY(ent,True)-EntityY(fr\Forest_Pivot,True))<12.0 Then
-
-	
-	For tx% = 0 To gridsize-1
-		For ty% = 0 To gridsize-1
-			If fr\TileEntities[tx+(ty*gridsize)]<>0 Then
-				If Abs(EntityX(Collider,True)-EntityX(fr\TileEntities[tx+(ty*gridsize)],True))<HideDistance Then
-					If Abs(EntityZ(Collider,True)-EntityZ(fr\TileEntities[tx+(ty*gridsize)],True))<HideDistance Then
-						ShowEntity fr\TileEntities[tx+(ty*gridsize)]
+		For tx% = 0 To gridsize-1
+			For ty% = 0 To gridsize-1
+				If fr\TileEntities[tx+(ty*gridsize)]<>0 Then
+					If Abs(EntityX(ent,True)-EntityX(fr\TileEntities[tx+(ty*gridsize)],True))<HideDistance Then
+						If Abs(EntityZ(ent,True)-EntityZ(fr\TileEntities[tx+(ty*gridsize)],True))<HideDistance Then
+							ShowEntity fr\TileEntities[tx+(ty*gridsize)]
+						Else
+							HideEntity fr\TileEntities[tx+(ty*gridsize)]
+						EndIf
 					Else
 						HideEntity fr\TileEntities[tx+(ty*gridsize)]
 					EndIf
-				Else
-					HideEntity fr\TileEntities[tx+(ty*gridsize)]
 				EndIf
-			EndIf
+			Next
 		Next
-    Next
-EndIf 
+	EndIf 
 		
 	CatchErrors("UpdateForest")
 End Function

@@ -18,14 +18,11 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	ndp\w = w
 	ndp\h = h
 	
-	ndp\tex = CreateTexture(texw%,texh%,1+256) ;make a texture we can render to
-	;TextureBlend ndp\tex, RTPROJECT
-	PositionTexture ndp\tex,0.5,0.5
-	ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*2,(Float(texh)/Float(GraphicHeight))*2
-	;RotateTexture ndp\tex,180
+	ndp\tex = CreateTexture(texw,texh,1+256+1024) ;make a texture we can render to
 	ndp\texw = texw
 	ndp\texh = texh
 	ndp\cam = CreateCamera() ;create a camera to enable rendering
+	CameraViewport(ndp\cam, 0, 0, texw, texh)
 	CameraRange ndp\cam,0.5,20.0
 	PositionEntity ndp\cam,camx,camy,camz,True
 	RotateEntity ndp\cam,campitch,camyaw,camroll,True
@@ -46,8 +43,6 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	EntityFX ndp\portal,1
 	PositionEntity ndp\portal,x,y,z,True
 	RotateEntity ndp\portal,pitch,yaw,roll,True
-	
-	CameraProjMode ndp\cam,0 ;prevent the camera from causing problems with the BackBuffer
 	
 	ndp\id = 0
 	
@@ -89,20 +84,20 @@ Function UpdateDrawPortal(ndp.DrawPortal);,passive%=True)
 	RotateEntity ndp\cam,ndp\campitch,ndp\camyaw,ndp\camroll,True
 	CameraZoom ndp\cam,ndp\camZoom
 	
+	SetBuffer(TextureBuffer(ndp\tex))
 
 	ShowEntity(ndp\cam)
-	CameraProjMode ndp\cam,1 ;enable the camera
+	HideEntity(Camera)
 	
-	SetBuffer(TextureBuffer(ndp\tex))
-	CameraViewport ndp\cam,(ndp\texw/2)-(GraphicWidth/2),(ndp\texh/2)-(GraphicHeight/2),GraphicWidth,GraphicHeight ;0,0,ndp\texw,ndp\texh
 	Cls
 	RenderWorld ;requires FastExt to render to texture
 	;RotateTexture ndp\tex,180
 	;BrushTexture(ndp\brush,ndp\tex)
 	;PaintSurface(ndp\surface,ndp\brush)
 	
-	CameraProjMode ndp\cam,0 ;disable the camera
 	HideEntity(ndp\cam)
+	ShowEntity(Camera)
+
 	SetBuffer(BackBuffer())
 	;ClsColor 0,0,0
 End Function

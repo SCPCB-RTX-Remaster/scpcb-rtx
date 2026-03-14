@@ -6392,7 +6392,6 @@ Function UpdateEvents()
 											;SetAnimTime e\room\Objects[3], 0.0
 											;SetAnimTime e\room\Objects[4], 0.0
 											
-											dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
 											PositionEntity Collider, EntityX(e\room\Objects[2],True),0.5,EntityZ(e\room\Objects[2],True)
 											
 											RotateEntity Collider, 0, EntityYaw(e\room\obj,True)+e\EventState2*180, 0
@@ -6440,15 +6439,14 @@ Function UpdateEvents()
 						;
 						;If (Not Contained106) Then Curr106\Idle = False
 						;EndIf 
-						;dp.DrawPortal=e\room\dp;Object.DrawPortal(e\room\Objects[0])
 						
-						HideEntity fr\DetailEntities[0]
-						HideEntity fr\DetailEntities[1]
+							HideEntity fr\DetailEntities[0]
+							HideEntity fr\DetailEntities[1]
 						
 						    If EntityYaw(e\room\Objects[3])=0.0 Then
-							HideEntity fr.Forest\Forest_Pivot
+								HideEntity fr.Forest\Forest_Pivot
 							    If (Abs(Distance(EntityX(e\room\Objects[3],True),EntityZ(e\room\Objects[3],True),EntityX(Collider,True),EntityZ(Collider,True)))<1.0) Then
-								DrawHandIcon = True
+									DrawHandIcon = True
 								
 								    If SelectedItem = Null Then
 									    If MouseHit1 Then
@@ -6488,25 +6486,31 @@ Function UpdateEvents()
 									
 									ang# = WrapAngle(EntityYaw(pvt)-EntityYaw(dp\portal,True))
 									
-									PositionEntity pvt, EntityX(fr\Door[0],True),EntityY(fr\Door[0],True),EntityZ(fr\Door[0],True)
-									RotateEntity pvt, 0, EntityYaw(fr\Door[0],True),0
+									Local usedDoor%
+									If ang > 90 And ang < 270 Then
+										usedDoor = fr\Door[0]
+									Else
+										usedDoor = fr\Door[1]
+									EndIf
+
+									PositionEntity pvt, EntityX(usedDoor,True),EntityY(usedDoor,True),EntityZ(usedDoor,True)
+									RotateEntity pvt, 0, EntityYaw(usedDoor,True),0
 									MoveEntity pvt, 0,0,-1.8
 									
 									If ang > 90 And ang < 270 Then
 										dp\camyaw=dp\camyaw-180.0
-										PositionEntity dp\cam,EntityX(pvt,True)-(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(fr\Door[0],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)-(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
+										PositionEntity dp\cam,EntityX(pvt,True)-(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(usedDoor,True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)-(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
 									Else
 										dp\camyaw=dp\camyaw
-										PositionEntity dp\cam,EntityX(pvt,True)+(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(fr\Door[0],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)+(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
+										PositionEntity dp\cam,EntityX(pvt,True)+(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(usedDoor,True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)+(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
 									EndIf
 									
 									;MoveEntity dp\cam, 0,0,1.5
 									FreeEntity pvt
 									
-									HideEntity(Camera)
 									UpdateForest(fr,dp\cam)
+									ClsColor 98,133,162
 									UpdateDrawPortal(dp)
-									ShowEntity(Camera)
 								EndIf
 								
 								;teleport the player to the forest
