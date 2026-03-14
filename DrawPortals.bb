@@ -19,10 +19,12 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	ndp\h = h
 	
 	ndp\tex = CreateTexture(texw,texh,1+256+1024) ;make a texture we can render to
+	PositionTexture ndp\tex,0.5,0.5
+	ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*2,(Float(texh)/Float(GraphicHeight))*2
 	ndp\texw = texw
 	ndp\texh = texh
 	ndp\cam = CreateCamera() ;create a camera to enable rendering
-	CameraViewport(ndp\cam, 0, 0, texw, texh)
+	CameraViewport ndp\cam,(ndp\texw/2)-(GraphicWidth/2),(ndp\texh/2)-(GraphicHeight/2),GraphicWidth,GraphicHeight ;0,0,ndp\texw,ndp\texh
 	CameraRange ndp\cam,0.5,20.0
 	PositionEntity ndp\cam,camx,camy,camz,True
 	RotateEntity ndp\cam,campitch,camyaw,camroll,True
