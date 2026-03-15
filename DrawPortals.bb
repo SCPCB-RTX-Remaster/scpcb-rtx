@@ -38,7 +38,7 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	
 	ndp\portal = CreateCube() ;you can replace the cube with anything you like
 	ScaleMesh ndp\portal,w/2.0,h/2.0,d/2.0
-	FlipMesh ndp\portal
+	;FlipMesh ndp\portal
 	;ndp\surface = GetSurface(ndp\portal,1)
 	EntityTexture ndp\portal,ndp\tex
 	

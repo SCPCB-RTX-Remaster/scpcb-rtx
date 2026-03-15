@@ -155,6 +155,7 @@ Global IzumiKatoTex
 Global IzumiKato$ = "False"
 Global Loaded173Model$ = "Inward3D"
 Global Intro173Over$ = "NA"
+Global MTFDisabled% = 0
 
 Global BorderlessWindowed% = GetOptionInt("graphics", "borderless windowed")
 Global RealGraphicWidth%,RealGraphicHeight%
@@ -1566,6 +1567,98 @@ Function UpdateConsole()
 					Curr106\Idle = True
 					Curr106\State = 200000
 					Contained106 = True
+					;[End Block]
+				Case "asd3"
+					;[Block]
+					GodMode = 1
+					MTFDisabled = 1
+					InfiniteStamina = 1
+					Curr173\Idle = 3
+					Curr106\Idle = True
+					Curr106\State = 200000
+					Contained106 = True
+                            For r.Rooms = Each Rooms
+										If r\RoomTemplate\Name = "room860" Then
+											PositionEntity (Collider, EntityX(r\obj)+1.5, EntityY(r\obj)+0.7, EntityZ(r\obj)+1.5)	
+											ResetEntity Collider									
+											UpdateDoors()
+											UpdateRooms()
+											For it.Items = Each Items
+									            it\disttimer = 0
+								            Next
+							                PlayerRoom = r
+								            roomFound = True
+											Exit
+										EndIf
+							Next
+
+	     For it.Items = Each Items
+	     it = CreateItem("scp860", EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
+			  EntityType(it\collider, HIT_ITEM)
+			  ;it\Picked = True
+			  ;it\Dropped = -1
+		 Next
+	;	EntityType (it\collider, HIT_ITEM)
+	;;	EntityParent(it\collider, 0)
+	;	it = CreateItem("scp860", 1, 1, 1)
+	;		it\Picked = True
+	;;		it\Dropped = -1
+	;		it\itemtemplate\found=True
+	;		Inventory(3) = it
+;	Next
+					KillSounds()
+					
+					For e.Events = Each Events
+						If e\EventName = "alarm" Then 
+							If e\room\NPC[0] <> Null Then RemoveNPC(e\room\NPC[0])
+							If e\room\NPC[1] <> Null Then RemoveNPC(e\room\NPC[1])
+							If e\room\NPC[2] <> Null Then RemoveNPC(e\room\NPC[2])
+							
+							FreeEntity e\room\Objects[0] : e\room\Objects[0]=0
+							FreeEntity e\room\Objects[1] : e\room\Objects[1]=0
+							PositionEntity Curr173\Collider, 0,0,0
+							ResetEntity Curr173\Collider
+							ShowEntity Curr173\obj
+							RemoveEvent(e)
+							Exit
+						EndIf
+					Next
+					For n.NPCs = Each NPCs
+						If n\NPCtype = NPCtypeMTF Then
+							n\State = 0
+							If n\SoundChn<>0
+								StopStream_Strict(n\SoundChn) : n\SoundChn=0 : n\SoundChn_isStream = False
+							EndIf
+							If n\SoundChn2<>0
+								StopStream_Strict(n\SoundChn2) : n\SoundChn2=0 : n\SoundChn2_isStream = False
+							EndIf
+							RemoveNPC(n)
+							Exit
+						EndIf
+					Next
+					;[End Block]
+				Case "disablemtf"
+				    ;[Block]
+					;KillSounds()
+					MTFDisabled = 1
+					Dim MTFSFX%(8)
+	                ;HideEntity MTFObj
+					For n.NPCs = Each NPCs
+					   For i = 0 To 2
+						If n\NPCtype = NPCtypeMTF Then
+							n\State = 0
+							If n\SoundChn<>0
+								StopStream_Strict(n\SoundChn) : n\SoundChn=0 : n\SoundChn_isStream = False
+							EndIf
+							If n\SoundChn2<>0
+								StopStream_Strict(n\SoundChn2) : n\SoundChn2=0 : n\SoundChn2_isStream = False
+							EndIf
+							RemoveNPC(n)
+							n\PrevX = i
+							Exit
+						EndIf
+					Next
+					Next 
 					;[End Block]
 				Case "toggle_warhead_lever"
 					;[Block]
@@ -9108,6 +9201,7 @@ Function NullGame(playbuttonsfx%=True)
 	mouse_y_speed_1 = 0.0
 	mouse_x_speed_1 = 0.0
 
+    MTFDisabled = 0
 	GodMode = 0
 	NoClip = 0
 	WireframeState = 0
@@ -10757,10 +10851,12 @@ Function UpdateMTF%()
 				If Abs(EntityZ(entrance\obj)-EntityZ(Collider))<30.0 Then
 					;If PlayerRoom\RoomTemplate\Name<>"room860" And PlayerRoom\RoomTemplate\Name<>"pocketdimension" Then
 					If PlayerInReachableRoom()
+					If MTFDisabled <> 1 Then
 						;PlaySound_Strict LoadTempSound("SFX\Character\MTF\Announc.ogg")
 						PlayAnnouncement("SFX\Character\MTF\Announc.ogg")
+					EndIf 
 					EndIf
-					
+					If MTFDisabled <> 1 Then
 					MTFtimer = FPSfactor
 					Local leader.NPCs
 					For i = 0 To 2
@@ -10774,10 +10870,12 @@ Function UpdateMTF%()
 						
 						n\PrevX = i
 					Next
+					EndIf 
 				EndIf
 			EndIf
 		EndIf
 	Else
+	If MTFDisabled <> 1 Then
 		If MTFtimer <= 70*120 ;70*120
 			MTFtimer = MTFtimer + FPSfactor
 		ElseIf MTFtimer > 70*120 And MTFtimer < 10000
@@ -10821,6 +10919,7 @@ Function UpdateMTF%()
 			MTFtimer = 30000
 			
 		EndIf
+	EndIf
 	EndIf
 	
 End Function

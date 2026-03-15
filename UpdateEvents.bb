@@ -9300,6 +9300,7 @@ Function UpdateEndings()
 												ShouldPlay = 0
 												CurrSpeed = 0
 												PlaySound_Strict LoadTempSound("SFX\Ending\GateB\Gunshot.ogg")
+												MTFDisabled = 0
 												GodMode = 0
 												NoClip = 0
 												KillTimer = -0.1
@@ -9848,6 +9849,7 @@ Function UpdateEndings()
 											p\A = 0.5
 											
 											SelectedEnding = "A1"
+											MTFDisabled = 0
 											GodMode = 0
 											NoClip = 0
 											KillTimer = -0.1
@@ -9923,6 +9925,7 @@ Function UpdateEndings()
 										If ChannelPlaying(e\SoundCHN)=False Then
 											PlaySound_Strict IntroSFX(9)
 											SelectedEnding = "A2"
+											MTFDisabled = 0
 											GodMode = 0
 											NoClip = 0
 											KillTimer = -0.1

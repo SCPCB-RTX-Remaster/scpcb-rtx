@@ -1329,6 +1329,7 @@ Function LoadGameQuick(file$)
 	FallTimer = 0
 	MenuOpen = False
 	
+	MTFDisabled = 0
 	GodMode = 0
 	NoClip = 0
 	

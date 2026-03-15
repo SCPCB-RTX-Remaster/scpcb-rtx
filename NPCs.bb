@@ -7290,6 +7290,9 @@ Function PlayerInReachableRoom(canSpawnIn049Chamber%=False)
 	Local e.Events, temp
 	
 	;Player is in these rooms, returning false
+	If MTFDisabled = 1 Then
+		Return False
+	EndIf
 	If RN = "pocketdimension" Or RN = "gatea" Or RN = "dimension1499" Or RN = "173" Then
 		Return False
 	EndIf
