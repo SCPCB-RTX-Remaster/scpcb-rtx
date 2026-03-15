@@ -19,8 +19,8 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	ndp\h = h
 	
 	ndp\tex = CreateTexture(texw,texh,1+256+1024) ;make a texture we can render to
-	PositionTexture ndp\tex,0.5,0.5
-	ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*2,(Float(texh)/Float(GraphicHeight))*2
+	PositionTexture ndp\tex,0.0,0.5
+	ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*1,(Float(texh)/Float(GraphicHeight))*2
 	ndp\texw = texw
 	ndp\texh = texh
 	ndp\cam = CreateCamera() ;create a camera to enable rendering

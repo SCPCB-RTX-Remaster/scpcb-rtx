@@ -6473,45 +6473,64 @@ Function UpdateEvents()
 								;Animate2(e\room\Objects[4], AnimTime(e\room\Objects[4]), 0, 8, 0.1, False)
 								
 								If EntityInView(dp\portal,Camera) And EntityY(Collider)<6.0 Then
-									
-									dp\camyaw=EntityYaw(Camera,True)
-									dp\campitch = EntityPitch(Camera,True)
-									dp\camroll = EntityRoll(Camera,True)
-									dp\camZoom = Min(1.0+(CurrCameraZoom/400.0),1.1)
-									;PositionEntity dp\cam,EntityX(e\room\Objects[4],True)+(EntityX(Camera,True)-e\room\x),EntityY(e\room\Objects[4],True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(e\room\Objects[4],True)+(EntityZ(Camera,True)-e\room\z),True
-									
-									pvt = CreatePivot()
-									PositionEntity pvt, EntityX(Camera),EntityY(Camera),EntityZ(Camera)
-									PointEntity pvt, dp\portal
-									
-									ang# = WrapAngle(EntityYaw(pvt)-EntityYaw(dp\portal,True))
-									
-									Local usedDoor%
-									If ang > 90 And ang < 270 Then
-										usedDoor = fr\Door[0]
-									Else
-										usedDoor = fr\Door[1]
-									EndIf
-
-									PositionEntity pvt, EntityX(usedDoor,True),EntityY(usedDoor,True),EntityZ(usedDoor,True)
-									RotateEntity pvt, 0, EntityYaw(usedDoor,True),0
-									MoveEntity pvt, 0,0,-1.8
-									
-									If ang > 90 And ang < 270 Then
-										dp\camyaw=dp\camyaw-180.0
-										PositionEntity dp\cam,EntityX(pvt,True)-(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(usedDoor,True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)-(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
-									Else
-										dp\camyaw=dp\camyaw
-										PositionEntity dp\cam,EntityX(pvt,True)+(EntityX(Camera,True)-EntityX(e\room\Objects[2],True)),EntityY(usedDoor,True)+(EntityY(Camera,True)-(e\room\y+0.3)),EntityZ(pvt,True)+(EntityZ(Camera,True)-EntityZ(e\room\Objects[2],True)),True
-									EndIf
-									
-									;MoveEntity dp\cam, 0,0,1.5
-									FreeEntity pvt
-									
-									UpdateForest(fr,dp\cam)
-									ClsColor 98,133,162
-									UpdateDrawPortal(dp)
-								EndIf
+	
+	                                dp\camyaw   = EntityYaw(Camera,True)
+	                                dp\campitch = EntityPitch(Camera,True)
+                                 	dp\camroll  = EntityRoll(Camera,True)
+                                	dp\camZoom  = Min(1.0+(CurrCameraZoom/400.0),1.1)
+	
+                                	;Local pvt%
+                                	Local ang#
+	                                Local usedDoor%
+                                	Local camOffsetX#
+	                                Local camOffsetY#
+	                                Local camOffsetZ#
+                                	Local sourceYaw#
+	                                Local destYaw#
+                                 	Local yawDelta#
+	
+	                                pvt = CreatePivot()
+	                                PositionEntity pvt, EntityX(Camera,True), EntityY(Camera,True), EntityZ(Camera,True), True
+	                                PointEntity pvt, dp\portal
+	
+	                                ang = WrapAngle(EntityYaw(pvt,True) - EntityYaw(dp\portal,True))
+	
+	                                ; choose which forest door to render from based on the side of the room portal
+                                    If ang > 90 And ang < 270 Then
+		                                usedDoor = fr\Door[0]
+	                                Else
+		                                usedDoor = fr\Door[1]
+	                                EndIf
+	
+                                	; camera offset in room-local portal space
+	                                camOffsetX = EntityX(Camera,True) - EntityX(e\room\Objects[2],True)
+	                                camOffsetY = EntityY(Camera,True) - (e\room\y + 0.3)
+	                                camOffsetZ = EntityZ(Camera,True) - EntityZ(e\room\Objects[2],True)
+	
+	                                ; place a pivot at the chosen forest door, facing out from it
+	                                PositionEntity pvt, EntityX(usedDoor,True), EntityY(usedDoor,True), EntityZ(usedDoor,True), True
+                                 	RotateEntity pvt, 0, EntityYaw(usedDoor,True), 0, True
+                                 	MoveEntity pvt, 0, 0, -1.8
+	
+	                                ; convert source-facing to destination-facing
+                                 	sourceYaw = EntityYaw(dp\portal,True)
+	                                destYaw   = EntityYaw(usedDoor,True)
+                                	yawDelta  = WrapAngle(destYaw - sourceYaw + 180.0)
+ 	
+                                 	; rotate the local X/Z offset into the destination door's space
+	                                Local rotX# = camOffsetX * Cos(yawDelta) - camOffsetZ * Sin(yawDelta)
+	                                Local rotZ# = camOffsetX * Sin(yawDelta) + camOffsetZ * Cos(yawDelta)
+	
+	                                PositionEntity dp\cam, EntityX(pvt,True) + rotX, EntityY(usedDoor,True) + camOffsetY, EntityZ(pvt,True) + rotZ, True
+	
+	                                dp\camyaw = WrapAngle(EntityYaw(Camera,True) + yawDelta)
+	
+	                                FreeEntity pvt
+	
+	                                UpdateForest(fr,dp\cam)
+                                  	ClsColor 98,133,162
+	                                UpdateDrawPortal(dp)
+                                EndIf
 								
 								;teleport the player to the forest
 								If (Distance(EntityX(dp\portal,True),EntityZ(dp\portal,True),EntityX(Collider,True),EntityZ(Collider,True))<0.15) And EntityY(Collider)<6.0 Then 
