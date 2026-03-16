@@ -6477,7 +6477,23 @@ Function UpdateEvents()
 	                                dp\camyaw   = EntityYaw(Camera,True)
 	                                dp\campitch = EntityPitch(Camera,True)
                                  	dp\camroll  = EntityRoll(Camera,True)
-                                	dp\camZoom  = Min(1.0+(CurrCameraZoom/400.0),1.1)
+                                	Local distToPortal#
+Local nearDist# = 0.5
+Local farDist# = 6.0
+;Local t#
+Local zoomNear# = 0.78
+Local zoomFar# = 1.0
+
+distToPortal = EntityDistance(Camera, dp\portal)
+
+t = (distToPortal - nearDist) / (farDist - nearDist)
+If t < 0.0 Then t = 0.0
+If t > 1.0 Then t = 1.0
+
+dp\camZoom = zoomNear + ((zoomFar - zoomNear) * t)
+dp\camZoom = dp\camZoom + (CurrCameraZoom / 400.0)
+If dp\camZoom > 1.1 Then dp\camZoom = 1.1
+
 	
                                 	;Local pvt%
                                 	Local ang#
@@ -6503,27 +6519,29 @@ Function UpdateEvents()
 	                                EndIf
 	
                                 	; camera offset in room-local portal space
-	                                camOffsetX = EntityX(Camera,True) - EntityX(e\room\Objects[2],True)
-	                                camOffsetY = EntityY(Camera,True) - (e\room\y + 0.3)
-	                                camOffsetZ = EntityZ(Camera,True) - EntityZ(e\room\Objects[2],True)
-	
-	                                ; place a pivot at the chosen forest door, facing out from it
-	                                PositionEntity pvt, EntityX(usedDoor,True), EntityY(usedDoor,True), EntityZ(usedDoor,True), True
-                                 	RotateEntity pvt, 0, EntityYaw(usedDoor,True), 0, True
-                                 	MoveEntity pvt, 0, 0, -1.8
-	
-	                                ; convert source-facing to destination-facing
-                                 	sourceYaw = EntityYaw(dp\portal,True)
-	                                destYaw   = EntityYaw(usedDoor,True)
-                                	yawDelta  = WrapAngle(destYaw - sourceYaw + 180.0)
- 	
-                                 	; rotate the local X/Z offset into the destination door's space
-	                                Local rotX# = camOffsetX * Cos(yawDelta) - camOffsetZ * Sin(yawDelta)
-	                                Local rotZ# = camOffsetX * Sin(yawDelta) + camOffsetZ * Cos(yawDelta)
-	
-	                                PositionEntity dp\cam, EntityX(pvt,True) + rotX, EntityY(usedDoor,True) + camOffsetY, EntityZ(pvt,True) + rotZ, True
-	
-	                                dp\camyaw = WrapAngle(EntityYaw(Camera,True) + yawDelta)
+camOffsetX =( EntityX(Camera,True) - EntityX(e\room\Objects[2],True))
+camOffsetY = (EntityY(Camera,True) - (e\room\y + 0.3))
+camOffsetZ = (EntityZ(Camera,True) - EntityZ(e\room\Objects[2],True))
+
+PositionEntity pvt, EntityX(usedDoor,True), EntityY(usedDoor,True), EntityZ(usedDoor,True), True
+RotateEntity pvt, 0, EntityYaw(usedDoor,True), 0, True
+MoveEntity pvt, 0, 0, -1.8
+
+sourceYaw = EntityYaw(dp\portal,True)
+destYaw   = EntityYaw(usedDoor,True)
+yawDelta  = WrapAngle(destYaw - sourceYaw + 180.0)
+
+Local parallax# = 0.4
+Local yBias# = 0.12
+
+Local rotX# = (camOffsetX * Cos(yawDelta) - camOffsetZ * Sin(yawDelta)) * parallax
+Local rotZ# = (camOffsetX * Sin(yawDelta) + camOffsetZ * Cos(yawDelta)) * parallax
+
+PositionEntity dp\cam, EntityX(pvt,True) + rotX, EntityY(usedDoor,True) + camOffsetY + yBias, EntityZ(pvt,True) + rotZ, True
+
+dp\camyaw = WrapAngle(EntityYaw(Camera,True) + yawDelta)
+dp\campitch = EntityPitch(Camera,True)
+dp\camroll = 0.0
 	
 	                                FreeEntity pvt
 	

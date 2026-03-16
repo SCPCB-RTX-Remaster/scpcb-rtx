@@ -19,12 +19,15 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	ndp\h = h
 	
 	ndp\tex = CreateTexture(texw,texh,1+256+1024) ;make a texture we can render to
-	PositionTexture ndp\tex,0.0,0.5
-	ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*1,(Float(texh)/Float(GraphicHeight))*2
+Local texScale#
+texScale = 1.15 - (0.15 * scaleT)
+
+PositionTexture ndp\tex,0.8,0.6
+ScaleTexture ndp\tex,(Float(texw)/Float(GraphicWidth))*2.0,(Float(texh)/Float(GraphicHeight))*2.0
 	ndp\texw = texw
 	ndp\texh = texh
 	ndp\cam = CreateCamera() ;create a camera to enable rendering
-	CameraViewport ndp\cam,(ndp\texw/2)-(GraphicWidth/2),(ndp\texh/2)-(GraphicHeight/2),GraphicWidth,GraphicHeight ;0,0,ndp\texw,ndp\texh
+CameraViewport ndp\cam,(ndp\texw-GraphicWidth)/2,(ndp\texh-GraphicHeight)/2,GraphicWidth,GraphicHeight
 	CameraRange ndp\cam,0.5,20.0
 	PositionEntity ndp\cam,camx,camy,camz,True
 	RotateEntity ndp\cam,campitch,camyaw,camroll,True
@@ -36,8 +39,8 @@ Function CreateDrawPortal.DrawPortal(x#,y#,z#,pitch#,yaw#,roll#,w#,h#,camx#=0.0,
 	
 	ndp\camZoom  = camZoom
 	
-	ndp\portal = CreateCube() ;you can replace the cube with anything you like
-	ScaleMesh ndp\portal,w/2.0,h/2.0,d/2.0
+    ndp\portal = CreateCube()
+    ScaleMesh ndp\portal,w/2.0,h/2.0,0.01
 	;FlipMesh ndp\portal
 	;ndp\surface = GetSurface(ndp\portal,1)
 	EntityTexture ndp\portal,ndp\tex
