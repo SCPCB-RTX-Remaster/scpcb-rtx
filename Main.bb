@@ -2500,6 +2500,80 @@ Function CreateButton(x#,y#,z#, pitch#,yaw#,roll#=0)
 	Return obj
 End Function
 
+Function UpdatePlayerBodyNPC%()
+	If CurrD9341 = Null Then Return
+	
+	ShowEntity CurrD9341\obj
+	HideEntity CurrD9341\Collider
+	
+	PositionEntity CurrD9341\Collider, EntityX(Collider, True), EntityY(Collider, True), EntityZ(Collider, True), True
+	RotateEntity CurrD9341\Collider, 0.0, EntityYaw(Collider, True), 0.0, True
+	
+	Local isMoving% = False
+	Local isRunning% = False
+	Local isCrouching% = False
+	
+	Local mx# = MoveX
+	Local mz# = MoveZ
+	
+	If Abs(mx) > 0.001 Or Abs(mz) > 0.001 Then isMoving = True
+	If Crouch Then isCrouching = True
+	
+	; only allow run when moving forward
+	If (Not isCrouching) And KeyDown(KEY_SPRINT) And Stamina > 0.0 And mz < -0.001 Then
+		isRunning = True
+	EndIf
+	
+	If Not isMoving Then
+	
+	If isCrouching Then
+		CurrD9341\State = 3
+	Else
+		CurrD9341\State = 0
+	EndIf
+
+ElseIf isCrouching Then
+	
+	If mz > 0.001 Then
+		CurrD9341\State = 8 ; crouch backward
+	Else
+		CurrD9341\State = 4 ; crouch walk
+	EndIf
+
+ElseIf isRunning Then
+	
+	; only forward run should exist normally
+	If mz > 0.001 Then
+		CurrD9341\State = 9 ; run backward (custom)
+	Else
+		CurrD9341\State = 2 ; run forward
+	EndIf
+
+Else
+	
+	If Abs(mx) > Abs(mz) Then
+		
+		If mx > 0 Then
+			CurrD9341\State = 6
+		Else
+			CurrD9341\State = 5
+		EndIf
+		
+	Else
+		
+		If mz > 0.001 Then
+			CurrD9341\State = 7 ; walk backward
+		Else
+			CurrD9341\State = 1 ; forward
+		EndIf
+		
+	EndIf
+
+EndIf
+	
+	CurrD9341\State2 = 1
+End Function
+
 Function UpdateDoors()
 	
 	Local i%, d.Doors, x#, z#, dist#
@@ -3221,7 +3295,7 @@ Dim DecalTextures%(20)
 Global Monitor%, MonitorTexture%
 Global CamBaseOBJ%, CamOBJ%
 
-Global LiquidObj%,nvmeshash%,nvmeshashred%,nvmeshashblue%,MTFObj%,GuardObj%,ClassDObj%
+Global LiquidObj%,nvmeshash%,nvmeshashred%,nvmeshashblue%,MTFObj%,GuardObj%,ClassDObj%,D9341Obj%
 Global ApacheObj%,ApacheRotorObj%
 
 Global UnableToMove% = False
@@ -3465,6 +3539,7 @@ While IsRunning
 			UpdateDecals()
 			UpdateMTF()
 			UpdateNPCs()
+			UpdatePlayerBodyNPC()
 			UpdateItems()
 			UpdateParticles()
 			Use427()
@@ -8515,12 +8590,23 @@ Function LoadEntities()
 	;GuardTex = LoadTexture_Strict("GFX\npcs\body.jpg") ;optimized the guards even more
 	
 	ClassDObj = LoadAnimMesh_Strict("GFX\npcs\classd.b3d") ;optimized Class-D's and scientists/researchers
+
+	D9341Obj = LoadAnimMesh_Strict("GFX\npcs\d9341.b3d") ;optimized Class-D's and scientists/researchers
+	;d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
+	;EntityTexture D9341Obj, d9341Texture
+    ;PositionEntity D9341Obj, EntityX(Collider),EntityY(Collider)-2,EntityZ(Collider), True
+	;EntityParent(D9341Obj,Collider)
+	;HideEntity D9341Obj
+	;SetAnimTime (D9341Obj, 210)
+						;ResetEntity e\room\NPC[1]\Collider
+	;SetNPCFrame(e\room\NPC[1], 210)
 	ApacheObj = LoadAnimMesh_Strict("GFX\apache.b3d") ;optimized Apaches (helicopters)
 	ApacheRotorObj = LoadAnimMesh_Strict("GFX\apacherotor.b3d") ;optimized the Apaches even more
 	
 	HideEntity MTFObj
 	HideEntity GuardObj
 	HideEntity ClassDObj
+	HideEntity D9341Obj
 	HideEntity ApacheObj
 	HideEntity ApacheRotorObj
 	
@@ -8890,6 +8976,18 @@ Function InitNewGame()
 	DrawLoading(79)
 	
 	Curr173 = CreateNPC(NPCtype173, 0, -30.0, 0)
+	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, 1.0)
+	;PositionEntity CurrD9341, EntityX(Collider),EntityY(Collider),EntityZ(Collider), True
+	;PositionEntity CurrD9341\obj,EntityX(Collider),EntityY(Collider),EntityZ(Collider) + 2.0
+	d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
+	EntityTexture CurrD9341\obj, D9341Texture
+	EntityParent(CurrD9341\obj, Collider)
+	;Animate2(CurrD9341\obj, 210, 554, 1.0)
+	;Animate(CurrD9341\obj,210,553,1.2,True)
+	;'SetNPCFrame(CurrD9341, 210)
+	;AnimateNPC(CurrD9341, 210,554,1.0,True)
+	;AnimateNPC(e\room\NPC[1], 260, 236, e\room\NPC[1]\CurrSpeed * 18)
+	;AnimateNPC(CurrD9341, 249, 286, 0.4, False)
 	Curr106 = CreateNPC(NPCtypeOldMan, 0, -30.0, 0)
 	Curr106\State = 70 * 60 * Rand(12,17)
 	
@@ -8977,6 +9075,8 @@ Function InitNewGame()
 	TurnEntity(Collider, 0, Rand(160, 200), 0)
 	
 	ResetEntity Collider
+	ShowEntity CurrD9341\obj
+	ShowEntity CurrD9341\Collider
 	
 	If SelectedMap = -1 Then InitEvents()
 	
@@ -9010,6 +9110,7 @@ Function InitNewGame()
 		MovePlayer()
 		UpdateDoors()
 		UpdateNPCs()
+		UpdatePlayerBodyNPC()
 		UpdateWorld()
 		;Cls
 		If (Int(Float(i)*0.27)<>Int(Float(i-1)*0.27)) Then
