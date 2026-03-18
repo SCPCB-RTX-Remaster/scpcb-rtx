@@ -1727,6 +1727,7 @@ Function UpdateConsole()
 				Case "kill","suicide"
 					;[Block]
 					KillTimer = -1
+					ThirdPerson = False
 					DeathMSG = I_Loc\DeathMessage_Suicide[Rand(4)]
 					;[End Block]
 				Case "playmusic"
@@ -3663,6 +3664,7 @@ While IsRunning
 			If (Not WearingNightVision) Then darkA = Max((1.0-SecondaryLightOn)*0.9, darkA)
 			
 			If KillTimer < 0 Then
+			    ThirdPerson = False
 				InvOpen = False
 				SelectedItem = Null
 				SelectedScreen = Null
@@ -4257,6 +4259,7 @@ Function Kill()
 		End If
 		
 		KillTimer = Min(-1, KillTimer)
+		ThirdPerson = False
 		ShowEntity Head
 		PositionEntity(Head, EntityX(Camera, True), EntityY(Camera, True), EntityZ(Camera, True), True)
 		ResetEntity (Head)
@@ -5202,6 +5205,58 @@ Function MouseLook()
 	Next
 	
 	
+End Function
+
+Function SetupPlayerBodyNPC%()
+	Local oldX#, oldY#, oldZ#
+	Local oldPitch#, oldYaw#, oldRoll#
+	
+	; remove old one if needed
+	If CurrD9341 <> Null Then
+		If CurrD9341\obj <> 0 Then FreeEntity CurrD9341\obj
+		If CurrD9341\Collider <> 0 Then FreeEntity CurrD9341\Collider
+		Delete CurrD9341
+		CurrD9341 = Null
+	EndIf
+	
+	; save current player transform
+	oldX = EntityX(Collider, True)
+	oldY = EntityY(Collider, True)
+	oldZ = EntityZ(Collider, True)
+	oldPitch = EntityPitch(Collider, True)
+	oldYaw = EntityYaw(Collider, True)
+	oldRoll = EntityRoll(Collider, True)
+	
+	; temporarily zero player root
+	PositionEntity Collider, 0.0, 0.0, 0.0, True
+	RotateEntity Collider, 0.0, 0.0, 0.0, True
+	
+	; create the player body NPC
+	CurrD9341 = CreateNPC(NPCtypeD9341, 0.0, -0.3, -0.3)
+	d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
+	EntityTexture CurrD9341\obj, D9341Texture
+	If CurrD9341 = Null Then Return
+	
+	; attach NPC root to player root
+	;EntityParent CurrD9341\obj, Collider
+	
+	; keep intended local placement
+	;PositionEntity CurrD9341\Collider, 0.0, -0.3, -0.3
+	RotateEntity CurrD9341\obj, 0.0, -180.0, 0.0
+	EntityParent CurrD9341\obj, Collider
+	
+	; optional initial visual facing fix if needed
+	; RotateEntity CurrD9341\obj, 0.0, 180.0, 0.0
+	
+	ShowEntity CurrD9341\obj
+	HideEntity CurrD9341\Collider
+	
+	CurrD9341\State = 0
+	CurrD9341\State2 = 1
+	
+	; restore player root
+	PositionEntity Collider, oldX, oldY, oldZ, True
+	RotateEntity Collider, oldPitch, oldYaw, oldRoll, True
 End Function
 
 Function UpdateThirdPersonCamera%()
@@ -8631,15 +8686,8 @@ Function LoadEntities()
 	
 	ClassDObj = LoadAnimMesh_Strict("GFX\npcs\classd.b3d") ;optimized Class-D's and scientists/researchers
 
-	D9341Obj = LoadAnimMesh_Strict("GFX\npcs\d9341.b3d") ;optimized Class-D's and scientists/researchers
-	;d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
-	;EntityTexture D9341Obj, d9341Texture
-    ;PositionEntity D9341Obj, EntityX(Collider),EntityY(Collider)-2,EntityZ(Collider), True
-	;EntityParent(D9341Obj,Collider)
-	;HideEntity D9341Obj
-	;SetAnimTime (D9341Obj, 210)
-						;ResetEntity e\room\NPC[1]\Collider
-	;SetNPCFrame(e\room\NPC[1], 210)
+	D9341Obj = LoadAnimMesh_Strict("GFX\npcs\d9341.b3d") ;The playermodel for Subject D-9341
+
 	ApacheObj = LoadAnimMesh_Strict("GFX\apache.b3d") ;optimized Apaches (helicopters)
 	ApacheRotorObj = LoadAnimMesh_Strict("GFX\apacherotor.b3d") ;optimized the Apaches even more
 	
@@ -9016,19 +9064,7 @@ Function InitNewGame()
 	DrawLoading(79)
 	
 	Curr173 = CreateNPC(NPCtype173, 0, -30.0, 0)
-	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, -0.3)
-	RotateEntity CurrD9341\obj, 0.0, 180.0, 0.0
-	;PositionEntity CurrD9341, EntityX(Collider),EntityY(Collider),EntityZ(Collider), True
-	;PositionEntity CurrD9341\obj,EntityX(Collider),EntityY(Collider),EntityZ(Collider) + 2.0
-	d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
-	EntityTexture CurrD9341\obj, D9341Texture
-	EntityParent(CurrD9341\obj, Collider)
-	;Animate2(CurrD9341\obj, 210, 554, 1.0)
-	;Animate(CurrD9341\obj,210,553,1.2,True)
-	;'SetNPCFrame(CurrD9341, 210)
-	;AnimateNPC(CurrD9341, 210,554,1.0,True)
-	;AnimateNPC(e\room\NPC[1], 260, 236, e\room\NPC[1]\CurrSpeed * 18)
-	;AnimateNPC(CurrD9341, 249, 286, 0.4, False)
+	SetupPlayerBodyNPC()
 	Curr106 = CreateNPC(NPCtypeOldMan, 0, -30.0, 0)
 	Curr106\State = 70 * 60 * Rand(12,17)
 	
@@ -9193,7 +9229,8 @@ Function InitLoadGame()
 		sc\angle = EntityYaw(sc\obj) + sc\angle
 		EntityParent(sc\obj, 0)
 	Next
-	
+
+	SetupPlayerBodyNPC()
 	ResetEntity Collider
 	
 	;InitEvents()
@@ -9366,6 +9403,7 @@ Function NullGame(playbuttonsfx%=True)
 	CoffinDistance = 100
 	
 	Contained106 = False
+	Thirdperson = False
 	If Curr173 <> Null Then Curr173\Idle = False
 	
 	MTFtimer = 0

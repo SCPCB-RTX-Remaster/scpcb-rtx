@@ -1270,7 +1270,9 @@ Function LoadGame(file$)
 			it\disttimer = 0
 		Next
 	EndIf
-	
+
+	SetupPlayerBodyNPC()
+
 	If Collider <> 0 Then
 		If PlayerRoom<>Null Then
 			ShowEntity PlayerRoom\obj
@@ -1951,6 +1953,8 @@ Function LoadGameQuick(file$)
 	Wearing714 = ReadByte(f)
 	CloseFile f
 	
+	SetupPlayerBodyNPC()
+
 	If Collider <> 0 Then
 		If PlayerRoom<>Null Then
 			ShowEntity PlayerRoom\obj
