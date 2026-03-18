@@ -2751,7 +2751,7 @@ Function UpdateNPCs()
 				UpdateMTFUnit(n)
 				
 				;[End Block]
-			Case NPCtypeD, NPCtypeD9341, NPCtypeClerk
+			Case NPCtypeD9341
 			;[Block]
 	RotateEntity(n\Collider, 0, EntityYaw(n\Collider), EntityRoll(n\Collider), True)
 	
@@ -2765,11 +2765,11 @@ If n = CurrD9341 Then
 			
 		Case 1 ; walk forward
 			n\CurrSpeed = CurveValue(0.020, n\CurrSpeed, 5.0)
-			Animate2(n\obj, AnimTime(n\obj), 236, 260, n\CurrSpeed * 10.0)
+			Animate2(n\obj, AnimTime(n\obj), 236, 260, n\CurrSpeed * 15.0)
 			
 		Case 2 ; run
 			n\CurrSpeed = CurveValue(0.030, n\CurrSpeed, 5.0)
-			Animate2(n\obj, AnimTime(n\obj), 301, 319, n\CurrSpeed * 10.0)
+			Animate2(n\obj, AnimTime(n\obj), 301, 319, n\CurrSpeed * 15.0)
 			
 		Case 3 ; crouch idle
 			n\CurrSpeed = CurveValue(0.0, n\CurrSpeed, 5.0)
@@ -2777,47 +2777,84 @@ If n = CurrD9341 Then
 			
 		Case 4 ; crouch walk
 			n\CurrSpeed = CurveValue(0.020, n\CurrSpeed, 5.0)
-			Animate2(n\obj, AnimTime(n\obj), 382, 406, n\CurrSpeed * 12.0)
+			Animate2(n\obj, AnimTime(n\obj), 382, 406, n\CurrSpeed * 15.0)
 			
 		Case 5 ; strafe left
 			n\CurrSpeed = CurveValue(0.020, n\CurrSpeed, 5.0)
-			Animate2(n\obj, AnimTime(n\obj), 281, 300, n\CurrSpeed * 10.0)
+			Animate2(n\obj, AnimTime(n\obj), 281, 300, n\CurrSpeed * 16.0)
 			
 		Case 6 ; strafe right
 			n\CurrSpeed = CurveValue(0.020, n\CurrSpeed, 5.0)
-			Animate2(n\obj, AnimTime(n\obj), 261, 280, n\CurrSpeed * 10.0)
+			Animate2(n\obj, AnimTime(n\obj), 261, 280, n\CurrSpeed * 16.0)
 			
 	    Case 7 ; walk backward
 	        n\CurrSpeed = CurveValue(-0.012, n\CurrSpeed, 5.0)
-	        AnimateNPC(n, 260, 236, n\CurrSpeed * 22)
+	        AnimateNPC(n, 260, 236, n\CurrSpeed * 25)
 		Case 8 ; crouch backward
 	        n\CurrSpeed = CurveValue(-0.010, n\CurrSpeed, 5.0)
-	        AnimateNPC(n, 406, 382, n\CurrSpeed * 18)
+	        AnimateNPC(n, 406, 382, n\CurrSpeed * 26)
 
         Case 9 ; run backward
 	        n\CurrSpeed = CurveValue(-0.018, n\CurrSpeed, 5.0)
 	        AnimateNPC(n, 319, 301, n\CurrSpeed * 26)
 	End Select
-		
-	Else
-		; Normal NPC Class-D / clerk logic
-		Select n\State
-			Case 0 ;idle
-				n\CurrSpeed = CurveValue(0.0, n\CurrSpeed, 5.0)
-				Animate2(n\obj, AnimTime(n\obj), 210, 235, 0.1)
-			Case 1 ;walking
-				If n\State2 = 1.0
-					n\CurrSpeed = CurveValue(n\Speed*0.7, n\CurrSpeed, 20.0)
-				Else
-					n\CurrSpeed = CurveValue(0.015, n\CurrSpeed, 5.0)
+		EndIf
+		;[End Block]
+		Case NPCtypeD,NPCtypeClerk 	;------------------------------------------------------------------------------------------------------------------
+				;[Block]
+				RotateEntity(n\Collider, 0, EntityYaw(n\Collider), EntityRoll(n\Collider), True)
+				
+				prevFrame = AnimTime(n\obj)
+				
+				Select n\State
+					Case 0 ;idle
+						n\CurrSpeed = CurveValue(0.0, n\CurrSpeed, 5.0)
+						Animate2(n\obj, AnimTime(n\obj), 210, 235, 0.1)
+					Case 1 ;walking
+						If n\State2 = 1.0
+							n\CurrSpeed = CurveValue(n\Speed*0.7, n\CurrSpeed, 20.0)
+						Else
+							n\CurrSpeed = CurveValue(0.015, n\CurrSpeed, 5.0)
+						EndIf
+						Animate2(n\obj, AnimTime(n\obj), 236, 260, n\CurrSpeed * 18)
+					Case 2 ;running
+						n\CurrSpeed = CurveValue(0.03, n\CurrSpeed, 5.0)
+						Animate2(n\obj, AnimTime(n\obj), 301, 319, n\CurrSpeed * 18)
+				End Select
+				
+				If n\State2 <> 2
+					If n\State = 1
+						If n\CurrSpeed > 0.01 Then
+							If prevFrame < 244 And AnimTime(n\obj)=>244 Then
+								PlaySound2(StepSFX(GetStepSound(n\Collider),0,Rand(0,2)),Camera, n\Collider, 8.0, Rnd(0.3,0.5))						
+							ElseIf prevFrame < 256 And AnimTime(n\obj)=>256
+								PlaySound2(StepSFX(GetStepSound(n\Collider),0,Rand(0,2)),Camera, n\Collider, 8.0, Rnd(0.3,0.5))
+							EndIf
+						EndIf
+					ElseIf n\State = 2
+						If n\CurrSpeed > 0.01 Then
+							If prevFrame < 309 And AnimTime(n\obj)=>309
+								PlaySound2(StepSFX(GetStepSound(n\Collider),1,Rand(0,2)),Camera, n\Collider, 8.0, Rnd(0.3,0.5))
+							ElseIf prevFrame =< 319 And AnimTime(n\obj)=<301
+								PlaySound2(StepSFX(GetStepSound(n\Collider),1,Rand(0,2)),Camera, n\Collider, 8.0, Rnd(0.3,0.5))
+							EndIf
+						EndIf
+					EndIf
 				EndIf
-				Animate2(n\obj, AnimTime(n\obj), 236, 260, n\CurrSpeed * 18)
-			Case 2 ;running
-				n\CurrSpeed = CurveValue(0.03, n\CurrSpeed, 5.0)
-				Animate2(n\obj, AnimTime(n\obj), 301, 319, n\CurrSpeed * 18)
-		End Select
-	EndIf
-			;[End Block]
+				
+				If n\Frame = 19 Or n\Frame = 60
+					n\IsDead = True
+				EndIf
+				If AnimTime(n\obj)=19 Or AnimTime(n\obj)=60
+					n\IsDead = True
+				EndIf
+				
+				MoveEntity(n\Collider, 0, 0, n\CurrSpeed * FPSfactor)
+				
+				PositionEntity(n\obj, EntityX(n\Collider), EntityY(n\Collider) - 0.32, EntityZ(n\Collider))
+				
+				RotateEntity n\obj, EntityPitch(n\Collider), EntityYaw(n\Collider)-180.0, 0
+				;[End Block]
 			Case NPCtype5131
 				;[Block]
 				;If KeyHit(48) Then n\Idle = True : n\State2 = 0

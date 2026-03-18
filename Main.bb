@@ -362,10 +362,12 @@ Global KillTimer#, KillAnim%, FallTimer#, DeathTimer#
 Global Sanity#, ForceMove#, ForceAngle#
 Global RestoreSanity%
 
-Global ThirdPerson% = False
-Global ThirdPersonDist# = 1.6
-Global ThirdPersonHeight# = 0.25
-Global ThirdPersonTargetHeight# = 0.45
+Global ThirdPerson% = False 
+Global ThirdPersonDist# = 1.40 
+Global ThirdPersonHeight# = 0.16 
+Global ThirdPersonTargetHeight# = 0.35 
+Global ThirdPersonCurrentHeight# = 0.16 
+Global ThirdPersonCurrentTargetHeight# = 0.35
 
 Global Playable% = True
 
@@ -5205,23 +5207,23 @@ End Function
 Function UpdateThirdPersonCamera%()
 	If ThirdPerson = False Then Return
 	
-	Local camTargetHeight#
-	Local camHeight#
-	Local camDist#
+	Local targetHeight#
+	Local cameraHeight#
 	
-	camTargetHeight = ThirdPersonTargetHeight
-	camHeight = ThirdPersonHeight
-	camDist = ThirdPersonDist
+	targetHeight = ThirdPersonTargetHeight
+	cameraHeight = ThirdPersonHeight
 	
-	; lower camera when crouching
 	If Crouch Then
-		camTargetHeight = camTargetHeight - 0.22
-		camHeight = camHeight - 0.10
+		targetHeight = targetHeight - 0.18
+		cameraHeight = cameraHeight - 0.08
 	EndIf
 	
-	PositionEntity Camera, EntityX(Collider, True), EntityY(Collider, True) + camTargetHeight, EntityZ(Collider, True), True
+	ThirdPersonCurrentTargetHeight = CurveValue(targetHeight, ThirdPersonCurrentTargetHeight, 8.0)
+	ThirdPersonCurrentHeight = CurveValue(cameraHeight, ThirdPersonCurrentHeight, 8.0)
+	
+	PositionEntity Camera, EntityX(Collider, True), EntityY(Collider, True) + ThirdPersonCurrentTargetHeight, EntityZ(Collider, True), True
 	RotateEntity Camera, EntityPitch(Camera, True), EntityYaw(Collider, True), 0.0, True
-	MoveEntity Camera, 0.0, camHeight, -camDist
+	MoveEntity Camera, 0.12, ThirdPersonCurrentHeight, -ThirdPersonDist
 End Function
 
 ;--------------------------------------- GUI, menu etc ------------------------------------------------
@@ -9014,7 +9016,7 @@ Function InitNewGame()
 	DrawLoading(79)
 	
 	Curr173 = CreateNPC(NPCtype173, 0, -30.0, 0)
-	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, 0.0)
+	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, -0.3)
 	RotateEntity CurrD9341\obj, 0.0, 180.0, 0.0
 	;PositionEntity CurrD9341, EntityX(Collider),EntityY(Collider),EntityZ(Collider), True
 	;PositionEntity CurrD9341\obj,EntityX(Collider),EntityY(Collider),EntityZ(Collider) + 2.0
