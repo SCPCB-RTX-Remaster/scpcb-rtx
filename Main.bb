@@ -362,6 +362,11 @@ Global KillTimer#, KillAnim%, FallTimer#, DeathTimer#
 Global Sanity#, ForceMove#, ForceAngle#
 Global RestoreSanity%
 
+Global ThirdPerson% = False
+Global ThirdPersonDist# = 1.6
+Global ThirdPersonHeight# = 0.25
+Global ThirdPersonTargetHeight# = 0.45
+
 Global Playable% = True
 
 Global BLINKFREQ#
@@ -1382,6 +1387,16 @@ Function UpdateConsole()
 						EntityType (it\collider, HIT_ITEM)
 					Next
 					PlaySound_Strict LoadTempSound("SFX\Music\420J.ogg")
+					;[End Block]
+				Case "thirdperson"
+				    ;[Block]
+	                ThirdPerson = True
+	                CreateConsoleMsg("Third-person camera enabled.")
+	                ;[End Block]
+                Case "firstperson"
+				    ;[Block]
+	                ThirdPerson = False
+	                CreateConsoleMsg("First-person camera enabled.")
 					;[End Block]
 				Case "godmode", "god"
 					;[Block]
@@ -3510,11 +3525,12 @@ While IsRunning
 			CanSave% = True
 			UpdateDeafPlayer()
 			UpdateEmitters()
-			MouseLook()
-			If PlayerRoom\RoomTemplate\Name = "dimension1499" And QuickLoadPercent > 0 And QuickLoadPercent < 100
-				ShouldEntitiesFall = False
-			EndIf
-			MovePlayer()
+            MouseLook()
+               If PlayerRoom\RoomTemplate\Name = "dimension1499" And QuickLoadPercent > 0 And QuickLoadPercent < 100
+	           ShouldEntitiesFall = False
+               EndIf
+            MovePlayer()
+            If ThirdPerson Then UpdateThirdPersonCamera()
 			InFacility = CheckForPlayerInFacility()
 			If PlayerRoom\RoomTemplate\Name = "dimension1499"
 				If QuickLoadPercent = -1 Or QuickLoadPercent = 100
@@ -5184,6 +5200,28 @@ Function MouseLook()
 	Next
 	
 	
+End Function
+
+Function UpdateThirdPersonCamera%()
+	If ThirdPerson = False Then Return
+	
+	Local camTargetHeight#
+	Local camHeight#
+	Local camDist#
+	
+	camTargetHeight = ThirdPersonTargetHeight
+	camHeight = ThirdPersonHeight
+	camDist = ThirdPersonDist
+	
+	; lower camera when crouching
+	If Crouch Then
+		camTargetHeight = camTargetHeight - 0.22
+		camHeight = camHeight - 0.10
+	EndIf
+	
+	PositionEntity Camera, EntityX(Collider, True), EntityY(Collider, True) + camTargetHeight, EntityZ(Collider, True), True
+	RotateEntity Camera, EntityPitch(Camera, True), EntityYaw(Collider, True), 0.0, True
+	MoveEntity Camera, 0.0, camHeight, -camDist
 End Function
 
 ;--------------------------------------- GUI, menu etc ------------------------------------------------
@@ -8976,7 +9014,8 @@ Function InitNewGame()
 	DrawLoading(79)
 	
 	Curr173 = CreateNPC(NPCtype173, 0, -30.0, 0)
-	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, 1.0)
+	CurrD9341 = CreateNPC(NPCtypeD9341, 0, -0.3, 0.0)
+	RotateEntity CurrD9341\obj, 0.0, 180.0, 0.0
 	;PositionEntity CurrD9341, EntityX(Collider),EntityY(Collider),EntityZ(Collider), True
 	;PositionEntity CurrD9341\obj,EntityX(Collider),EntityY(Collider),EntityZ(Collider) + 2.0
 	d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
