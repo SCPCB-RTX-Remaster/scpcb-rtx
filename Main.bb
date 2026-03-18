@@ -1393,11 +1393,17 @@ Function UpdateConsole()
 				Case "thirdperson"
 				    ;[Block]
 	                ThirdPerson = True
+					d9341TextureTP = LoadTexture_Strict("GFX\npcs\d9341TP.jpg")
+	                EntityTexture CurrD9341\obj, D9341TextureTP
+					EntityOrder CurrD9341\obj,0
 	                CreateConsoleMsg("Third-person camera enabled.")
 	                ;[End Block]
                 Case "firstperson"
 				    ;[Block]
 	                ThirdPerson = False
+					d9341TextureFP = LoadTexture_Strict("GFX\npcs\d9341FP.jpg")
+	                EntityTexture CurrD9341\obj, D9341TextureFP
+					EntityOrder CurrD9341\obj,1
 	                CreateConsoleMsg("First-person camera enabled.")
 					;[End Block]
 				Case "godmode", "god"
@@ -5232,9 +5238,14 @@ Function SetupPlayerBodyNPC%()
 	RotateEntity Collider, 0.0, 0.0, 0.0, True
 	
 	; create the player body NPC
-	CurrD9341 = CreateNPC(NPCtypeD9341, 0.0, -0.3, -0.3)
-	d9341Texture = LoadTexture_Strict("GFX\npcs\d9341.jpg")
-	EntityTexture CurrD9341\obj, D9341Texture
+	CurrD9341 = CreateNPC(NPCtypeD9341, 0.0, -0.3, -0.2)
+	If ThirdPerson = False Then
+	d9341TextureFP = LoadTexture_Strict("GFX\npcs\d9341FP.jpg")
+	EntityTexture CurrD9341\obj, D9341TextureFP
+	ElseIf ThirdPerson = True Then
+	d9341TextureTP = LoadTexture_Strict("GFX\npcs\d9341TP.jpg")
+	EntityTexture CurrD9341\obj, D9341TextureTP
+   EndIf 
 	If CurrD9341 = Null Then Return
 	
 	; attach NPC root to player root
@@ -5257,6 +5268,11 @@ Function SetupPlayerBodyNPC%()
 	; restore player root
 	PositionEntity Collider, oldX, oldY, oldZ, True
 	RotateEntity Collider, oldPitch, oldYaw, oldRoll, True
+	If ThirdPerson = False Then
+	EntityOrder CurrD9341\obj,1
+	Else 
+	EntityOrder CurrD9341\obj,0
+	EndIf 
 End Function
 
 Function UpdateThirdPersonCamera%()
