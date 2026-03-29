@@ -92,6 +92,8 @@ Function UpdateEvents()
 							;EntityTexture e\room\NPC[1]\obj, tex
 							;FreeTexture tex
 							ChangeNPCTextureID(e\room\NPC[1],3)
+						Else
+							EntityType e\room\NPC[1]\Collider, HIT_DEAD
 						EndIf
 						PositionEntity e\room\NPC[1]\Collider, e\room\x, 0.5, e\room\z-1.0, True
 						ResetEntity e\room\NPC[1]\Collider
