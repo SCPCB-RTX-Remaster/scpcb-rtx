@@ -731,6 +731,7 @@ Function UpdateConsole()
 							CreateConsoleMsg("- togglewarheadlever")
 							CreateConsoleMsg("- unlockexits")
 							CreateConsoleMsg("- omni")
+							CreateConsoleMsg("- showmap")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
 							CreateConsoleMsg("******************************")
@@ -861,6 +862,8 @@ Function UpdateConsole()
 							CreateConsoleMsg("Toggles getting guaranteed Key Card Omnis")
 							CreateConsoleMsg("from SCP-914, unless a valid parameter")
 							CreateConsoleMsg("is specified (on/off).")
+							CreateConsoleMsg("Using " + Chr(34) + "omni 2" + Chr(34) + " allows")
+							CreateConsoleMsg("the option to persist between runs.")
 							CreateConsoleMsg("A Key Card Omni can be obtained from SCP-914")
 							CreateConsoleMsg("by refining a Level 5 Key Card on Fine")
 							CreateConsoleMsg("or any Key Card on Very Fine.")
@@ -868,7 +871,43 @@ Function UpdateConsole()
 							CreateConsoleMsg("and relies on the amount of achievements")
 							CreateConsoleMsg("unlocked in the current save.")
 							CreateConsoleMsg("******************************")
-							
+						Case "showmap"
+							CreateConsoleMsg("HELP - showmap")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("Toggles drawing a 2D version of the map")
+							CreateConsoleMsg("layout on screen unless a valid parameter")
+							CreateConsoleMsg("is specified (on/off).")
+							CreateConsoleMsg("Using " + Chr(34) + "showmap 2" + Chr(34) + " allows")
+							CreateConsoleMsg("the option to persist between runs.")
+							CreateConsoleMsg("")
+
+							For i% = 3 To 1 Step -1
+								ConsoleR = 255 : ConsoleG = 255 : ConsoleB = 255
+								Select i
+									Case 3 CreateConsoleMsg("Entrance Zone")
+									Case 2 CreateConsoleMsg("Heavy Containment Zone")
+									Case 1 CreateConsoleMsg("Light Containment Zone")
+								End Select
+
+								For rt.RoomTemplates = Each RoomTemplates
+									If rt\R <> 255 Lor rt\G <> 255 Or rt\B <> 255 Then
+										For j% = 0 To ZONEAMOUNT-1
+											If rt\zone[j] = i Then
+												ConsoleR = rt\R : ConsoleG = rt\G : ConsoleB = rt\B
+												CreateConsoleMsg(rt\Name)
+												ConsoleR = 255 : ConsoleG = 255 : ConsoleB = 255
+												Exit
+											EndIf
+										Next
+									EndIf
+								Next
+
+								If i <> 1 Then CreateConsoleMsg("")
+							Next
+
+							ConsoleR = 0 : ConsoleG = 255 : ConsoleB = 255
+							CreateConsoleMsg("******************************")
+
 						Default
 							CreateConsoleMsg("There is no help available for that command.",255,150,0)
 					End Select
@@ -1616,22 +1655,52 @@ Function UpdateConsole()
 					CreateConsoleMsg("Set BlinkEffect to: " + BlinkEffect + "and BlinkEffect timer: " + BlinkEffectTimer)
 					;[End Block]
 				Case "omni"
+					;[Block]
 					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
 					
 					Select StrTemp
 						Case "on", "1", "true"
-							GuaranteedOmni% = True						
+							GuaranteedOmni% = True
 						Case "off", "0", "false"
-							GuaranteedOmni% = False	
+							GuaranteedOmni% = False
+						Case "2"
+							GuaranteedOmni% = 2
 						Default
 							GuaranteedOmni% = Not GuaranteedOmni%
 					End Select
 					
-					If GuaranteedOmni% Then
+					If GuaranteedOmni% = 2 Then
+						CreateConsoleMsg("GUARANTEED KEY CARD OMNI ON (PERSISTENT)")	
+					Else If GuaranteedOmni% Then
 						CreateConsoleMsg("GUARANTEED KEY CARD OMNI ON")	
 					Else
 						CreateConsoleMsg("GUARANTEED KEY CARD OMNI OFF")
 					EndIf
+					;[End Block]
+				Case "showmap"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+
+					Select StrTemp
+						Case "on", "1", "true"
+							ShowMap% = True						
+						Case "off", "0", "false"
+							ShowMap% = False
+						Case "2"
+							ShowMap% = 2
+						Default
+							ShowMap% = Not ShowMap%
+					End Select
+
+					If ShowMap% = 2 Then
+						CreateConsoleMsg("SHOW MAP ON (PERSISTENT)")
+					Else If ShowMap% Then
+						CreateConsoleMsg("SHOW MAP ON")
+					Else
+						CreateConsoleMsg("SHOW MAP OFF")
+					EndIf
+					If ShowMap% Then CreateConsoleMsg("TYPE " + Chr(34) + "help showmap" + Chr(34) + " FOR A LIST OF ROOM COLORS")
+					;[End Block]
 				Case "mav"
 					RuntimeErrorExt("Violation Access Memory")
 				Case "jorge"
@@ -7228,6 +7297,8 @@ Function DrawHUD()
 
 	If SpeedRunMode Then DrawTimer()
 
+	If ShowMap Then DrawMap()
+
 	Local width% = 204 * HUDScale
 	x% = HUDStartX + 80 * HUDScale
 	y% = HUDEndY - 95 * HUDScale
@@ -7338,6 +7409,24 @@ Function DrawHUD()
 		
 		SetFont Font1
 	EndIf
+End Function
+
+Global ShowMap% = False
+
+Function DrawMap()
+	Local cellSize% = 20 * HUDScale
+	Local startX% = HUDEndX - (MapWidth + 1) * cellSize
+	Local startY% = HUDEndY - (MapHeight + 1) * cellSize
+
+	For r.Rooms = Each Rooms					
+		If PlayerRoom\x = r\x And PlayerRoom\z = r\z Then
+			Color 0, 255, 0
+		Else
+			Color r\RoomTemplate\r, r\RoomTemplate\g, r\RoomTemplate\b
+		EndIf
+		
+		Rect(startX + ((18 - (r\x / 8)) * cellSize), startY + ((r\z / 8) * cellSize), cellSize, cellSize, 1)
+	Next
 End Function
 
 Function DrawTimer()
@@ -9164,7 +9253,9 @@ Function NullGame(playbuttonsfx%=True)
 	DeafPlayer% = False
 	DeafTimer# = 0.0
 	
-	GuaranteedOmni% = False
+	If GuaranteedOmni <> 2 Then GuaranteedOmni = False Else UsedConsole = True
+
+	If ShowMap <> 2 Then ShowMap = False Else UsedConsole = True
 
 	IsZombie% = False
 	

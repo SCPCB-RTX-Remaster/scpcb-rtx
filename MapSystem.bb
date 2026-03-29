@@ -1558,6 +1558,8 @@ Type RoomTemplates
 	Field Commonness%, Large%
 	Field SetRoom#, SetRoomPriority%
 	Field DisableDecals%
+
+	Field R%, G%, B%
 	
 	Field TempTriggerboxAmount
 	Field TempTriggerbox[128]
@@ -1607,6 +1609,8 @@ Function CreateRoomTemplate.RoomTemplates(name$)
 	rt\SetRoom = -1
 
 	rt\Name = Lower(name)
+
+	rt\R = 255 : rt\G = 255 : rt\B = 255
 	
 	rt\id = RoomTempID
 	RoomTempID=RoomTempID+1
@@ -1655,6 +1659,9 @@ Function LoadRoomTemplates(file$)
 				Case "disable decals", "disabledecals" rt\DisableDecals = ParseINIInt(value)
 				Case "use volume lighting", "usevolumelighting" rt\UseLightCones = ParseINIInt(value)
 				Case "disable overlap check", "disableoverlapcheck" rt\DisableOverlapCheck = ParseINIInt(value)
+				Case "r" rt\R = Int(value)
+				Case "g" rt\G = Int(value)
+				Case "b" rt\B = Int(value)
 			End Select
 		EndIf
 	Wend
