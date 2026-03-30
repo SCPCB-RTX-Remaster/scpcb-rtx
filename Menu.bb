@@ -1507,6 +1507,9 @@ Function UpdateLauncher()
 	RealGraphicWidth = GraphicWidth
 	RealGraphicHeight = GraphicHeight
 
+	ScaledGraphicWidth = GraphicWidth
+	ScaledGraphicHeight = GraphicHeight
+
 	Local TotalGfxModes% = CountGfxModes3D()
 
 	Local selectedGdc% = GreatestCommonDivsior(GraphicWidth, GraphicHeight)

@@ -159,7 +159,7 @@ Global RealGraphicWidth%,RealGraphicHeight%
 
 ; For borderless windowed
 Global ScaledGraphicWidth%,ScaledGraphicHeight%
-Global ScaledOffsetX%,ScaledOffsetY%
+Global ScaledOffsetX%=0,ScaledOffsetY%=0
 
 ApplyWindowModeCLIOverrides()
 
@@ -231,6 +231,8 @@ If BorderlessWindowed
 Else
 	RealGraphicWidth = GraphicWidth
 	RealGraphicHeight = GraphicHeight
+	ScaledGraphicWidth = GraphicWidth
+	ScaledGraphicHeight = GraphicHeight
 	If Fullscreen Then
 		Graphics3DExt(GraphicWidth, GraphicHeight, 0, 1)
 	Else
