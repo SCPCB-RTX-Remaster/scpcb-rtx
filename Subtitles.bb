@@ -225,9 +225,9 @@ Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, tokenType)
 		If toChar = 0 Then toChar = Len(soundPathGroup)+1
 
 		Local soundPath$ = Trim(Mid(soundPathGroup, offset, toChar-offset))
-		Local t.SubtitleToken = GetSubtitleToken(soundPath, tokenType) ; This can be optimized, fetch only THEN check
+		Local t.SubtitleToken = GetSubtitleToken(soundPath)
 
-		If t\fromFile And (1 Shl tokenType) Then 
+		If t <> Null And t\fromFile And (1 Shl tokenType) Then 
 			DebugLog("Token already exists: "+soundPath)
 		Else
 			If t = Null Then
@@ -256,7 +256,7 @@ Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, tokenType)
 End Function
 
 
-Function GetSubtitleToken.SubtitleToken(soundPath$, tokenType%)
+Function GetSubtitleToken.SubtitleToken(soundPath$)
 	For token.SubtitleToken = Each SubtitleToken
 		If token\soundPath = soundPath Then
 			Return token
