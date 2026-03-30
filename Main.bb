@@ -156,7 +156,6 @@ Global HalloweenTex
 
 Global BorderlessWindowed% = GetOptionInt("graphics", "borderless windowed")
 Global RealGraphicWidth%,RealGraphicHeight%
-Global AspectRatioRatio#
 
 ; For borderless windowed
 Global ScaledGraphicWidth%,ScaledGraphicHeight%
@@ -218,8 +217,6 @@ If BorderlessWindowed
 	RealGraphicWidth = DesktopWidth()
 	RealGraphicHeight = DesktopHeight()
 	
-	AspectRatioRatio = (Float(GraphicWidth)/Float(GraphicHeight))/(Float(RealGraphicWidth)/Float(RealGraphicHeight))
-
 	Local scaleX# = Float(RealGraphicWidth) / GraphicWidth, scaleY# = Float(RealGraphicHeight) / GraphicHeight
 	Local scale# = Min(scaleX, scaleY)
 	ScaledGraphicWidth% = scale * GraphicWidth
@@ -232,7 +229,6 @@ If BorderlessWindowed
 
 	Fullscreen = False
 Else
-	AspectRatioRatio = 1.0
 	RealGraphicWidth = GraphicWidth
 	RealGraphicHeight = GraphicHeight
 	If Fullscreen Then
@@ -11768,11 +11764,11 @@ Function CheckTriggers$()
 End Function
 
 Function ScaledMouseX%()
-	Return Float(MouseX()-(RealGraphicWidth*0.5*(1.0-AspectRatioRatio)))*Float(GraphicWidth)/Float(RealGraphicWidth*AspectRatioRatio)
+	Return Float(MouseX()-ScaledOffsetX)/ScaledGraphicWidth*GraphicWidth
 End Function
 
 Function ScaledMouseY%()
-	Return Float(MouseY())*Float(GraphicHeight)/Float(RealGraphicHeight)
+	Return Float(MouseY()-ScaledOffsetY)/ScaledGraphicHeight*GraphicHeight
 End Function
 
 Function PlayAnnouncement(file$) ;This function streams the announcement currently playing
