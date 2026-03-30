@@ -1,4 +1,5 @@
 Const SubtitleFilePath$ = "Data\subtitles.ini"
+Const DubbedSubtitleFilePath$ = "Data\subtitles_dub.ini"
 Const ClosedCaptionFilePath$ = "Data\subtitles_captions.ini"
 Const VoiceFilePath$ = "Data\voices.ini"
 
@@ -39,7 +40,7 @@ Global SubBox.SubtitleBox
 
 Type SubtitleToken ; ~ A subtitle definition, contains the beginning of a linked list of SubtitleEntry.
 	field soundPath$
-	field fromFile% ; 0 = From Subtitles File, 1 = From Captions File, 2 = From Both
+	field fromFile% ; Bit 0 = From Subtitles File, Bit 1 = From Captions File, Bit 2 = From Dubbed Subtitles File
 
 	field entry.SubtitleEntry
 End Type
@@ -51,7 +52,7 @@ Type SubtitleEntry ; ~ A single subtitle line. Contains a timing and duration.
 
 	field col.SubtitleColor
 
-	field isCaption%
+	field entryType%
 	field time#, length# 
 
 	field cooldown#
@@ -145,7 +146,7 @@ Function LoadSubtitleVoices(path$)
 	CloseFile(f)
 End Function
 
-Function LoadSubtitleTokens(path$, closedCaptions%=False)
+Function LoadSubtitleTokens(path$, tokenType)
 	Local f% = OpenFile(path)
 
 	Local section$ = ""
@@ -162,7 +163,7 @@ Function LoadSubtitleTokens(path$, closedCaptions%=False)
 
 		If Left(strtemp, 1) = "[" And Right(strtemp, 1) = "]" And Len(strtemp)>2 Then
 			If section <> "" And firstEntry <> Null Then
-				CreateSubtitleToken(firstEntry, section, closedCaptions)
+				CreateSubtitleToken(firstEntry, section, tokenType)
 				firstEntry = Null
 				lastEntry = Null
 			EndIf
@@ -180,7 +181,7 @@ Function LoadSubtitleTokens(path$, closedCaptions%=False)
 			Local value$ = Trim(Right(strtemp, Len(strtemp)-equal))
 
 			If Not ApplySubtitleColorSetting(key, value, c) Then
-				Local e.SubtitleEntry = CreateSubtitleEntry(key, value, c, closedCaptions)
+				Local e.SubtitleEntry = CreateSubtitleEntry(key, value, c, tokenType)
 				If e\col = c Then used = True ; If the same color gets returned, this color is now being referenced directly by an entry and should not be deleted.
 				If firstEntry = Null Then firstEntry = e
 				If lastEntry <> Null Then lastEntry\nextEntry = e
@@ -190,7 +191,7 @@ Function LoadSubtitleTokens(path$, closedCaptions%=False)
 	Wend
 
 	If section <> "" And firstEntry <> Null Then
-		CreateSubtitleToken(firstEntry, section, closedCaptions)
+		CreateSubtitleToken(firstEntry, section, tokenType)
 		firstEntry = Null
 		lastEntry = Null
 	EndIf
@@ -199,22 +200,23 @@ Function LoadSubtitleTokens(path$, closedCaptions%=False)
 End Function
 
 
-Function CreateSubtitleEntry.SubtitleEntry(key$, value$, clr.SubtitleColor, isCaption%=False)
+Function CreateSubtitleEntry.SubtitleEntry(key$, value$, clr.SubtitleColor, tokenType)
 	Local e.SubtitleEntry = new SubtitleEntry
 
 	e\time = Float(key)
 	e\length = (5.0+1.0) * 70.0
 
 	e\col = clr
-	e\txt = ParseSubtitleSettings(e, value, isCaption)
+	e\txt = ParseSubtitleSettings(e, value, tokenType=1)
 
-	e\isCaption = e\isCaption Or isCaption
+	; If not explicitly defined as a caption, apply based on load type.
+	If e\entryType <> 1 Then e\entryType = tokenType
 
 	Insert e Before First SubtitleEntry
 	Return e
 End Function
 
-Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, fromCaptionFile%=False)
+Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, tokenType)
 	Local offset% = 1
 	Local toChar% = 0
 
@@ -223,27 +225,30 @@ Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, fromCaptionFi
 		If toChar = 0 Then toChar = Len(soundPathGroup)+1
 
 		Local soundPath$ = Trim(Mid(soundPathGroup, offset, toChar-offset))
-		Local t.SubtitleToken = GetSubtitleToken(soundPath, fromCaptionFile)
+		Local t.SubtitleToken = GetSubtitleToken(soundPath, tokenType) ; This can be optimized, fetch only THEN check
 
-		If t <> Null Then
-			; Append entry to existing linked list
-			Local e.SubtitleEntry = t\entry
-			While e\nextEntry <> Null
-				e = e\nextEntry
-			Wend
-
-			e\nextEntry = entry
-			t\fromFile = 2
-		ElseIf Not SubtitleTokenExists(soundPath) Then
-			t = new SubtitleToken
-
-			t\soundPath = soundPath
-			t\fromFile = fromCaptionFile
-			t\entry = entry
-
-			Insert t Before First SubtitleToken
-		Else
+		If t = Null And SubtitleTokenExists(soundPath) Then
 			DebugLog("Token already exists: "+soundPath)
+		Else
+			If t = Null Then
+				t = New SubtitleToken
+
+				t\soundPath = soundPath
+
+				t\entry = entry
+
+				Insert t Before First SubtitleToken
+			Else
+				; Append entry to existing linked list
+				Local e.SubtitleEntry = t\entry
+				While e\nextEntry <> Null
+					e = e\nextEntry
+				Wend
+
+				e\nextEntry = entry
+			EndIf
+
+			t\fromFile = t\fromFile Or (1 Shl tokenType)
 		EndIf
 
 		offset = toChar+1
@@ -261,10 +266,10 @@ Function SubtitleTokenExists%(soundPath$)
 	Return False
 End Function 
 
-Function GetSubtitleToken.SubtitleToken(soundPath$, fromCaptionFile%)
+Function GetSubtitleToken.SubtitleToken(soundPath$, tokenType%)
 	For token.SubtitleToken = Each SubtitleToken
 		If token\soundPath = soundPath Then
-			If (fromCaptionFile And token\fromFile=0) Or ((Not fromCaptionFile) And token\fromFile=1) Return token
+			If Not (token\fromFile And (1 Shl tokenType)) Return token
 		EndIf
 	Next
 
@@ -336,9 +341,9 @@ Function ApplySubtitleDataSetting%(key$, value$, e.SubtitleEntry)
 
 	If key = "caption" Then
 		If value = "true" Then
-			e\isCaption = True
+			e\entryType = 1
 		ElseIf value = "false" Then
-			e\isCaption = False
+			e\entryType = 0
 		EndIf
 		Return True
 	EndIf
@@ -493,22 +498,29 @@ Function LoadSubtitles()
 
 	Local subtitlesUnlocked% = True
 	Local captionsUnlocked% = True
+	Local dubbedSubtitlesUnlocked% = True
 	For m.ActiveMods = Each ActiveMods
 		If subtitlesUnlocked And FileType(m\Path + SubtitleFilePath) = 1 Then
-			LoadSubtitleTokens(m\Path + SubtitleFilePath)
+			LoadSubtitleTokens(m\Path + SubtitleFilePath, 0)
 			If FileType(m\Path + SubtitleFilePath + ".OVERRIDE") = 1 Then subtitlesUnlocked = False
 		EndIf
 
 		If captionsUnlocked And FileType(m\Path + ClosedCaptionFilePath) = 1 Then
-			LoadSubtitleTokens(m\Path + ClosedCaptionFilePath, True)
+			LoadSubtitleTokens(m\Path + ClosedCaptionFilePath, 1)
 			If FileType(m\Path + ClosedCaptionFilePath + ".OVERRIDE") = 1 Then captionsUnlocked = False
 		EndIf
 
-		If (Not subtitlesUnlocked) And (Not captionsUnlocked) Then Exit
+		If dubbedSubtitlesUnlocked And FileType(m\Path + DubbedSubtitleFilePath) = 1 Then
+			LoadSubtitleTokens(m\Path + DubbedSubtitleFilePath, 2)
+			If FileType(m\Path + DubbedSubtitleFilePath + ".OVERRIDE") = 1 Then dubbedSubtitlesUnlocked = False
+		EndIf
+
+		If (Not subtitlesUnlocked) And (Not captionsUnlocked) And (Not dubbedSubtitlesUnlocked) Then Exit
 	Next
 
-	If subtitlesUnlocked Then LoadSubtitleTokens(SubtitleFilePath)
-	If captionsUnlocked Then LoadSubtitleTokens(ClosedCaptionFilePath, True)
+	If subtitlesUnlocked Then LoadSubtitleTokens(SubtitleFilePath, 0)
+	If captionsUnlocked Then LoadSubtitleTokens(ClosedCaptionFilePath, 1)
+	; Dubbed subtitles don't exist for the base game.
 
 	CleanupColors()
 
@@ -602,7 +614,7 @@ Function QueueSubtitle(soundPath$, soundHandle%, soundChannel%, isStream%=False)
 
 	Local e.SubtitleEntry = found\entry
 	While e <> Null
-		If (Not e\isCaption) Or (e\isCaption And ClosedCaptionsEnabled) Then
+		If ShouldShowSubtitle(e) Then
 			Local queue.QueuedSubtitleMsg = new QueuedSubtitleMsg
 
 			queue\sndHandle = soundHandle
@@ -616,6 +628,15 @@ Function QueueSubtitle(soundPath$, soundHandle%, soundChannel%, isStream%=False)
 		EndIf
 		e = e\nextEntry
 	Wend
+End Function
+
+Function ShouldShowSubtitle%(e.SubtitleEntry)
+	Select e\entryType
+		Case 0 Return Not UsesDubbedAudio
+		Case 1 Return ClosedCaptionsEnabled
+		Case 2 Return UsesDubbedAudio
+		Default Return False
+	End Select
 End Function
 
 Function RemoveQueuedSubtitle(soundHandle%)
@@ -697,7 +718,7 @@ End Function
 
 
 Function TryCreateSubtitleMsg.SubtitleMsg(queue.QueuedSubtitleMsg, txt$="")
-	If (Not SubtitlesEnabled) Or DeafTimer > 0 Or (queue\entry\isCaption And (Not ClosedCaptionsEnabled)) Then
+	If (Not SubtitlesEnabled) Or DeafTimer > 0 Or (Not ShouldShowSubtitle(queue\entry)) Then
 		Return Null
 	EndIf
 

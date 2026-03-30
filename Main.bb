@@ -116,6 +116,7 @@ Global IsRunning% = True
 Global ShouldRestart% = False
 
 Include "ModManager.bb"
+Global HasDubbedAudio%
 Global ModsEnabled% = GetOptionInt("general", "enable mods") And (Not HasCLIFlag("nomods"))
 If ModsEnabled Then ReloadMods()
 
@@ -124,6 +125,9 @@ Global ConsoleFont%
 
 Global MenuWhite%, MenuBlack%
 Global ButtonSFX% = LoadSound_Strict("SFX\Interact\Button.ogg")
+
+Global DubbedAudio% = GetOptionInt("audio", "dubbed audio")
+Global UsesDubbedAudio% = DubbedAudio And HasDubbedAudio
 
 Global EnableSFXRelease% = GetOptionInt("audio", "sfx release")
 
@@ -7617,7 +7621,21 @@ Function DrawMenu()
 					EndIf
 					
 					y = y + 50*MenuScale
+
+					If HasDubbedAudio Then
+						Color 100,100,100
+						Text x, y, I_Loc\OptionName_LocalAudio
+						DubbedAudio = DrawTick(x + 270 * MenuScale, y + MenuScale, DubbedAudio, True)
+						If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+							DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"localaudio")
+						EndIf
+
+						UsesDubbedAudio = DubbedAudio
+						
+						y = y + 50*MenuScale
+					EndIf
 					
+					Color 255,255,255
 					Text x, y, I_Loc\OptionName_Subtitles
 					Local subtitlesWereEnabled = SubtitlesEnabled
 					SubtitlesEnabled = DrawTick(x + 270 * MenuScale, y + MenuScale, SubtitlesEnabled)
@@ -7632,6 +7650,7 @@ Function DrawMenu()
 
 					y = y + 30*MenuScale
 					
+					Color 255,255,255
 					Text x, y, I_Loc\OptionName_Closedcaptions
 					ClosedCaptionsEnabled = DrawTick(x + 270 * MenuScale, y + MenuScale, ClosedCaptionsEnabled)
 					If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
@@ -11384,6 +11403,7 @@ Function SaveOptionsINI()
 	PutINIValue(OptionFile, "audio", "sfx release", EnableSFXRelease)
 	PutINIValue(OptionFile, "audio", "enable user tracks", EnableUserTracks%)
 	PutINIValue(OptionFile, "audio", "user track setting", UserTrackMode%)
+	PutINIValue(OptionFile, "audio", "dubbed audio", DubbedAudio)
 	PutINIValue(OptionFile, "audio", "subtitles", SubtitlesEnabled)
 	PutIniValue(OptionFile, "audio", "closed captions", ClosedCaptionsEnabled)
 	

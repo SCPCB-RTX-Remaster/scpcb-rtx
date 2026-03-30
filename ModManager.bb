@@ -1,5 +1,6 @@
 Type ActiveMods
     Field Path$
+    Field IsLocale%
 End Type
 
 Type Mods
@@ -133,6 +134,8 @@ End Function
 Const LOCALIZATIONS_DIR$ = "Localization\"
 
 Function UpdateActiveMods()
+    HasDubbedAudio = False
+
     Local txt$
     Delete Each ActiveMods
     Local mm.ActiveMods
@@ -141,6 +144,8 @@ Function UpdateActiveMods()
     If locale <> "" And FileType(LOCALIZATIONS_DIR + locale) = 2 Then
         mm = New ActiveMods
         mm\Path = LOCALIZATIONS_DIR + locale + "\"
+        mm\IsLocale = True
+        If FileType(mm\Path + "SFX") = 2 Then HasDubbedAudio = True
         txt = "locale " + locale
     EndIf
     For m.Mods = Each Mods
@@ -148,6 +153,8 @@ Function UpdateActiveMods()
             If locale <> "" And FileType(m\Path + LOCALIZATIONS_DIR + locale) = 2 Then
                 mm.ActiveMods = New ActiveMods
                 mm\Path = m\Path + LOCALIZATIONS_DIR + locale + "\"
+                mm\IsLocale = True
+                If FileType(mm\Path + "SFX") = 2 Then HasDubbedAudio = True
                 If txt <> "" Then txt = txt + ", "
                 txt = txt + m\Id + " locale " + locale
             EndIf
@@ -158,6 +165,8 @@ Function UpdateActiveMods()
         EndIf
     Next
     SetErrorMsg(10, "Active mods: " + txt)
+
+    UsesDubbedAudio = HasDubbedAudio And DubbedAudio
 End Function
 
 Function LoadModdedTextureNonStrict%(file$, flags%)

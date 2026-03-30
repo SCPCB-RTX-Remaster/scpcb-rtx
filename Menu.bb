@@ -756,7 +756,8 @@ Function UpdateMainMenu()
 				ElseIf MainMenuTab = 5 ;Audio
 					;[Block]
 					height = 290 * MenuScale
-					DrawFrame(x, y, width, height)	
+					If HasDubbedAudio Then height = height + 50*MenuScale
+					DrawFrame(x, y, width, height)
 					
 					y = y + 20*MenuScale
 					
@@ -788,6 +789,19 @@ Function UpdateMainMenu()
 					;EndIf
 					
 					y = y + 50*MenuScale
+
+					If HasDubbedAudio Then
+						Color 255,255,255
+						Text x + 20 * MenuScale, y, I_Loc\OptionName_LocalAudio
+						DubbedAudio = DrawTick(x + 310 * MenuScale, y + MenuScale, DubbedAudio)
+						If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+							DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"localaudio")
+						EndIf
+
+						UsesDubbedAudio = DubbedAudio
+
+						y = y + 50*MenuScale
+					EndIf
 					
 					Color 255,255,255
 					Text x + 20 * MenuScale, y, I_Loc\OptionName_Subtitles
@@ -2481,6 +2495,10 @@ Function DrawOptionsTooltip(x%,y%,width%,height%,option$,value#=0,ingame%=False)
 			G = 255
 			B = 255
 			txt2 = Format(I_Loc\Option_HintDefault, "%", Str(Int(value*100)), "100")
+		Case "localaudio"
+			txt = I_Loc\OptionTooltip_Localaudio
+			txt2 = I_Loc\Option_HintMenuonly
+			R = 255
 		Case "subtitles"
 			txt = I_Loc\OptionTooltip_Subtitles
 		Case "closedcaptions"

@@ -166,32 +166,33 @@ Function DetermineModdedSoundPath$(File$)
 	Local tmp%
 
 	For m.ActiveMods = Each ActiveMods
-		For i = 0 To SoundExtensionCount
-			Local usedExtension$
-			If i = SoundExtensionCount Then
-				usedExtension = ext
-			Else
-				usedExtension = SoundExtensions[i]
-			EndIf
-			Local modPath$ = m\Path + fileNoExt + usedExtension
-			If FileType(modPath) = 1 Then
-				Return modPath
-			EndIf
-		Next
+		If (Not m\IsLocale) Lor UsesDubbedAudio Then
+			For i = 0 To SoundExtensionCount
+				Local usedExtension$
+				If i = SoundExtensionCount Then
+					usedExtension = ext
+				Else
+					usedExtension = SoundExtensions[i]
+				EndIf
+				Local modPath$ = m\Path + fileNoExt + usedExtension
+				If FileType(modPath) = 1 Then
+					Return modPath
+				EndIf
+			Next
+		EndIf
 	Next
 
 	Return File
 End Function
 
 Function LoadSound_Strict(file$)
-	file = DetermineModdedSoundPath(file)
 	Local snd.Sound = New Sound
 	snd\name = file
 	snd\internalHandle = 0
 	snd\releaseTime = 0
 	If (Not EnableSFXRelease) Then
 		If snd\internalHandle = 0 Then 
-			snd\internalHandle = LoadSound(snd\name)
+			snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 		EndIf
 	EndIf
 	
@@ -215,6 +216,7 @@ Type Stream
 End Type
 
 Function StreamSound_Strict(file$,volume#=1.0,custommode=2)
+	Local vanillaFile$ = file
 	file = DetermineModdedSoundPath(file)
 	If FileType(file$)<>1
 		CreateConsoleMsg("Sound " + Chr(34) + file$ + Chr(34) + " not found.")
@@ -235,7 +237,7 @@ Function StreamSound_Strict(file$,volume#=1.0,custommode=2)
 		EndIf
 		Return -1
 	EndIf
-	QueueSubtitle(file, 0, st\chn, True)
+	QueueSubtitle(vanillaFile, 0, st\chn, True)
 	UpdateChannelVolumeWithSubtitles(st\chn, volume, True, False)
 	Return Handle(st)
 End Function
