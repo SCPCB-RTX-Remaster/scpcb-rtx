@@ -24,7 +24,7 @@ ModelExtensions[4] = "obj"
 ;more informative alternative to MAVs outside of debug mode, makes it immiediately obvious whether or not someone is loading resources
 ;likely to cause more crashes than 'clean' CB, as this prevents anyone from loading any assets that don't exist, regardless if they are ever used
 ;added zero checks since blitz load functions return zero sometimes even if the filetype exists
-Function LoadImage_Strict(file$, flags%=0)
+Function LoadImage_Strict%(file$, scale#=0, flags%=0)
 	Local ext$ = File_GetExtension(file)
 	Local fileNoExt$ = Left(file, Len(file) - Len(ext))
 	Local tmp%
@@ -41,6 +41,7 @@ Function LoadImage_Strict(file$, flags%=0)
 			If FileType(modPath) = 1 Then
 				tmp = LoadImage(modPath, flags)
 				If tmp <> 0 Then
+					If scale <> 0 Then ScaleImageFromFile(tmp, m\Path + fileNoExt, scale)
 					Return tmp
 				Else If DebugResourcePacks Then
 					RuntimeErrorExt("Failed to load image " + Chr(34) + modPath + Chr(34) + ".")
@@ -51,11 +52,21 @@ Function LoadImage_Strict(file$, flags%=0)
 
 	If FileType(file$)<>1 Then RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
 	tmp = LoadImage(file$, flags)
+	If scale <> 0 Then ScaleImageFromFile(tmp, fileNoExt, scale)
 	Return tmp
-	;attempt to load the image again
-	If tmp = 0 Then tmp2 = LoadImage(file)
-	DebugLog "Attempting to load again: "+file
-	Return tmp2
+End Function
+
+Function ScaleImageFromFile(img%, path$, scale#)
+	path = path + "SCALE"
+	If FileType(path) = 1 Then
+		Local f% = OpenFile(path)
+		Local val# = Float(ReadLine(f))
+		CloseFile f
+		scale = scale * val
+	EndIf
+	If scale <> 1.0 Then
+		ScaleImage img, scale, scale
+	EndIf
 End Function
 
 

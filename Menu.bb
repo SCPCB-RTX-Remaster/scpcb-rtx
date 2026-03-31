@@ -9,8 +9,7 @@ ScaleImage(MenuText, MenuScale, MenuScale)
 ScaleImage(Menu173, MenuScale, MenuScale)
 
 For i = 0 To 3
-	ArrowIMG(i) = LoadImage_Strict("GFX\menu\arrow.png")
-	ScaleImage(ArrowIMG(i), HUDScale, HUDScale)
+	ArrowIMG(i) = LoadImage_Strict("GFX\menu\arrow.png", HUDScale)
 	RotateImage(ArrowIMG(i), 90 * i)
 	HandleImage(ArrowIMG(i), 0, 0)
 Next
@@ -1218,7 +1217,7 @@ Function UpdateMainMenu()
 
 								DrawFrame(x,y,490* MenuScale, 70 * MenuScale)
 								If m\Icon = 0 And m\Iconpath <> "" Then
-									m\Icon = LoadImage_Strict(m\IconPath, 1)
+									m\Icon = LoadImage_Strict(m\IconPath, 0, 1)
 									m\DisabledIcon = CreateGrayScaleImage(m\Icon)
 									ResizeImage(m\Icon, 64 * MenuScale, 64 * MenuScale)
 									ResizeImage(m\DisabledIcon, 64 * MenuScale, 64 * MenuScale)
@@ -1532,12 +1531,6 @@ Function UpdateLauncher()
 	Local LauncherIMG% = LoadImage_Strict("GFX\menu\launcher.png")
 	Local i%	
 	
-	For i = 0 To 3
-		ArrowIMG(i) = LoadImage_Strict("GFX\menu\arrow.png")
-		RotateImage(ArrowIMG(i), 90 * i)
-		HandleImage(ArrowIMG(i), 0, 0)
-	Next
-	
 	For i% = 1 To TotalGfxModes
 		Local w% = GfxModeWidth(i), h% = GfxModeHeight(i)
 		Local gdc% = GreatestCommonDivsior(w, h)
@@ -1575,7 +1568,7 @@ Function UpdateLauncher()
 		GfxDrivers(i) = GfxDriverName(i)
 	Next
 	
-	BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.jpg")
+	BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.png", 1.0)
 	
 	AppTitle "SCP - Containment Breach Launcher"
 

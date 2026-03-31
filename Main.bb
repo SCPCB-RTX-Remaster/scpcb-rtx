@@ -302,10 +302,10 @@ PlayStartupVideos()
 
 ;[Block]
 
-Global CursorIMG% = LoadImage_Strict("GFX\cursor.png")
+Global CursorIMG% = LoadImage_Strict("GFX\cursor.png", 1.0)
 
 Global SelectedLoadingScreen.LoadingScreens, LoadingScreenAmount% = 0, LoadingScreenText%
-Global LoadingBack% = LoadImage_Strict("Loadingscreens\loadingback.jpg")
+Global LoadingBack% = LoadImage_Strict("Loadingscreens\loadingback.jpg", 1.0)
 InitLoadingScreens()
 
 Font1% = LoadFont_Strict("GFX\font\cour\Courier New.ttf", Int(19 * MenuScale))
@@ -321,8 +321,13 @@ ConsoleFont% = Font1
 
 SetFont Font2
 
-Global BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.jpg")
-ScaleImage(BlinkMeterIMG, HUDScale, HUDScale)
+Global BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.png", HUDScale)
+Global MenuMeterIMG%
+If HUDScale = MenuScale Then
+	MenuMeterIMG = BlinkMeterIMG
+Else
+	MenuMeterIMG = LoadImage_Strict("GFX\blinkmeter.png", MenuScale)
+EndIf
 
 DrawLoading(0, True)
 
@@ -1873,10 +1878,8 @@ Global NoTarget% = False
 Global GuaranteedOmni% = False
 
 Global NVGImages[2]
-NVGImages[0] = LoadImage_Strict("GFX\battery_green.png")
-ScaleImage(NVGImages[0], HUDScale, HUDScale)
-NVGImages[1] = LoadImage_Strict("GFX\battery_blue.png")
-ScaleImage(NVGImages[1], HUDScale, HUDScale)
+NVGImages[0] = LoadImage_Strict("GFX\battery_green.png", HUDScale)
+NVGImages[1] = LoadImage_Strict("GFX\battery_blue.png", HUDScale)
 
 Global Wearing1499% = False
 Global AmbientLight%, AmbientLightNVG%
@@ -8033,25 +8036,17 @@ Function LoadEntities()
 		TempSounds[i]=0
 	Next
 	
-	PauseMenuIMG% = LoadImage_Strict("GFX\menu\pausemenu.jpg")
-	ScaleImage PauseMenuIMG,MenuScale,MenuScale
+	PauseMenuIMG% = LoadImage_Strict("GFX\menu\pausemenu.jpg", MenuScale)
 	
-	SprintIcon% = LoadImage_Strict("GFX\sprinticon.png")
-	ScaleImage(SprintIcon, HUDScale, HUDScale)
-	BlinkIcon% = LoadImage_Strict("GFX\blinkicon.png")
-	ScaleImage(BlinkIcon, HUDScale, HUDScale)
-	CrouchIcon% = LoadImage_Strict("GFX\sneakicon.png")
-	ScaleImage(CrouchIcon, HUDScale, HUDScale)
-	HandIcon% = LoadImage_Strict("GFX\handsymbol.png")
-	ScaleImage(HandIcon, HUDScale, HUDScale)
-	HandIcon2% = LoadImage_Strict("GFX\handsymbol2.png")
-	ScaleImage(HandIcon2, HUDScale, HUDScale)
+	SprintIcon% = LoadImage_Strict("GFX\sprinticon.png", HUDScale)
+	BlinkIcon% = LoadImage_Strict("GFX\blinkicon.png", HUDScale)
+	CrouchIcon% = LoadImage_Strict("GFX\sneakicon.png", HUDScale)
+	HandIcon% = LoadImage_Strict("GFX\handsymbol.png", HUDScale)
+	HandIcon2% = LoadImage_Strict("GFX\handsymbol2.png", HUDScale)
 
-	StaminaMeterIMG% = LoadImage_Strict("GFX\staminameter.jpg")
-	ScaleImage(StaminaMeterIMG, HUDScale, HUDScale)
+	StaminaMeterIMG% = LoadImage_Strict("GFX\staminameter.png", HUDScale)
 
-	Panel294 = LoadImage_Strict("GFX\294panel.jpg")
-	ScaleImage(Panel294, HUDScale, HUDScale)
+	Panel294 = LoadImage_Strict("GFX\294panel.jpg", HUDScale)
 
 	Load294()
 
