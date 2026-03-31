@@ -7238,7 +7238,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	;force more room4s and room2Cs
 	For i = 0 To 2
 		
-		If i = 2 Then y_min = 2 Else y_min = I_Zone\Transition[i]
+		If i = 2 Then y_min = 1 Else y_min = I_Zone\Transition[i]
 		If i = 0 Then y_max = MapHeight - 2 Else y_max = I_Zone\Transition[i - 1] - 2
 		x_min = 1
 		x_max = MapWidth - 2
@@ -7263,7 +7263,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							Case (MapTemp(x,y+1) Or MapTemp(x+1,y+1) Or MapTemp(x-1,y+1) Or MapTemp(x,y+2) Or (i=0 And y=y_max))
 								MapTemp(x,y+1)=1
 								placed=True
-							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTemp(x,y-2) Or (i<2 And y=y_min))
+							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTempSafe(x,y-2) Or (i<2 And y=y_min))
 								MapTemp(x,y-1)=1
 								placed=True
 						End Select
@@ -7296,7 +7296,7 @@ Function CreateMap(loadingstart,loadingcount#)
 						Select True ;see if adding some rooms is possible
 							Case MapTemp(x-1,y)>0
 								If (MapTemp(x+1,y-1)+MapTemp(x+1,y+1)+MapTemp(x+2,y))=0 And x<x_max Then
-									If (MapTemp(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
+									If (MapTempSafe(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x+1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x+1)+", "+(y)+")"
@@ -7312,7 +7312,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								EndIf
 							Case MapTemp(x+1,y)>0
 								If (x-2<0 Lor MapTemp(x-2,y)=0) And (MapTemp(x-1,y-1)+MapTemp(x-1,y+1))=0 And x>x_min Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x-1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x-1)+", "+(y)+")"
@@ -7343,14 +7343,14 @@ Function CreateMap(loadingstart,loadingcount#)
 									EndIf
 								EndIf
 							Case MapTemp(x,y+1)>0
-								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTemp(x,y-2))=0 And (y>y_min Or i=2) Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And x>x_min Then
+								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTempSafe(x,y-2))=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And x>x_min Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
 										MapTemp(x-1,y-1)=1
 										placed=True
-									Else If (MapTemp(x+2,y-1)+MapTemp(x+1,y-2))=0 And x<x_max Then
+									Else If (MapTemp(x+2,y-1)+MapTempSafe(x+1,y-2))=0 And x<x_max Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
@@ -7430,7 +7430,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	
 	temp = 0
 	Local r.Rooms, spacing# = 8.0
-	For y = MapHeight - 1 To 1 Step - 1
+	For y = MapHeight - 1 To 0 Step - 1
 		DrawLoading(loadingstart + Float(MapHeight - 1 - y) / (MapHeight - 1) * loadingcount)
 		
 		;zone% = GetZone(y)
@@ -7453,7 +7453,7 @@ Function CreateMap(loadingstart,loadingcount#)
 			ElseIf MapTemp(x, y) > 0
 				Local angle%
 
-				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTemp(x, y - 1),1)
+				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTempSafe(x, y - 1),1)
 				
 				Select temp ;viereisiss� ruuduissa olevien huoneiden m��r�
 					Case 1
@@ -7480,7 +7480,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If Rand(2) = 1 Then angle = 90 Else angle = 270
 							r = CreateRoom(zone, ROOM2, x * 8, 0, y * 8, angle, MapName(x, y))
 							MapRoomID(ROOM2)=MapRoomID(ROOM2)+1
-						ElseIf MapTemp(x, y - 1)>0 And MapTemp(x, y + 1)>0
+						ElseIf MapTempSafe(x, y - 1)>0 And MapTemp(x, y + 1)>0
 							If MapRoomID(ROOM2) < MaxRooms And MapName(x,y) = ""  Then
 								If MapRoom(ROOM2, MapRoomID(ROOM2)) <> "" Then MapName(x, y) = MapRoom(ROOM2, MapRoomID(ROOM2))	
 							EndIf
@@ -7496,7 +7496,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								angle = 180
 							ElseIf MapTemp(x + 1, y)>0 And MapTemp(x, y + 1)>0
 								angle = 90
-							ElseIf MapTemp(x - 1, y)>0 And MapTemp(x, y - 1)>0
+							ElseIf MapTemp(x - 1, y)>0 And MapTempSafe(x, y - 1)>0
 								angle = 270
 							Else
 								angle = 0
@@ -7509,7 +7509,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If MapRoom(ROOM3, MapRoomID(ROOM3)) <> "" Then MapName(x, y) = MapRoom(ROOM3, MapRoomID(ROOM3))	
 						EndIf
 						
-						If (Not MapTemp(x, y - 1)) Then
+						If (Not MapTempSafe(x, y - 1)) Then
 							angle = 180
 						ElseIf (Not MapTemp(x - 1, y))
 							angle = 90
@@ -7764,6 +7764,14 @@ Function CreateMap(loadingstart,loadingcount#)
 		Next
 	Next
 	
+End Function
+
+; Really, really stupid bandaid fix!
+; We basically need to allow the room2c forcing to consider extending rooms on y=1, which means they'll be pushed
+; up to y=0. This requires bounds checking for a select amount of checks that deal with checking y-1.
+Function MapTempSafe(x%,y%)
+	If x<0 Or y<0 Or x>MapWidth Or y>MapHeight Then Return 0
+	Return MapTemp(x,y)
 End Function
 
 Function SetRoom(room_name$,room_type%,pos%,min_pos%,max_pos%) ;place a room without overwriting others
