@@ -913,6 +913,8 @@ Function DrawSubtitles()
 			Text(SubBox\screenLeft+5,c\curYPos,c\txt)
 		EndIf
 	Next
+
+	SetFont Font1
 End Function
 
 Function RenderSubtitles()
