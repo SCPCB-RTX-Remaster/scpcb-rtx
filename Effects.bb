@@ -13,7 +13,7 @@ EndIf
 Function InitPostProcess()
 	ScreenTexture = CreateTexture(GraphicWidth, GraphicHeight, 1 + 1024)
 	
-	GammaEffect = LoadEffect("GFX\shaders\Gamma.fx")
+	GammaEffect = LoadEffect(DetermineModdedPath("GFX\shaders\Gamma.fx"))
 	DebugLog GetEffectError()
 	
 	PostEffectQuad = CreateFullscreenQuad()
