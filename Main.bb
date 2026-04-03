@@ -6108,8 +6108,7 @@ Function DrawGUI()
 					If SelectedItem\state <= 100 Then SelectedItem\state = Max(0, SelectedItem\state - FPSfactor * 0.004)
 					
 					If SelectedItem\itemtemplate\img=0 Then
-						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath)	
-						ScaleImage(SelectedItem\itemtemplate\img, HUDScale, HUDScale)
+						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath, HUDScale)	
 					EndIf
 					
 					;radiostate(5) = has the "use the number keys" -message been shown yet (true/false)
@@ -6899,8 +6898,7 @@ Function DrawGUI()
 				Case "badge", "oldbadge"
 					;[Block]
 					If SelectedItem\itemtemplate\img=0 Then
-						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath)	
-						;ScaleImage(SelectedItem\itemtemplate\img, MenuScale, MenuScale)
+						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath, MenuScale)	
 					EndIf
 					
 					DrawImage(SelectedItem\itemtemplate\img, GraphicWidth / 2 - ImageWidth(SelectedItem\itemtemplate\img) / 2, GraphicHeight / 2 - ImageHeight(SelectedItem\itemtemplate\img) / 2)
@@ -6997,8 +6995,7 @@ Function DrawGUI()
 					If SelectedItem\itemtemplate\group = "paper" Lor SelectedItem\itemtemplate\name = "ticket" Then
 						;[Block]
 						If SelectedItem\itemtemplate\img = 0 Then
-							SelectedItem\itemtemplate\img = LoadImage_Strict(SelectedItem\itemtemplate\imgpath)
-							ScaleImage(SelectedItem\itemtemplate\img, MenuScale, MenuScale)
+							SelectedItem\itemtemplate\img = LoadImage_Strict(SelectedItem\itemtemplate\imgpath, MenuScale)
 							Local buf%
 							Select SelectedItem\itemtemplate\name
 								Case "burntnote" 
