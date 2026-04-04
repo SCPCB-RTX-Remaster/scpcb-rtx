@@ -1,4 +1,4 @@
-Global GammaEffect%
+Global GammaEffect%, FXAAEffect%
 
 Global PostEffectQuad%, QuadCamera%, PostEffect%
 
@@ -15,6 +15,9 @@ Function InitPostProcess()
 	
 	GammaEffect = LoadEffect(DetermineModdedPath("GFX\shaders\Gamma.fx"))
 	DebugLog GetEffectError()
+
+	FXAAEffect = LoadEffect(DetermineModdedPath("GFX\shaders\FXAA.fx"))
+	DebugLog GetEffectError()
 	
 	PostEffectQuad = CreateFullscreenQuad()
 	EntityTexture(PostEffectQuad, ScreenTexture, 0, 0)
@@ -30,8 +33,8 @@ Function InitPostProcess()
 End Function
 
 Function UpdatePostProcess()
-	CopyRect(0, 0, GraphicWidth, GraphicHeight, 0, 0, BackBuffer(), TextureBuffer(ScreenTexture))
 	ProcessGammaEffect(ScreenGamma)
+	If Opt_AntiAlias Then ProcessFXAAEffect()
 End Function
 
 Function ProcessGammaEffect(gamma#)
@@ -39,7 +42,13 @@ Function ProcessGammaEffect(gamma#)
 	RenderEffectQuad(GammaEffect, BackBuffer(), "Main")
 End Function
 
+Function ProcessFXAAEffect()
+	RenderEffectQuad(FXAAEffect, BackBuffer(), "Main")
+End Function
+
 Function RenderEffectQuad(effect%, buffer%, technique$, blend% = 0)
+	CopyRect(0, 0, GraphicWidth, GraphicHeight, 0, 0, BackBuffer(), TextureBuffer(ScreenTexture))
+
 	SetQuadEffect(effect)
 	ShowEntity(PostEffectQuad)
 	EntityBlend(PostEffectQuad, blend)

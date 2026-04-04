@@ -266,7 +266,6 @@ Function UpdateMainMenu()
 					UserTrackCheck% = 0
 					UserTrackCheck2% = 0
 					
-					AntiAlias Opt_AntiAlias
 					UpdateHUDOffsets()
 					MainMenuTab = 0
 				Case 4 ;move back to the "new game" tab

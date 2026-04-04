@@ -1,3 +1,5 @@
+#include "Common.fx"
+
 float4x4 ViewProj 		: MATRIX_VIEWPROJ;
 
 uniform float Gamma = 0.5f;
@@ -11,12 +13,6 @@ sampler ColorMap : register(s0) = sampler_state
 	AddressU = Clamp;
 	AddressV = Clamp;
 	AddressW = Clamp;
-};
-
-struct VS_INPUT
-{ 
-	float4 Pos : POSITION; 
-	float2 TexCoords : TEXCOORD0;
 };
 
 void VS_Gamma(VS_INPUT input, out float4 Pos : POSITION, out float2 TexCoord : TEXCOORD0)

@@ -7407,7 +7407,6 @@ Function DrawMenu()
 				MouseHit1 = False
 				SaveOptionsINI()
 				
-				AntiAlias Opt_AntiAlias
 				TextureLodBias TextureFloat#
 			EndIf
 			
@@ -11391,7 +11390,6 @@ Function Graphics3DExt%(width%,height%,depth%=32,mode%=2)
 		SMALLEST_POWER_TWO = SMALLEST_POWER_TWO * 2.0
 	Wend
 	InitFastResize()
-	AntiAlias GetOptionInt("graphics","antialias")
 	;TextureAnisotropy% (GetOptionInt("graphics","anisotropy"),-1)
 End Function
 
