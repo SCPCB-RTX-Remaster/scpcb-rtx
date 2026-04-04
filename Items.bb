@@ -277,7 +277,6 @@ Type Items
 	Field Picked%,Dropped%
 	
 	Field invimg%
-	Field WontColl% = False
 	Field xspeed#,zspeed#
 	Field Inventory.Inventories
 	Field ID%
@@ -305,9 +304,7 @@ Function CreateItem.Items(name$, x#, y#, z#)
 			ShowEntity i\model
 			Exit
 		EndIf
-	Next 
-	
-	i\WontColl = False
+	Next
 	
 	If i\itemtemplate = Null Then RuntimeErrorExt("Item template not found ("+name+")")
 	
@@ -431,10 +428,12 @@ Function UpdateItems()
 			If i\disttimer < MilliSecs() Then
 				i\dist = EntityDistance(Camera, i\collider)
 				i\disttimer = MilliSecs() + 700
-				If i\dist < HideDist Then ShowEntity i\collider
 			EndIf
 			
 			If i\dist < HideDist Then
+				; ShowEntity resets the collisions.
+				Local hasCollided% = EntityCollided(i\collider, HIT_MAP)
+
 				ShowEntity i\collider
 				
 				If i\dist < 1.2 Then
@@ -453,7 +452,7 @@ Function UpdateItems()
 					EndIf
 				EndIf
 				
-				If EntityCollided(i\collider, HIT_MAP) Then
+				If hasCollided Then
 					i\DropSpeed = 0
 					i\xspeed = 0.0
 					i\zspeed = 0.0
@@ -463,7 +462,6 @@ Function UpdateItems()
 						If pick
 							i\DropSpeed = i\DropSpeed - 0.0004 * FPSfactor
 							TranslateEntity i\collider, i\xspeed*FPSfactor, i\DropSpeed * FPSfactor, i\zspeed*FPSfactor
-							If i\WontColl Then ResetEntity(i\collider)
 						Else
 							i\DropSpeed = 0
 							i\xspeed = 0.0

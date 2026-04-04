@@ -1,6 +1,6 @@
 Global MenuBack% = LoadImage_Strict("GFX\menu\back.jpg")
 Global MenuText% = LoadImage_Strict("GFX\menu\scptext.jpg")
-Global Menu173% = LoadImage_Strict("GFX\menu\173back.jpg")
+Global Menu173% = LoadImage_Strict("GFX\menu\173back.png")
 MenuWhite = LoadImage_Strict("GFX\menu\menuwhite.jpg")
 MenuBlack = LoadImage_Strict("GFX\menu\menublack.jpg")
 
@@ -169,7 +169,7 @@ Function UpdateMainMenu()
 		If DrawButton(x, y, width, height, I_Loc\Menu_NewUpper) Then
 			HasNumericSeed = UseNumericSeeds
 			If HasNumericSeed Then
-				RandomSeedNumeric = MilliSecs()
+				RandomSeedNumeric = 0
 			Else
 				RandomSeed = ""
 				If Rand(15)=1 Then 
@@ -326,8 +326,10 @@ Function UpdateMainMenu()
 				Color 255,255,255
 				If SelectedMap = -1 Then
 					Text (x + 20 * MenuScale, y + 60 * MenuScale, I_Loc\Menu_Seed)
-					If HasNumericSeed Then
-						Local inputBoxSeed$ = InputBox(x+150*MenuScale, y+55*MenuScale, 200*MenuScale, 30*MenuScale, Str(RandomSeedNumeric), 3, 3)
+					If UseNumericSeeds Then
+						Local txt$
+						If RandomSeedNumeric = 0 Then txt = "" Else txt = Str(RandomSeedNumeric)
+						Local inputBoxSeed$ = InputBox(x+150*MenuScale, y+55*MenuScale, 200*MenuScale, 30*MenuScale, txt, 3, 3)
 						If Instr(inputBoxSeed, "-", 2) <> 0 Then
 							RandomSeedNumeric = -RandomSeedNumeric
 						Else
@@ -437,8 +439,10 @@ Function UpdateMainMenu()
 						EndIf
 					Next
 					
-					If (Not HasNumericSeed) And RandomSeed = "" Then
-						RandomSeed = Abs(MilliSecs())
+					If UseNumericSeeds Then
+						If RandomSeedNumeric = 0 Then RandomSeedNumeric = MilliSecs()
+					Else
+						If RandomSeed = "" Then RandomSeed = Abs(MilliSecs())
 					EndIf
 
 					SeedRnd GetRandomSeed()
@@ -653,7 +657,7 @@ Function UpdateMainMenu()
 				If MainMenuTab = 3 ;Graphics
 					;[Block]
 					;height = 380 * MenuScale
-					height = 280 * MenuScale
+					height = 330 * MenuScale
 					DrawFrame(x, y, width, height)
 					
 					y=y+20*MenuScale
@@ -716,6 +720,15 @@ Function UpdateMainMenu()
 					EndIf
 
 					y=y+50*MenuScale
+
+					ViewBobScale = SlideBar(x + 310*MenuScale, y+6*MenuScale,150*MenuScale, ViewBobScale*100, 6)/100
+					Color 255,255,255
+					Text(x + 20 * MenuScale, y, I_Loc\OptionName_Viewbob)
+					If (MouseOn(x+310*MenuScale,y+6*MenuScale,150*MenuScale+14,20) And OnSliderID=0) Lor OnSliderID=6
+						DrawOptionsTooltip(tx,ty,tw,th,"viewbob")
+					EndIf
+
+					y=y+50*MenuScale
 					
 					Local SlideBarFOV# = FOV-40
 					SlideBarFOV = (SlideBar(x + 310*MenuScale, y+6*MenuScale,150*MenuScale, SlideBarFOV*2.0, 4)/2.0)
@@ -731,8 +744,9 @@ Function UpdateMainMenu()
 					;[End Block]
 				ElseIf MainMenuTab = 5 ;Audio
 					;[Block]
-					height = 220 * MenuScale
-					DrawFrame(x, y, width, height)	
+					height = 290 * MenuScale
+					If HasDubbedAudio Then height = height + 50*MenuScale
+					DrawFrame(x, y, width, height)
 					
 					y = y + 20*MenuScale
 					
@@ -763,38 +777,42 @@ Function UpdateMainMenu()
 					;	PlayTestSound(False)
 					;EndIf
 					
-					y = y + 30*MenuScale
+					y = y + 50*MenuScale
+
+					If HasDubbedAudio Then
+						Color 255,255,255
+						Text x + 20 * MenuScale, y, I_Loc\OptionName_LocalAudio
+						DubbedAudio = DrawTick(x + 310 * MenuScale, y + MenuScale, DubbedAudio)
+						If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+							DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"localaudio")
+						EndIf
+
+						UsesDubbedAudio = DubbedAudio
+
+						y = y + 50*MenuScale
+					EndIf
 					
 					Color 255,255,255
-					Text x + 20 * MenuScale, y, I_Loc\OptionName_Sfxautorelease
-					EnableSFXRelease = DrawTick(x + 310 * MenuScale, y + MenuScale, EnableSFXRelease)
-					If EnableSFXRelease_Prev% <> EnableSFXRelease
-						If EnableSFXRelease%
-							For snd.Sound = Each Sound
-								For i=0 To 31
-									If snd\channels[i]<>0 Then
-										If ChannelPlaying(snd\channels[i]) Then
-											StopChannel(snd\channels[i])
-										EndIf
-									EndIf
-								Next
-								If snd\internalHandle<>0 Then
-									FreeSound snd\internalHandle
-									snd\internalHandle = 0
-								EndIf
-								snd\releaseTime = 0
-							Next
-						Else
-							For snd.Sound = Each Sound
-								If snd\internalHandle = 0 Then snd\internalHandle = LoadSound_Strict(snd\name)
-							Next
-						EndIf
-						EnableSFXRelease_Prev% = EnableSFXRelease
-					EndIf
+					Text x + 20 * MenuScale, y, I_Loc\OptionName_Subtitles
+					SubtitlesEnabled = DrawTick(x + 310 * MenuScale, y + MenuScale, SubtitlesEnabled)
 					If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
-						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"sfxautorelease")
+						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"subtitles")
 					EndIf
+
+					If (Not SubtitlesEnabled) Then ClosedCaptionsEnabled = False
+
 					y = y + 30*MenuScale
+
+					Color 255,255,255
+					Text x + 20 * MenuScale, y, I_Loc\OptionName_Closedcaptions
+					ClosedCaptionsEnabled = DrawTick(x + 310 * MenuScale, y + MenuScale, ClosedCaptionsEnabled)
+					If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"closedcaptions")
+					EndIf
+
+					If ClosedCaptionsEnabled Then SubtitlesEnabled = True
+
+					y = y + 50*MenuScale
 					
 					Color 255,255,255
 					Text x + 20 * MenuScale, y, I_Loc\OptionName_Usertrack
@@ -944,7 +962,7 @@ Function UpdateMainMenu()
 					;[End Block]
 				ElseIf MainMenuTab = 7 ;Advanced
 					;[Block]
-					height = (355 + (CurrFrameLimit > 0.0) * 30) * MenuScale
+					height = (325 + (CurrFrameLimit > 0.0) * 30) * MenuScale
 					DrawFrame(x, y, width, height)	
 					
 					y = y + 20*MenuScale
@@ -963,15 +981,6 @@ Function UpdateMainMenu()
 					CanOpenConsole = DrawTick(x + 310 * MenuScale, y + MenuScale, CanOpenConsole)
 					If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
 						DrawOptionsTooltip(tx,ty,tw,th,"consoleenable")
-					EndIf
-					
-					y = y + 30*MenuScale
-					
-					Color 255,255,255
-					Text(x + 20 * MenuScale, y, I_Loc\OptionName_Consoleerror)
-					ConsoleOpening = DrawTick(x + 310 * MenuScale, y + MenuScale, ConsoleOpening)
-					If MouseOn(x+310*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
-						DrawOptionsTooltip(tx,ty,tw,th,"consoleerror")
 					EndIf
 
 					y = y + 30*MenuScale
@@ -1025,6 +1034,7 @@ Function UpdateMainMenu()
 					Text(x + 20 * MenuScale, y, I_Loc\OptionName_Framelimit)
 					Color 255,255,255
 					If DrawTick(x + 310 * MenuScale, y, CurrFrameLimit > 0.0) Then
+						If CurrFrameLimit = 0 Then CurrFrameLimit = (60-19)/100.0
 						;CurrFrameLimit# = (SlideBar(x + 150*MenuScale, y+30*MenuScale, 100*MenuScale, CurrFrameLimit#*50.0, 1)/50.0)
 						;CurrFrameLimit = Max(CurrFrameLimit, 0.1)
 						;Framelimit% = CurrFrameLimit#*100.0
@@ -1385,7 +1395,7 @@ Function UpdateMainMenu()
 		
 	End If
 	
-	If SpeedRunMode And (Not TimerStopped) Then
+	If SpeedRunMode And (Not TimerStopped) And ((Not PreMadeSaveLoaded) Lor (Not MainMenuOpen)) Then
 		DrawTimer()
 		If MainMenuOpen Then
 			If DrawButton(GraphicWidth - 150 * MenuScale - 24, 60 * MenuScale + 24, 150 * MenuScale, 30 * MenuScale, I_Loc\HUD_SpeedrunStoptimer, False) Then
@@ -1856,7 +1866,8 @@ Function LoadLoadingScreens(file$)
 	CloseFile f
 End Function
 
-
+Global LoadingScreenCHN% = 0
+Global LoadingScreenCWM% = 0
 
 Function DrawLoading(percent%, shortloading=False)
 	
@@ -1924,18 +1935,22 @@ Function DrawLoading(percent%, shortloading=False)
 		
 		DrawImage SelectedLoadingScreen\img, x, y
 		
-		DrawBar(BlinkMeterIMG, GraphicWidth / 2, GraphicHeight / 2 - 70 * MenuScale, 300 * HUDScale, percent / 100.0, True)
+		DrawBar(MenuMeterIMG, GraphicWidth / 2, GraphicHeight / 2 - 70 * MenuScale, 300 * MenuScale, percent / 100.0, True)
 		
 		If SelectedLoadingScreen\title = "CWM" Then
 			
 			If Not shortloading Then 
 				If firstloop Then 
 					If percent = 0 Then
-						PlaySound_Strict LoadTempSound("SFX\SCP\990\cwm1.cwm")
-					ElseIf percent = 100
-						PlaySound_Strict LoadTempSound("SFX\SCP\990\cwm2.cwm")
+						LoadingScreenCHN = PlaySound_Strict(LoadTempSound("SFX\SCP\990\cwm1.cwm"))
+						LoadingScreenCWM = 0
 					EndIf
 				EndIf
+			EndIf
+
+			If (Not shortloading) And percent = 100 And (Not ChannelPlaying(LoadingScreenCHN)) And LoadingScreenCWM = 0
+				LoadingScreenCHN = PlaySound_Strict(LoadTempSound("SFX\SCP\990\cwm2.cwm"))
+				LoadingScreenCWM = 1
 			EndIf
 			
 			SetFont Font2
@@ -2007,7 +2022,7 @@ Function DrawLoading(percent%, shortloading=False)
 			
 		EndIf
 
-		If SpeedRunMode And (Not TimerStopped) And PlayTime > 0 Then
+		If SpeedRunMode And (Not TimerStopped) And PlayTime > 0 And (Not PreMadeSaveLoaded) Then
 			DrawTimer()
 		EndIf
 		
@@ -2037,7 +2052,7 @@ End Function
 
 Function RandomDefaultWidthChar$(min%, max%, def$)
 	Local c$ = Chr(Rand(min%, max%))
-	If StringWidth(c) <> StringWidth("L") Then Return def Else Return c
+	If (Not IsValidUTF8String(c)) Lor StringWidth(c) <> StringWidth("L") Then Return def Else Return c
 End Function
 
 Function InputBox$(x%, y%, width%, height%, Txt$, ID% = 0, virtualKeyboardMode=0)
@@ -2180,12 +2195,12 @@ Function SlideBar#(x%, y%, width%, value#, ID%)
 		value = Min(Max((ScaledMouseX() - x) * 100 / width, 0), 100)
 	EndIf
 
-	Local height% = ImageHeight(BlinkMeterIMG) + 6
+	Local height% = ImageHeight(MenuMeterIMG) + 6
 
 	Color 255,255,255
 	Rect(x, y, width + 14, height,False)
 
-	DrawImage(BlinkMeterIMG, x + width * value / 100.0 +3, y+3)
+	DrawImage(MenuMeterIMG, x + width * value / 100.0 +3, y+3)
 	
 	Color 170,170,170 
 	Text (x - 20 * MenuScale - StringWidth(I_Loc\Option_SliderLow), y + 3*MenuScale, I_Loc\Option_SliderLow)					
@@ -2207,10 +2222,17 @@ Function RowText(A$, X, Y, W, H, align% = 0, Leading#=1)
 	Local LinesShown = 0
 	Local Height = StringHeight(A$) + Leading
 	Local b$
+	Local hasSpace% = Instr(A, " ") <> 0
 	
 	While Len(A) > 0
 		Local space = Instr(A$, " ")
-		If space = 0 Then space = Len(A$) + 1
+		If space = 0 Then
+			If hasSpace Then
+				space = Len(A$) + 1
+			Else
+				space = 2
+			EndIf
+		EndIf
 		Local temp$ = Left(A$, space - 1)
 		
 		If StringWidth (b$ + temp$) > W Then ;too big, so Print what will fit
@@ -2223,9 +2245,9 @@ Function RowText(A$, X, Y, W, H, align% = 0, Leading#=1)
 			LinesShown = LinesShown + 1
 			b$=""
 		Else ;append it To b$ (which will eventually be printed) And remove it from A$
-			If b <> "" Then b = b + " "
+			If b <> "" And hasSpace Then b = b + " "
 			b$ = b$ + temp$
-			A$ = Right(A$, Max(0, Len(A$) - Len(temp$) - 1))
+			A$ = Right(A$, Max(0, Len(A$) - Len(temp$) - hasSpace))
 		EndIf
 		
 		If ((LinesShown + 1) * Height) > H Then Exit ;the Next Line would be too tall, so leave
@@ -2250,19 +2272,26 @@ Function GetLineAmount(A$, W, H, Leading#=1)
 	Local LinesShown = 0
 	Local Height = StringHeight(A$) + Leading
 	Local b$
+	Local hasSpace% = Instr(A, " ") <> 0
 
 	While Len(A) > 0
 		Local space = Instr(A$, " ")
-		If space = 0 Then space = Len(A$) + 1
+		If space = 0 Then
+			If hasSpace Then
+				space = Len(A$) + 1
+			Else
+				space = 2
+			EndIf
+		EndIf
 		Local temp$ = Left(A$, space - 1)
 		
 		If StringWidth (b$ + temp$) > W Then ;too big, so Print what will fit
 			LinesShown = LinesShown + 1
 			b$=""
 		Else ;append it To b$ (which will eventually be printed) And remove it from A$
-			If b <> "" Then b = b + " "
+			If b <> "" And hasSpace Then b = b + " "
 			b$ = b$ + temp$
-			A$ = Right(A$, Max(0, Len(A$) - Len(temp$) - 1))
+			A$ = Right(A$, Max(0, Len(A$) - Len(temp$) - hasSpace))
 		EndIf
 		
 		If ((LinesShown + 1) * Height) > H Then Exit ;the Next Line would be too tall, so leave
@@ -2335,6 +2364,12 @@ Function DrawOptionsTooltip(x%,y%,width%,height%,option$,value#=0,ingame%=False)
 			G = 255
 			B = 255
 			txt2 = Format(I_Loc\Option_HintDefault, "%", Str(Int(HUDOffsetScale*100)), "0")
+		Case "viewbob"
+			txt = I_Loc\OptionTooltip_Viewbob
+			R = 255
+			G = 255
+			B = 255
+			txt2 = Format(I_Loc\Option_HintDefault, "%", Str(Int(ViewBobScale*100)), "100")
 		Case "fov"
 			txt = I_Loc\OptionTooltip_Fov
 			R = 255
@@ -2356,6 +2391,14 @@ Function DrawOptionsTooltip(x%,y%,width%,height%,option$,value#=0,ingame%=False)
 			G = 255
 			B = 255
 			txt2 = Format(I_Loc\Option_HintDefault, "%", Str(Int(value*100)), "100")
+		Case "localaudio"
+			txt = I_Loc\OptionTooltip_Localaudio
+			txt2 = I_Loc\Option_HintMenuonly
+			R = 255
+		Case "subtitles"
+			txt = I_Loc\OptionTooltip_Subtitles
+		Case "closedcaptions"
+			txt = I_Loc\OptionTooltip_Closedcaptions
 		Case "sfxautorelease"
 			txt = I_Loc\OptionTooltip_Sfxautorelease
 			R = 255
@@ -2399,8 +2442,6 @@ Function DrawOptionsTooltip(x%,y%,width%,height%,option$,value#=0,ingame%=False)
 			txt = Format(I_Loc\OptionTooltip_Console, GetKeyName(KEY_CONSOLE))
 			R = 255
 			txt2 = I_Loc\OptionTooltip_ConsoleNote
-		Case "consoleerror"
-			txt = Format(I_Loc\Option_HintSelfexplanatory, I_Loc\OptionName_Consoleerror)
 		Case "speedrunmode"
 			txt = I_Loc\OptionTooltip_Speedrunmode
 		Case "numericseeds"
@@ -2546,11 +2587,11 @@ Function Slider3(x%,y%,width%,value%,ID%,val1$,val2$,val3$)
 	EndIf
 	
 	If value = 0
-		DrawImage(BlinkMeterIMG,x,y-8)
+		DrawImage(MenuMeterIMG,x,y-8)
 	ElseIf value = 1
-		DrawImage(BlinkMeterIMG,x+(width/2)+3,y-8)
+		DrawImage(MenuMeterIMG,x+(width/2)+3,y-8)
 	Else
-		DrawImage(BlinkMeterIMG,x+width+6,y-8)
+		DrawImage(MenuMeterIMG,x+width+6,y-8)
 	EndIf
 	
 	Color 170,170,170
@@ -2601,13 +2642,13 @@ Function Slider4(x%,y%,width%,value%,ID%,val1$,val2$,val3$,val4$)
 	EndIf
 	
 	If value = 0
-		DrawImage(BlinkMeterIMG,x,y-8)
+		DrawImage(MenuMeterIMG,x,y-8)
 	ElseIf value = 1
-		DrawImage(BlinkMeterIMG,x+width*(1.0/3.0)+2,y-8)
+		DrawImage(MenuMeterIMG,x+width*(1.0/3.0)+2,y-8)
 	ElseIf value = 2
-		DrawImage(BlinkMeterIMG,x+width*(2.0/3.0)+4,y-8)
+		DrawImage(MenuMeterIMG,x+width*(2.0/3.0)+4,y-8)
 	Else
-		DrawImage(BlinkMeterIMG,x+width+6,y-8)
+		DrawImage(MenuMeterIMG,x+width+6,y-8)
 	EndIf
 	
 	Color 170,170,170
@@ -2663,15 +2704,15 @@ Function Slider5(x%,y%,width%,value%,ID%,val1$,val2$,val3$,val4$,val5$)
 	EndIf
 	
 	If value = 0
-		DrawImage(BlinkMeterIMG,x,y-8)
+		DrawImage(MenuMeterIMG,x,y-8)
 	ElseIf value = 1
-		DrawImage(BlinkMeterIMG,x+(width/4)+1.5,y-8)
+		DrawImage(MenuMeterIMG,x+(width/4)+1.5,y-8)
 	ElseIf value = 2
-		DrawImage(BlinkMeterIMG,x+(width/2)+3,y-8)
+		DrawImage(MenuMeterIMG,x+(width/2)+3,y-8)
 	ElseIf value = 3
-		DrawImage(BlinkMeterIMG,x+(width*0.75)+4.5,y-8)
+		DrawImage(MenuMeterIMG,x+(width*0.75)+4.5,y-8)
 	Else
-		DrawImage(BlinkMeterIMG,x+width+6,y-8)
+		DrawImage(MenuMeterIMG,x+width+6,y-8)
 	EndIf
 	
 	Color 170,170,170
@@ -2735,19 +2776,19 @@ Function Slider7(x%,y%,width%,value%,ID%,val1$,val2$,val3$,val4$,val5$,val6$,val
 	EndIf
 	
 	If value = 0
-		DrawImage(BlinkMeterIMG,x,y-8)
+		DrawImage(MenuMeterIMG,x,y-8)
 	ElseIf value = 1
-		DrawImage(BlinkMeterIMG,x+(width*(1.0/6.0))+1,y-8)
+		DrawImage(MenuMeterIMG,x+(width*(1.0/6.0))+1,y-8)
 	ElseIf value = 2
-		DrawImage(BlinkMeterIMG,x+(width*(2.0/6.0))+2,y-8)
+		DrawImage(MenuMeterIMG,x+(width*(2.0/6.0))+2,y-8)
 	ElseIf value = 3
-		DrawImage(BlinkMeterIMG,x+(width*(3.0/6.0))+3,y-8)
+		DrawImage(MenuMeterIMG,x+(width*(3.0/6.0))+3,y-8)
 	ElseIf value = 4
-		DrawImage(BlinkMeterIMG,x+(width*(4.0/6.0))+4,y-8)
+		DrawImage(MenuMeterIMG,x+(width*(4.0/6.0))+4,y-8)
 	ElseIf value = 5
-		DrawImage(BlinkMeterIMG,x+(width*(5.0/6.0))+5,y-8)
+		DrawImage(MenuMeterIMG,x+(width*(5.0/6.0))+5,y-8)
 	Else
-		DrawImage(BlinkMeterIMG,x+width+6,y-8)
+		DrawImage(MenuMeterIMG,x+width+6,y-8)
 	EndIf
 	
 	Color 170,170,170

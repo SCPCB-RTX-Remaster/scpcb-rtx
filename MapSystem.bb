@@ -158,6 +158,7 @@ Function FreeTextureCache()
 End Function
 
 Function LoadRMesh(file$,rt.RoomTemplates)
+	Local path$ = StripFilename(file)
 	file = DetermineModdedPath(file)
 
 	CatchErrors("Uncaught (LoadRMesh " + Chr(34) + file + Chr(34) + ")")
@@ -200,10 +201,6 @@ Function LoadRMesh(file$,rt.RoomTemplates)
 		Default RuntimeErrorExt Chr(34)+file+Chr(34)+" is Not RMESH ("+isRMesh+")"
 	End Select
 	
-	file=StripFilename(file)
-	; Modded rooms must try loading textures starting from the vanilla root.
-	If Left(file, 5) = "Mods\" Then file = Right(file, Len(file) - Instr(file, "\", 6))
-	
 	Local count%,count2%
 	
 	Local obj%=CreatePivot()
@@ -220,13 +217,13 @@ Function LoadRMesh(file$,rt.RoomTemplates)
 	Local u#,v#
 	
 	For i=1 To count ;drawn mesh
-		EntityParent ReadMesh(file, f, blankTexture, Alpha, Opaque), collisionMeshes
+		EntityParent ReadMesh(path, f, blankTexture, Alpha, Opaque), collisionMeshes
 	Next
 	
 	If version >= 0 Then
 		Local noCollCount% = ReadInt(f)
 		For i=1 To noCollCount
-			ReadMesh(file, f, blankTexture, Alpha, Opaque, False)
+			ReadMesh(path, f, blankTexture, Alpha, Opaque, False)
 		Next
 	EndIf
 
@@ -1565,6 +1562,8 @@ Type RoomTemplates
 	Field Commonness%, Large%
 	Field SetRoom#, SetRoomPriority%
 	Field DisableDecals%
+
+	Field R%, G%, B%
 	
 	Field TempTriggerboxAmount
 	Field TempTriggerbox[128]
@@ -1614,6 +1613,8 @@ Function CreateRoomTemplate.RoomTemplates(name$)
 	rt\SetRoom = -1
 
 	rt\Name = Lower(name)
+
+	rt\R = 255 : rt\G = 255 : rt\B = 255
 	
 	rt\id = RoomTempID
 	RoomTempID=RoomTempID+1
@@ -1662,6 +1663,9 @@ Function LoadRoomTemplates(file$)
 				Case "disable decals", "disabledecals" rt\DisableDecals = ParseINIInt(value)
 				Case "use volume lighting", "usevolumelighting" rt\UseLightCones = ParseINIInt(value)
 				Case "disable overlap check", "disableoverlapcheck" rt\DisableOverlapCheck = ParseINIInt(value)
+				Case "r" rt\R = Int(value)
+				Case "g" rt\G = Int(value)
+				Case "b" rt\B = Int(value)
 			End Select
 		EndIf
 	Wend
@@ -1848,6 +1852,8 @@ Function UpdateGrid(grid.Grids)
 	Next
 End Function
 
+Const MT_HEIGHT# = 16.0
+
 Function PlaceGrid_MapCreator(r.Rooms)
 	Local x,y,i
 	Local Meshes[7]
@@ -1871,44 +1877,44 @@ Function PlaceGrid_MapCreator(r.Rooms)
 				Local tile_entity = CopyEntity(Meshes[tile_type-1])
 				RotateEntity tile_entity,0,angle,0
 				ScaleEntity tile_entity,RoomScale,RoomScale,RoomScale,True
-				PositionEntity tile_entity,r\x+x*2.0,8.0,r\z+y*2.0,True
+				PositionEntity tile_entity,r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 				
 				Select r\grid\grid[x+(y*gridsz)]
 					Case ROOM1, ROOM2
-						AddLight%(Null, r\x+x*2.0, 8.0+(372.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null, r\x+x*2.0, MT_HEIGHT+(372.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 					Case ROOM2C,ROOM3,ROOM4
-						AddLight%(Null,r\x+x*2.0, 8.0+(416.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null,r\x+x*2.0, MT_HEIGHT+(416.0*RoomScale), r\z+y*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 					Case ROOM4+1
-						dr=CreateDoor(r\zone,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*240.0*RoomScale),8.0,r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*240.0*RoomScale),EntityYaw(tile_entity,True)+90.0,Null,False,3,False,"")
+						dr=CreateDoor(r\zone,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*240.0*RoomScale),MT_HEIGHT,r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*240.0*RoomScale),EntityYaw(tile_entity,True)+90.0,Null,False,3,False,"")
 						PositionEntity dr\buttons[0],EntityX(dr\buttons[0],True)+(Cos(EntityYaw(tile_entity,True))*0.05),EntityY(dr\buttons[0],True)+0.0,EntityZ(dr\buttons[0],True)+(Sin(EntityYaw(tile_entity,True))*0.05),True
 						
-						AddLight%(Null, r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*555.0*RoomScale), 8.0+(469.0*RoomScale), r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
+						AddLight%(Null, r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*555.0*RoomScale), MT_HEIGHT+(469.0*RoomScale), r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
 						
 						Local tempInt2=CreatePivot()
 						RotateEntity tempInt2,0,EntityYaw(tile_entity,True)+180.0,0,True
-						PositionEntity tempInt2,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*552.0*RoomScale),8.0+(240.0*RoomScale),r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*552.0*RoomScale)
+						PositionEntity tempInt2,r\x+(x*2.0)+(Cos(EntityYaw(tile_entity,True))*552.0*RoomScale),MT_HEIGHT+(240.0*RoomScale),r\z+(y*2.0)+(Sin(EntityYaw(tile_entity,True))*552.0*RoomScale)
 						If r\RoomDoors[1]=Null Then
 							r\RoomDoors[1]=dr
 							r\Objects[3]=tempInt2
-							PositionEntity r\Objects[0],r\x+x*2.0,8.0,r\z+y*2.0,True
+							PositionEntity r\Objects[0],r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 							DebugLog "Created door 1 successfully!"
 						ElseIf r\RoomDoors[1]<>Null And r\RoomDoors[3]=Null Then
 							r\RoomDoors[3]=dr
 							r\Objects[5]=tempInt2
-							PositionEntity r\Objects[1],r\x+x*2.0,8.0,r\z+y*2.0,True
+							PositionEntity r\Objects[1],r\x+x*2.0,MT_HEIGHT,r\z+y*2.0,True
 							DebugLog "Created door 2 successfully!"
 						EndIf
 					Case ROOM4+2
-						AddLight%(Null, r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), 8.0+(396.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
-						it = CreateItem("scp500",r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tile_entity,True))*1226.0*RoomScale),8.0+(80.0*RoomScale),r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tile_entity,True))*1226.0*RoomScale))
+						AddLight%(Null, r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), MT_HEIGHT+(396.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
+						it = CreateItem("scp500",r\x+x*2.0+(Cos(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tile_entity,True))*1226.0*RoomScale),MT_HEIGHT+(80.0*RoomScale),r\z+y*2.0+(Sin(EntityYaw(tile_entity,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tile_entity,True))*1226.0*RoomScale))
 						EntityType (it\collider, HIT_ITEM)
 						
-						it = CreateItem("nvgoggles",r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), 8.0+(80.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale))
+						it = CreateItem("nvgoggles",r\x+x*2.0-(Sin(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Cos(EntityYaw(tile_entity,True))*16.0*RoomScale), MT_HEIGHT+(80.0*RoomScale), r\z+y*2.0+(Cos(EntityYaw(tile_entity,True))*504.0*RoomScale)+(Sin(EntityYaw(tile_entity,True))*16.0*RoomScale))
 						EntityType (it\collider, HIT_ITEM)
 				End Select
 				
 				r\grid\Entities[x+(y*gridsz)]=tile_entity
-				wayp.WayPoints = CreateWaypoint(r\x+(x*2.0),8.2,r\z+(y*2.0),Null,r)
+				wayp.WayPoints = CreateWaypoint(r\x+(x*2.0),MT_HEIGHT+0.2,r\z+(y*2.0),Null,r)
 				r\grid\waypoints[x+(y*gridsz)]=wayp
 				
 				If y<gridsz-1 Then
@@ -2141,7 +2147,7 @@ Function FillRoom(r.Rooms)
 			;doors to observation booth
 			d = CreateDoor(r\zone, r\x + 928.0 * RoomScale,0,r\z + 640.0 * RoomScale,0,r,False,False,False,"ABCD")
 			d = CreateDoor(r\zone, r\x + 928.0 * RoomScale,0,r\z - 640.0 * RoomScale,0,r,True,False,False,"ABCD")
-			d\AutoClose = False
+			d\AutoClose = False : d\MTFClose = False
 			
 			;doors to the room itself
 			d = CreateDoor(r\zone, r\x+416.0*RoomScale,0,r\z - 640.0 * RoomScale,0,r,False,False,1)
@@ -2873,6 +2879,7 @@ Function FillRoom(r.Rooms)
 			PositionEntity(r\RoomDoors[0]\buttons[0], r\x - 416.0 * RoomScale, EntityY(r\RoomDoors[0]\buttons[0],True), r\z + 176.0 * RoomScale,True)
 			FreeEntity r\RoomDoors[0]\buttons[1] : r\RoomDoors[0]\buttons[1] = 0
 			r\RoomDoors[0]\AutoClose = False : r\RoomDoors[0]\open = False : r\RoomDoors[0]\locked = True	
+			r\RoomDoors[0]\MTFClose = False 
 			
 			de.Decals = CreateDecal(0, r\x - 808.0 * RoomScale, 0.005, r\z - 72.0 * RoomScale, 90, Rand(360), 0)
 			EntityParent(de\obj, r\obj)
@@ -5286,10 +5293,12 @@ Function FillRoom(r.Rooms)
 			;Doors for room
 			r\RoomDoors[0] = CreateDoor(r\zone,r\x+480.0*RoomScale,r\y,r\z-640.0*RoomScale,90,r,False,False,3)
 			r\RoomDoors[0]\AutoClose = False
+			r\RoomDoors[0]\MTFClose = False
 			PositionEntity r\RoomDoors[0]\buttons[0],r\x+576.0*RoomScale,EntityY(r\RoomDoors[0]\buttons[0],True),r\z-480*RoomScale,True
 			RotateEntity r\RoomDoors[0]\buttons[0],0,270,0
 			r\RoomDoors[1] = CreateDoor(r\zone,r\x+544.0*RoomScale,r\y+480.0*RoomScale,r\z+256.0*RoomScale,270,r,False,False,3)
 			r\RoomDoors[1]\AutoClose = False
+			r\RoomDoors[1]\MTFClose = False
 			FreeEntity r\RoomDoors[1]\obj2 : r\RoomDoors[1]\obj2 = 0
 			d = CreateDoor(r\zone,r\x+1504.0*RoomScale,r\y+480.0*RoomScale,r\z+960.0*RoomScale,0,r)
 			d\AutoClose = False : d\locked = True
@@ -5534,11 +5543,12 @@ Function FillRoom(r.Rooms)
 		If Not dt\AllowRemoteControl Then
 			door\AutoClose = False
 		EndIf
+		door\locked = dt\Locked
 		If dt\DeleteHalf Then FreeEntity door\obj2 : door\obj2 = 0
-		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
-		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, r\z + dt\Button1RotZ, True)
-		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
-		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, r\z + dt\Button2RotZ, True)
+		If dt\Button1PosX <> 0 Lor dt\Button1PosY <> 0 Lor dt\Button1PosZ <> 0 Then PositionEntity(door\buttons[0], r\x + dt\Button1PosX, r\y + dt\Button1PosY, r\z + dt\Button1PosZ, True)
+		If dt\Button1RotX <> 0 Lor dt\Button1RotY <> 0 Lor dt\Button1RotZ <> 0 Then RotateEntity(door\buttons[0], dt\Button1RotX, r\angle + dt\Button1RotY, dt\Button1RotZ, True)
+		If dt\Button2PosX <> 0 Lor dt\Button2PosY <> 0 Lor dt\Button2PosZ <> 0 Then PositionEntity(door\buttons[1], r\x + dt\Button2PosX, r\y + dt\Button2PosY, r\z + dt\Button2PosZ, True)
+		If dt\Button2RotX <> 0 Lor dt\Button2RotY <> 0 Lor dt\Button2RotZ <> 0 Then RotateEntity(door\buttons[1], dt\Button2RotX, r\angle + dt\Button2RotY, dt\Button2RotZ, True)
 		dt = dt\Successor
 	Wend
 	
@@ -5673,7 +5683,8 @@ Function UpdateRooms()
 		EndIf
 	Next
 	
-	MapFound(Floor(EntityX(PlayerRoom\obj) / 8.0), Floor(EntityZ(PlayerRoom\obj) / 8.0)) = 1
+	Local mapX = Floor(EntityX(PlayerRoom\obj) / 8.0), mapZ = Floor(EntityZ(PlayerRoom\obj) / 8.0)
+	If mapX <= MapWidth And mapZ <= MapHeight Then MapFound(mapX, mapZ) = 1
 	PlayerRoom\found = True
 	
 	TempLightVolume = Max(TempLightVolume / 4.5, 1.0)
@@ -7228,7 +7239,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	;force more room4s and room2Cs
 	For i = 0 To 2
 		
-		If i = 2 Then y_min = 2 Else y_min = I_Zone\Transition[i]
+		If i = 2 Then y_min = 1 Else y_min = I_Zone\Transition[i]
 		If i = 0 Then y_max = MapHeight - 2 Else y_max = I_Zone\Transition[i - 1] - 2
 		x_min = 1
 		x_max = MapWidth - 2
@@ -7253,7 +7264,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							Case (MapTemp(x,y+1) Or MapTemp(x+1,y+1) Or MapTemp(x-1,y+1) Or MapTemp(x,y+2) Or (i=0 And y=y_max))
 								MapTemp(x,y+1)=1
 								placed=True
-							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTemp(x,y-2) Or (i<2 And y=y_min))
+							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTempSafe(x,y-2) Or (i<2 And y=y_min))
 								MapTemp(x,y-1)=1
 								placed=True
 						End Select
@@ -7286,7 +7297,7 @@ Function CreateMap(loadingstart,loadingcount#)
 						Select True ;see if adding some rooms is possible
 							Case MapTemp(x-1,y)>0
 								If (MapTemp(x+1,y-1)+MapTemp(x+1,y+1)+MapTemp(x+2,y))=0 And x<x_max Then
-									If (MapTemp(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
+									If (MapTempSafe(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x+1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x+1)+", "+(y)+")"
@@ -7302,7 +7313,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								EndIf
 							Case MapTemp(x+1,y)>0
 								If (x-2<0 Lor MapTemp(x-2,y)=0) And (MapTemp(x-1,y-1)+MapTemp(x-1,y+1))=0 And x>x_min Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x-1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x-1)+", "+(y)+")"
@@ -7333,14 +7344,14 @@ Function CreateMap(loadingstart,loadingcount#)
 									EndIf
 								EndIf
 							Case MapTemp(x,y+1)>0
-								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTemp(x,y-2))=0 And (y>y_min Or i=2) Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And x>x_min Then
+								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTempSafe(x,y-2))=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And x>x_min Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
 										MapTemp(x-1,y-1)=1
 										placed=True
-									Else If (MapTemp(x+2,y-1)+MapTemp(x+1,y-2))=0 And x<x_max Then
+									Else If (MapTemp(x+2,y-1)+MapTempSafe(x+1,y-2))=0 And x<x_max Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
@@ -7420,7 +7431,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	
 	temp = 0
 	Local r.Rooms, spacing# = 8.0
-	For y = MapHeight - 1 To 1 Step - 1
+	For y = MapHeight - 1 To 0 Step - 1
 		DrawLoading(loadingstart + Float(MapHeight - 1 - y) / (MapHeight - 1) * loadingcount)
 		
 		;zone% = GetZone(y)
@@ -7443,7 +7454,7 @@ Function CreateMap(loadingstart,loadingcount#)
 			ElseIf MapTemp(x, y) > 0
 				Local angle%
 
-				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTemp(x, y - 1),1)
+				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTempSafe(x, y - 1),1)
 				
 				Select temp ;viereisiss� ruuduissa olevien huoneiden m��r�
 					Case 1
@@ -7470,7 +7481,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If Rand(2) = 1 Then angle = 90 Else angle = 270
 							r = CreateRoom(zone, ROOM2, x * 8, 0, y * 8, angle, MapName(x, y))
 							MapRoomID(ROOM2)=MapRoomID(ROOM2)+1
-						ElseIf MapTemp(x, y - 1)>0 And MapTemp(x, y + 1)>0
+						ElseIf MapTempSafe(x, y - 1)>0 And MapTemp(x, y + 1)>0
 							If MapRoomID(ROOM2) < MaxRooms And MapName(x,y) = ""  Then
 								If MapRoom(ROOM2, MapRoomID(ROOM2)) <> "" Then MapName(x, y) = MapRoom(ROOM2, MapRoomID(ROOM2))	
 							EndIf
@@ -7486,7 +7497,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								angle = 180
 							ElseIf MapTemp(x + 1, y)>0 And MapTemp(x, y + 1)>0
 								angle = 90
-							ElseIf MapTemp(x - 1, y)>0 And MapTemp(x, y - 1)>0
+							ElseIf MapTemp(x - 1, y)>0 And MapTempSafe(x, y - 1)>0
 								angle = 270
 							Else
 								angle = 0
@@ -7499,7 +7510,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If MapRoom(ROOM3, MapRoomID(ROOM3)) <> "" Then MapName(x, y) = MapRoom(ROOM3, MapRoomID(ROOM3))	
 						EndIf
 						
-						If (Not MapTemp(x, y - 1)) Then
+						If (Not MapTempSafe(x, y - 1)) Then
 							angle = 180
 						ElseIf (Not MapTemp(x - 1, y))
 							angle = 90
@@ -7754,6 +7765,14 @@ Function CreateMap(loadingstart,loadingcount#)
 		Next
 	Next
 	
+End Function
+
+; Really, really stupid bandaid fix!
+; We basically need to allow the room2c forcing to consider extending rooms on y=1, which means they'll be pushed
+; up to y=0. This requires bounds checking for a select amount of checks that deal with checking y-1.
+Function MapTempSafe(x%,y%)
+	If x<0 Or y<0 Or x>MapWidth Or y>MapHeight Then Return 0
+	Return MapTemp(x,y)
 End Function
 
 Function SetRoom(room_name$,room_type%,pos%,min_pos%,max_pos%) ;place a room without overwriting others
@@ -8273,7 +8292,7 @@ Type Chunk
 	Field PlatForm%
 End Type
 
-Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
+Function CreateChunk.Chunk(r.Rooms,obj%,x#,y#,z#,isSpawnChunk%=False)
 	Local ch.Chunk = New Chunk
 	Local i%, chp.ChunkPart
 	
@@ -8306,7 +8325,7 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 		Next
 	EndIf
 	
-	ch\PlatForm = CopyEntity(PlayerRoom\Objects[0],ch\ChunkPivot)
+	ch\PlatForm = CopyEntity(r\Objects[0],ch\ChunkPivot)
 	EntityType ch\PlatForm,HIT_MAP
 	EntityPickMode ch\PlatForm,2
 	
@@ -8314,15 +8333,19 @@ Function CreateChunk.Chunk(obj%,x#,y#,z#,isSpawnChunk%=False)
 End Function
 
 Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
+	CatchErrors("Uncaught (UpdateChunks)")
+
+	If r\Objects[0] = 0 Then Return
+
 	Local ch.Chunk,StrTemp$,i%,x#,z#,ch2.Chunk,y#,n.NPCs,j%
 	Local ChunkX#,ChunkZ#,ChunkMaxDistance#=3*40
 	
-	ChunkX# = Int(EntityX(Collider)/40)
-	ChunkZ# = Int(EntityZ(Collider)/40)
+	ChunkX# = Int(EntityX(Collider)/40)*40
+	ChunkZ# = Int(EntityZ(Collider)/40)*40
 	
 	y# = EntityY(PlayerRoom\obj)
-	x# = -ChunkMaxDistance#+(ChunkX*40)
-	z# = -ChunkMaxDistance#+(ChunkZ*40)
+	x# = -ChunkMaxDistance#+ChunkX
+	z# = -ChunkMaxDistance#+ChunkZ
 	
 	Local CurrChunkData% = 0, MaxChunks% = GetINIInt("Data\1499chunks.INI","general","count")
 	
@@ -8338,16 +8361,15 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 		If (Not chunkfound)
 			CurrChunkData = CHUNKDATA(Abs(((x+32)/40) Mod 64),Abs(((z+32)/40) Mod 64))
-			;ch2 = CreateChunk(Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
-			ch2 = CreateChunk(CurrChunkData%,x#,y#,z#)
-			ch2\IsSpawnChunk = False
+			;ch2 = CreateChunk(r,Rand(0,GetINIInt("Data\1499chunks.INI","general","count")),x#,y#,z#)
+			ch2 = CreateChunk(r,CurrChunkData%,x#,y#,z#)
 		EndIf
 		x#=x#+40.0
-		If x# > (ChunkMaxDistance#+(ChunkX*40))
+		If x# > (ChunkMaxDistance#+ChunkX)
 			z#=z#+40.0
-			x# = -ChunkMaxDistance#+(ChunkX*40)
+			x# = -ChunkMaxDistance#+ChunkX
 		EndIf
-	Until z# > (ChunkMaxDistance#+(ChunkZ*40))
+	Until z# > (ChunkMaxDistance#+ChunkZ)
 	
 	For ch = Each Chunk
 ;		If DebugHUD
@@ -8356,7 +8378,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 ;			HideEntity ch\ChunkPivotDebug
 ;		EndIf
 		If (Not ch\IsSpawnChunk)
-			If Distance(EntityX(Collider),EntityZ(Collider),EntityX(ch\ChunkPivot),EntityZ(ch\ChunkPivot))>ChunkMaxDistance
+			If Abs(ChunkX-ch\x)>ChunkMaxDistance Lor Abs(ChunkZ-ch\z)>ChunkMaxDistance
 				FreeEntity ch\ChunkPivot
 				Delete ch
 			EndIf
@@ -8415,6 +8437,7 @@ Function UpdateChunks(r.Rooms,ChunkPartAmount%,spawnNPCs%=True)
 		Next
 	EndIf
 	
+	CatchErrors("UpdateChunks")
 End Function
 
 Function HideChunks()

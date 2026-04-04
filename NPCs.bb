@@ -7,6 +7,8 @@ Const NPCtype860% = 14, NPCtype939% = 15, NPCtype066% = 16, NPCtypePdPlane% = 17
 Const NPCtype966% = 18, NPCtype1048a = 19, NPCtype1499% = 20, NPCtype008% = 21, NPCtypeClerk% = 22
 ;[End Block]
 
+Const NPCBones$ = "Data\NPCBones.ini"
+
 Type NPCs
 	Field obj%, obj2%, obj3%, obj4%, Collider%
 	Field NPCtype%, ID%
@@ -249,7 +251,7 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			EntityRadius n\Collider, 0.26
 			EntityType n\Collider, HIT_PLAYER
 			n\obj = LoadAnimMesh_Strict("GFX\npcs\scp096.b3d")
-			n\obj2 = CreatePivot(FindChild(n\obj, "Reyelid"))
+			n\obj2 = CreatePivot(FindChild(n\obj, GetModdedINIString(NPCBones, "SCP-096", "face_bonename")))
 			
 			n\Speed = (GetModdedINIFloat("DATA\NPCs.ini", "SCP-096", "speed") / 100.0)
 			
@@ -1300,7 +1302,8 @@ Function UpdateNPCs()
 						;[End Block]
 					Case 4
 						;[Block]
-						CanSave = False
+						; Can't save if targeting the player.
+						CanSave = n\Target<>Null
 						
 						CurrCameraZoom = CurveValue(Max(CurrCameraZoom, (Sin(Float(MilliSecs())/20.0)+1.0) * 10.0),CurrCameraZoom,8.0)
 						
@@ -1484,7 +1487,8 @@ Function UpdateNPCs()
 						
 						;[End Block]
 					Case 1,2,3
-						CanSave = False
+						; Can't save if targeting the player.
+						CanSave = n\Target<>Null
 
 						;[Block]
 						;If n\Sound = 0 Then
@@ -1517,7 +1521,7 @@ Function UpdateNPCs()
 							;	If n\Frame > 423.9 Then n\State = 2 : n\Frame = 892
 							;EndIf
 						ElseIf n\State=2
-							AnimateNPC(n,677,737,0.3,False)
+							AnimateNPC(n,677,737,0.2,False)
 							If n\Frame=>737 Then n\State=3 : n\State2=0
 							;AnimateNPC(n, 833, 972, 0.3, False)
 							;If n\Frame=>972 Then n\State = 3 : n\State2=0
@@ -4029,7 +4033,7 @@ Function UpdateNPCs()
 				If ChannelPlaying(n\SoundChn2)
 					BlurTimer = Max((5.0-dist)*300,0)
 				EndIf
-				UpdateSoundOrigin2(n\SoundChn2,Camera,n\Collider,20)
+				UpdateSoundOrigin(n\SoundChn2,Camera,n\Collider,20,1.0,False)
 				
 				PositionEntity(n\obj, EntityX(n\Collider), EntityY(n\Collider) - 0.2, EntityZ(n\Collider))
 				
@@ -4118,6 +4122,8 @@ Function UpdateNPCs()
 								
 								;echo if player gets close
 								If dist<2.0 And (Not NoTarget) Then 
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									n\State=Rand(1,4)
 								EndIf 							
 							EndIf
@@ -4149,6 +4155,8 @@ Function UpdateNPCs()
 								BlurTimer = ((Sin(MilliSecs()/50)+1.0)*200)/dist
 								
 								If (Not Wearing714) And (WearingGasMask<3) And (WearingHazmat<3) And dist<16 Then
+									If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 									If StaminaEffect<1.5 Then
 										Msg = I_Loc\Message_966Sleep[Rand(4)]
 										MsgTimer = 7*70
@@ -4252,6 +4260,8 @@ Function UpdateNPCs()
 											n\CurrSpeed = CurveValue(0,n\CurrSpeed,10.0)
 										EndIf
 									Else
+										If WearingNightVision<> 0 Then GiveAchievement(Achv966)
+
 										n\Angle = VectorYaw(EntityX(Collider)-EntityX(n\Collider),0,EntityZ(Collider)-EntityZ(n\Collider))
 										n\CurrSpeed = CurveValue(n\Speed,n\CurrSpeed,10.0)
 										
@@ -7245,7 +7255,7 @@ Function GetNPCManipulationValue$(NPC$,bone$,section$,valuetype%=0)
 	;2 - Float
 	;3 - Boolean
 	
-	Local value$ = GetINIString("Data\NPCBones.ini",NPC$,bone$+"_"+section$)
+	Local value$ = GetModdedINIString(NPCBones,NPC$,bone$+"_"+section$)
 	Select valuetype%
 		Case 0
 			Return value$

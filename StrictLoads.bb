@@ -20,6 +20,12 @@ ModelExtensions[2] = "fbx"
 ModelExtensions[3] = "glb"
 ModelExtensions[4] = "obj"
 
+Const SoundExtensionCount = 3
+Global SoundExtensions$[SoundExtensionCount]
+SoundExtensions[0] = "ogg"
+SoundExtensions[1] = "wav"
+SoundExtensions[2] = "mp3"
+
 ;basic wrapper functions that check to make sure that the file exists before attempting to load it, raises an RTE if it doesn't
 ;more informative alternative to MAVs outside of debug mode, makes it immiediately obvious whether or not someone is loading resources
 ;likely to cause more crashes than 'clean' CB, as this prevents anyone from loading any assets that don't exist, regardless if they are ever used
@@ -115,7 +121,7 @@ Function PlaySound_Strict%(sndHandle%)
 								ConsoleOpen = True
 							EndIf
 						Else
-							If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedPath(snd\name))
+							If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 						EndIf
 						If snd\internalHandle = 0 Then
 							CreateConsoleMsg("Failed to load Sound: " + Chr(34) + snd\name + Chr(34))
@@ -130,6 +136,7 @@ Function PlaySound_Strict%(sndHandle%)
 						snd\channels[i] = PlaySound(snd\internalHandle)
 					EndIf
 					ChannelVolume snd\channels[i],SFXVolume#
+					QueueSubtitle(snd\name, snd\internalHandle, snd\channels[i])
 					snd\releaseTime = MilliSecs()+5000 ;release after 5 seconds
 					Return snd\channels[i]
 				EndIf
@@ -141,7 +148,7 @@ Function PlaySound_Strict%(sndHandle%)
 							ConsoleOpen = True
 						EndIf
 					Else
-						If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedPath(snd\name))
+						If EnableSFXRelease Then snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 					EndIf
 						
 					If snd\internalHandle = 0 Then
@@ -157,6 +164,7 @@ Function PlaySound_Strict%(sndHandle%)
 					snd\channels[i] = PlaySound(snd\internalHandle)
 				EndIf
 				ChannelVolume snd\channels[i],SFXVolume#
+				QueueSubtitle(snd\name, snd\internalHandle, snd\channels[i])
 				snd\releaseTime = MilliSecs()+5000 ;release after 5 seconds
 				Return snd\channels[i]
 			EndIf
@@ -166,15 +174,39 @@ Function PlaySound_Strict%(sndHandle%)
 	Return 0
 End Function
 
+Function DetermineModdedSoundPath$(File$)
+	Local ext$ = File_GetExtension(File)
+	Local fileNoExt$ = Left(File, Len(File) - Len(ext))
+	Local tmp%
+
+	For m.ActiveMods = Each ActiveMods
+		If (Not m\IsLocale) Lor UsesDubbedAudio Then
+			For i = 0 To SoundExtensionCount
+				Local usedExtension$
+				If i = SoundExtensionCount Then
+					usedExtension = ext
+				Else
+					usedExtension = SoundExtensions[i]
+				EndIf
+				Local modPath$ = m\Path + fileNoExt + usedExtension
+				If FileType(modPath) = 1 Then
+					Return modPath
+				EndIf
+			Next
+		EndIf
+	Next
+
+	Return File
+End Function
+
 Function LoadSound_Strict(file$)
-	file = DetermineModdedPath(file)
 	Local snd.Sound = New Sound
 	snd\name = file
 	snd\internalHandle = 0
 	snd\releaseTime = 0
 	If (Not EnableSFXRelease) Then
 		If snd\internalHandle = 0 Then 
-			snd\internalHandle = LoadSound(snd\name)
+			snd\internalHandle = LoadSound(DetermineModdedSoundPath(snd\name))
 		EndIf
 	EndIf
 	
@@ -188,6 +220,7 @@ Function FreeSound_Strict(sndHandle%)
 			FreeSound snd\internalHandle
 			snd\internalHandle = 0
 		EndIf
+		RemoveQueuedSubtitle(snd\internalHandle)
 		Delete snd
 	EndIf
 End Function
@@ -197,7 +230,8 @@ Type Stream
 End Type
 
 Function StreamSound_Strict(file$,volume#=1.0,custommode=2)
-	file = DetermineModdedPath(file)
+	Local vanillaFile$ = file
+	file = DetermineModdedSoundPath(file)
 	If FileType(file$)<>1
 		CreateConsoleMsg("Sound " + Chr(34) + file$ + Chr(34) + " not found.")
 		If ConsoleOpening
@@ -217,7 +251,8 @@ Function StreamSound_Strict(file$,volume#=1.0,custommode=2)
 		EndIf
 		Return -1
 	EndIf
-	ChannelVolume(st\chn,volume)
+	QueueSubtitle(vanillaFile, 0, st\chn, True)
+	UpdateChannelVolumeWithSubtitles(st\chn, volume, True, False)
 	Return Handle(st)
 End Function
 
@@ -233,11 +268,12 @@ Function StopStream_Strict(streamHandle%)
 		Return
 	EndIf
 	StopChannel(st\chn)
+	RemoveQueuedSubtitleByChannel(st\chn, True)
 	Delete st
 	
 End Function
 
-Function SetStreamVolume_Strict(streamHandle%,volume#)
+Function SetStreamVolume_Strict(streamHandle%,volume#,isSFX%=False)
 	Local st.Stream = Object.Stream(streamHandle)
 	
 	If st = Null
@@ -249,7 +285,7 @@ Function SetStreamVolume_Strict(streamHandle%,volume#)
 		Return
 	EndIf
 	
-	ChannelVolume(st\chn,volume)
+	UpdateChannelVolumeWithSubtitles(st\chn, volume, True, isSFX)
 	
 End Function
 
@@ -270,6 +306,7 @@ Function SetStreamPaused_Strict(streamHandle%,paused%)
 	Else
 		ResumeChannel(st\chn)
 	EndIf
+	SetQueuedSubtitlePause(st\chn, paused)
 	
 End Function
 
@@ -321,7 +358,7 @@ Function UpdateStreamSoundOrigin(streamHandle%,cam%,entity%,range#=10,volume#=1.
 					
 					Local panvalue# = Sin(-DeltaYaw(cam,entity))
 					
-					SetStreamVolume_Strict(streamHandle,volume#*(1-dist#)*SFXVolume#)
+					SetStreamVolume_Strict(streamHandle,volume#*(1-dist#), True)
 					SetStreamPan_Strict(streamHandle,panvalue)
 				Else
 					SetStreamVolume_Strict(streamHandle,0.0)
@@ -419,10 +456,10 @@ Function LoadBrush_Strict(file$,flags,u#=1.0,v#=1.0)
 	Return tmp 
 End Function 
 
-Function LoadFont_Strict(file$, height)
+Function LoadFont_Strict(file$, height, bold%=False, italic%=False)
 	File = DetermineModdedPath(File)
 	If FileType(file$)<>1 Then RuntimeErrorExt "Font " + file$ + " not found."
-	tmp = LoadFont(file, height)
+	tmp = LoadFont(file, height, bold, italic)
 	If tmp = 0 Then RuntimeErrorExt "Failed to load Font: " + file$ 
 	Return tmp
 End Function

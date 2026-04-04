@@ -92,6 +92,8 @@ Function UpdateEvents()
 							;EntityTexture e\room\NPC[1]\obj, tex
 							;FreeTexture tex
 							ChangeNPCTextureID(e\room\NPC[1],3)
+						Else
+							EntityType e\room\NPC[1]\Collider, HIT_DEAD
 						EndIf
 						PositionEntity e\room\NPC[1]\Collider, e\room\x, 0.5, e\room\z-1.0, True
 						ResetEntity e\room\NPC[1]\Collider
@@ -1198,16 +1200,18 @@ Function UpdateEvents()
 									MoveEntity e\room\NPC[2]\Collider, 0,0,-0.01*FPSfactor
 									
 									;Guard WTF
-									e\room\NPC[0]\State = 12
-									If e\room\NPC[0]\Sound<>0
-										StopChannel(e\room\NPC[0]\SoundChn)
-										FreeSound_Strict(e\room\NPC[0]\Sound)
-										e\room\NPC[0]\Sound = 0
+									If e\room\NPC[0]\State2 <> 0 Then
+										e\room\NPC[0]\State = 12
+										If e\room\NPC[0]\Sound<>0
+											StopChannel(e\room\NPC[0]\SoundChn)
+											FreeSound_Strict(e\room\NPC[0]\Sound)
+											e\room\NPC[0]\Sound = 0
+										EndIf
+										e\room\NPC[0]\Angle = 180
+										e\room\NPC[0]\Sound = LoadSound_Strict("SFX\Room\Intro\Guard\Balcony\WTF"+Rand(1,2)+".ogg")
+										e\room\NPC[0]\SoundChn = PlaySound2(e\room\NPC[0]\Sound,Camera,e\room\NPC[0]\Collider,20)
+										e\room\NPC[0]\State2 = 0
 									EndIf
-									e\room\NPC[0]\Angle = 180
-									e\room\NPC[0]\Sound = LoadSound_Strict("SFX\Room\Intro\Guard\Balcony\WTF"+Rand(1,2)+".ogg")
-									e\room\NPC[0]\SoundChn = PlaySound2(e\room\NPC[0]\Sound,Camera,e\room\NPC[0]\Collider,20)
-									e\room\NPC[0]\State2 = 0
 								Else
 									Animate2(e\room\NPC[1]\obj, AnimTime(e\room\NPC[1]\obj), 0, 19, 0.2, False)
 									If e\room\NPC[2]\Sound=0 Then 
@@ -1563,16 +1567,14 @@ Function UpdateEvents()
 					CoffinDistance = EntityDistance(Collider, e\room\Objects[1])
 					If CoffinDistance < 1.5 Then 
 						GiveAchievement(Achv895)
-						If (Not Contained106) And e\EventName="coffin106" And e\EventState2 = 0 Then
+						If (Not Contained106) And e\EventName="coffin106" And e\EventState2 = 0 And Curr106\State > 0 Then
 							de.Decals = CreateDecal(0, EntityX(e\room\Objects[1],True), -1531.0*RoomScale, EntityZ(e\room\Objects[1],True), 90, Rand(360), 0)
 							de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals()
-							
-							If Curr106\State > 0 Then
-								PositionEntity Curr106\Collider, EntityX(e\room\Objects[1],True), -10240*RoomScale, EntityZ(e\room\Objects[1],True)
-								Curr106\State = -0.1
-								ShowEntity Curr106\obj
-								e\EventState2 = 1
-							EndIf
+
+							PositionEntity Curr106\Collider, EntityX(e\room\Objects[1],True), -10240*RoomScale, EntityZ(e\room\Objects[1],True)
+							Curr106\State = -0.1
+							ShowEntity Curr106\obj
+							e\EventState2 = 1
 						EndIf
 					ElseIf CoffinDistance < 3.0 Then
 						If e\room\NPC[0]=Null Then
@@ -3125,7 +3127,7 @@ Function UpdateEvents()
 			Case "room2tunnel"	
 				;[Block]
 				
-				If EntityY(Collider,True)>=8.0 And EntityY(Collider,True)<=12.0 Then
+				If EntityY(Collider,True)>=MT_HEIGHT And EntityY(Collider,True)<=MT_HEIGHT+4 Then
 					If (EntityX(Collider,True)>=e\room\x-6.0) And (EntityX(Collider,True)<=(e\room\x+2.0*gridsz+6.0)) Then
 						If (EntityZ(Collider,True)>=e\room\z-6.0) And (EntityZ(Collider,True)<=(e\room\z+2.0*gridsz+6.0)) Then
 							PlayerRoom=e\room
@@ -3344,7 +3346,7 @@ Function UpdateEvents()
 											If e\room\grid\grid[(ix+1)+((iy)*gridsz)]>0 And e\room\grid\grid[(ix-1)+((iy)*gridsz)]>0 Then ;horizontal
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]-1])
 												
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 												
 												tempInt2=Rand(0,1)
 												RotateEntity tempInt,0.0,tempInt2*180.0+90,0.0
@@ -3353,7 +3355,7 @@ Function UpdateEvents()
 											ElseIf e\room\grid\grid[(ix)+((iy+1)*gridsz)]>0 And e\room\grid\grid[(ix)+((iy-1)*gridsz)]>0 Then ;vertical
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]-1])
 												
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 												
 												tempInt2=Rand(0,1)
 												RotateEntity tempInt,0.0,tempInt2*180.0,0.0
@@ -3361,7 +3363,7 @@ Function UpdateEvents()
 											Else
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]])
 												
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 												
 												ia=e\room\grid\grid[(ix)+((iy+1)*gridsz)]
 												ib=e\room\grid\grid[(ix)+((iy-1)*gridsz)]
@@ -3417,31 +3419,31 @@ Function UpdateEvents()
 									End Select
 									
 									ScaleEntity tempInt,RoomScale,RoomScale,RoomScale,True
-									PositionEntity tempInt,e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+									PositionEntity tempInt,e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 									
 									Select e\room\grid\grid[ix+(iy*gridsz)]
 										Case 1;,5,6
-											AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+											AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 										Case 3,4
-											AddLight%(Null, e\room\x+ix*2.0, 8.0+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+											AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 										Case 7
-											AddLight%(Null, e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), 8.0+(396.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
-											it = CreateItem("scp500",e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tempInt,True))*1226.0*RoomScale),8.0+(80.0*RoomScale),e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tempInt,True))*1226.0*RoomScale))
+											AddLight%(Null, e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), MT_HEIGHT+(396.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
+											it = CreateItem("scp500",e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*(-208.0)*RoomScale)-(Sin(EntityYaw(tempInt,True))*1226.0*RoomScale),MT_HEIGHT+(80.0*RoomScale),e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*(-208.0)*RoomScale)+(Cos(EntityYaw(tempInt,True))*1226.0*RoomScale))
 											EntityType (it\collider, HIT_ITEM)
 											
-											it = CreateItem("nvgoggles",e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), 8.0+(80.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale))
+											it = CreateItem("nvgoggles",e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), MT_HEIGHT+(80.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale))
 											EntityType (it\collider, HIT_ITEM)
 									End Select
 									
 									If e\room\grid\grid[ix+(iy*gridsz)]=6 Or e\room\grid\grid[ix+(iy*gridsz)]=5 Then
-										dr=CreateDoor(e\room\zone,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*240.0*RoomScale),8.0,e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*240.0*RoomScale),EntityYaw(tempInt,True)+90.0,Null,False,3,False,"")
+										dr=CreateDoor(e\room\zone,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*240.0*RoomScale),MT_HEIGHT,e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*240.0*RoomScale),EntityYaw(tempInt,True)+90.0,Null,False,3,False,"")
 										PositionEntity dr\buttons[0],EntityX(dr\buttons[0],True)+(Cos(EntityYaw(tempInt,True))*0.05),EntityY(dr\buttons[0],True)+0.0,EntityZ(dr\buttons[0],True)+(Sin(EntityYaw(tempInt,True))*0.05),True
 										
-										AddLight%(Null, e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*555.0*RoomScale), 8.0+(469.0*RoomScale), e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
+										AddLight%(Null, e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*555.0*RoomScale), MT_HEIGHT+(469.0*RoomScale), e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
 										
 										tempInt2=CreatePivot()
 										RotateEntity tempInt2,0,EntityYaw(tempInt,True)+180.0,0,True
-										PositionEntity tempInt2,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*552.0*RoomScale),8.0+(240.0*RoomScale),e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*552.0*RoomScale)
+										PositionEntity tempInt2,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*552.0*RoomScale),MT_HEIGHT+(240.0*RoomScale),e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*552.0*RoomScale)
 										If e\room\grid\grid[ix+(iy*gridsz)]=6 Then
 											If e\room\RoomDoors[1]=Null Then
 												dr\open = (Not e\room\RoomDoors[0]\open)
@@ -3451,7 +3453,7 @@ Function UpdateEvents()
 											EndIf
 											If e\room\Objects[3]=0 Then
 												e\room\Objects[3]=tempInt2
-												PositionEntity e\room\Objects[1],e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+												PositionEntity e\room\Objects[1],e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 											Else
 												FreeEntity tempInt2
 											EndIf
@@ -3464,7 +3466,7 @@ Function UpdateEvents()
 											EndIf
 											If e\room\Objects[5]=0 Then
 												e\room\Objects[5]=tempInt2
-												PositionEntity e\room\Objects[0],e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+												PositionEntity e\room\Objects[0],e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 											Else
 												FreeEntity tempInt2
 											EndIf
@@ -3473,7 +3475,7 @@ Function UpdateEvents()
 									
 									e\room\grid\Entities[ix+(iy*gridsz)]=tempInt
 									
-									wayp.WayPoints = CreateWaypoint(e\room\x+(ix*2.0),8.2,e\room\z+(iy*2.0),Null,e\room)
+									wayp.WayPoints = CreateWaypoint(e\room\x+(ix*2.0),MT_HEIGHT+0.2,e\room\z+(iy*2.0),Null,e\room)
 									
 									e\room\grid\waypoints[ix+(iy*gridsz)]=wayp
 									
@@ -3579,8 +3581,8 @@ Function UpdateEvents()
 							;FreeEntity Meshes[i]
 						Next
 						
-						PositionEntity e\room\Objects[0],e\room\x+firstX*2.0,8.0,e\room\z+firstY*2.0,True
-						PositionEntity e\room\Objects[1],e\room\x+lastX*2.0,8.0,e\room\z+lastY*2.0,True
+						PositionEntity e\room\Objects[0],e\room\x+firstX*2.0,MT_HEIGHT,e\room\z+firstY*2.0,True
+						PositionEntity e\room\Objects[1],e\room\x+lastX*2.0,MT_HEIGHT,e\room\z+lastY*2.0,True
 						
 					Else If e\room\grid\Meshes[0]=0 Then
 						
@@ -3635,13 +3637,13 @@ Function UpdateEvents()
 										Case 2
 											If e\room\grid\grid[(ix+1)+((iy)*gridsz)]>0 And e\room\grid\grid[(ix-1)+((iy)*gridsz)]>0 Then ;horizontal
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]-1])
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 											ElseIf e\room\grid\grid[(ix)+((iy+1)*gridsz)]>0 And e\room\grid\grid[(ix)+((iy-1)*gridsz)]>0 Then ;vertical
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]-1])
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 											Else
 												tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]])
-												AddLight%(Null, e\room\x+ix*2.0, 8.0+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+												AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 											EndIf
 										Case 3,4
 											tempInt%=CopyEntity(Meshes[e\room\grid\grid[ix+(iy*gridsz)]])
@@ -3652,26 +3654,26 @@ Function UpdateEvents()
 									ScaleEntity tempInt,RoomScale,RoomScale,RoomScale,True
 									
 									RotateEntity tempInt,0,e\room\grid\angles[ix+(iy*gridsz)]*90.0,0
-									PositionEntity tempInt,e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+									PositionEntity tempInt,e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 									
 									Select e\room\grid\grid[ix+(iy*gridsz)]
 										Case 1,5,6
-											AddLight%(Null, e\room\x+ix*2.0, 8.0+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+											AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(372.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 										Case 3,4
-											AddLight%(Null, e\room\x+ix*2.0, 8.0+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
+											AddLight%(Null, e\room\x+ix*2.0, MT_HEIGHT+(416.0*RoomScale), e\room\z+iy*2.0, 2, 500.0 * RoomScale, 255, 255, 255)
 										Case 7
-											AddLight%(Null, e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), 8.0+(396.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
+											AddLight%(Null, e\room\x+ix*2.0-(Sin(EntityYaw(tempInt,True))*504.0*RoomScale)+(Cos(EntityYaw(tempInt,True))*16.0*RoomScale), MT_HEIGHT+(396.0*RoomScale), e\room\z+iy*2.0+(Cos(EntityYaw(tempInt,True))*504.0*RoomScale)+(Sin(EntityYaw(tempInt,True))*16.0*RoomScale), 2, 500.0 * RoomScale, 255, 200, 200)
 									End Select
 									
 									If e\room\grid\grid[ix+(iy*gridsz)]=6 Or e\room\grid\grid[ix+(iy*gridsz)]=5 Then
-										dr=CreateDoor(e\room\zone,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*240.0*RoomScale),8.0,e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*240.0*RoomScale),EntityYaw(tempInt,True)+90.0,Null,False,3,False,"")
+										dr=CreateDoor(e\room\zone,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*240.0*RoomScale),MT_HEIGHT,e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*240.0*RoomScale),EntityYaw(tempInt,True)+90.0,Null,False,3,False,"")
 										
-										AddLight%(Null, e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*555.0*RoomScale), 8.0+(469.0*RoomScale), e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
+										AddLight%(Null, e\room\x+ix*2.0+(Cos(EntityYaw(tempInt,True))*555.0*RoomScale), MT_HEIGHT+(469.0*RoomScale), e\room\z+iy*2.0+(Sin(EntityYaw(tempInt,True))*555.0*RoomScale), 2, 600.0 * RoomScale, 255, 255, 255)
 										
 										PositionEntity dr\buttons[0],EntityX(dr\buttons[0],True)+(Cos(EntityYaw(tempInt,True))*0.05),EntityY(dr\buttons[0],True)+0.0,EntityZ(dr\buttons[0],True)+(Sin(EntityYaw(tempInt,True))*0.05),True
 										tempInt2=CreatePivot()
 										RotateEntity tempInt2,0,EntityYaw(tempInt,True)+180.0,0,True
-										PositionEntity tempInt2,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*552.0*RoomScale),8.0+(240.0*RoomScale),e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*552.0*RoomScale)
+										PositionEntity tempInt2,e\room\x+(ix*2.0)+(Cos(EntityYaw(tempInt,True))*552.0*RoomScale),MT_HEIGHT+(240.0*RoomScale),e\room\z+(iy*2.0)+(Sin(EntityYaw(tempInt,True))*552.0*RoomScale)
 										If e\room\grid\grid[ix+(iy*gridsz)]=6 Then
 											If e\room\RoomDoors[1]=Null Then
 												dr\open = (Not e\room\RoomDoors[0]\open)
@@ -3681,7 +3683,7 @@ Function UpdateEvents()
 											EndIf
 											If e\room\Objects[3]=0 Then
 												e\room\Objects[3]=tempInt2
-												PositionEntity e\room\Objects[1],e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+												PositionEntity e\room\Objects[1],e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 											Else
 												FreeEntity tempInt2
 											EndIf
@@ -3694,7 +3696,7 @@ Function UpdateEvents()
 											EndIf
 											If e\room\Objects[5]=0 Then
 												e\room\Objects[5]=tempInt2
-												PositionEntity e\room\Objects[0],e\room\x+ix*2.0,8.0,e\room\z+iy*2.0,True
+												PositionEntity e\room\Objects[0],e\room\x+ix*2.0,MT_HEIGHT,e\room\z+iy*2.0,True
 											Else
 												FreeEntity tempInt2
 											EndIf
@@ -3703,7 +3705,7 @@ Function UpdateEvents()
 									
 									e\room\grid\Entities[ix+(iy*gridsz)]=tempInt
 									
-									wayp.WayPoints = CreateWaypoint(e\room\x+(ix*2.0),8.2,e\room\z+(iy*2.0),Null,e\room)
+									wayp.WayPoints = CreateWaypoint(e\room\x+(ix*2.0),MT_HEIGHT+0.2,e\room\z+(iy*2.0),Null,e\room)
 									
 									e\room\grid\waypoints[ix+(iy*gridsz)]=wayp
 									
@@ -3810,7 +3812,7 @@ Function UpdateEvents()
 						SeedRnd oldSeed
 						
 						For it.Items = Each Items
-							If (EntityY(it\collider,True)>=8.0) And (EntityY(it\collider,True)<=12.0) Then
+							If (EntityY(it\collider,True)>=MT_HEIGHT) And (EntityY(it\collider,True)<=MT_HEIGHT+4.0) Then
 								DebugLog it\itemtemplate\name+" is within Y limits"
 								If (EntityX(it\collider,True)>=e\room\x-6.0) And (EntityX(it\collider,True)<=(e\room\x+(2.0*gridsz)+6.0)) Then
 									DebugLog "and within X limits"
@@ -3820,7 +3822,7 @@ Function UpdateEvents()
 								EndIf
 							EndIf
 							
-							If (EntityY(it\collider,True)>=8.0) And (EntityY(it\collider,True)<=12.0) And (EntityX(it\collider,True)>=e\room\x-6.0) And (EntityX(it\collider,True)<=(e\room\x+(2.0*gridsz)+6.0)) And (EntityZ(it\collider,True)>=e\room\z-6.0) And (EntityZ(it\collider,True)<=(e\room\z+(2.0*gridsz)+6.0)) Then
+							If (EntityY(it\collider,True)>=MT_HEIGHT) And (EntityY(it\collider,True)<=MT_HEIGHT+4.0) And (EntityX(it\collider,True)>=e\room\x-6.0) And (EntityX(it\collider,True)<=(e\room\x+(2.0*gridsz)+6.0)) And (EntityZ(it\collider,True)>=e\room\z-6.0) And (EntityZ(it\collider,True)<=(e\room\z+(2.0*gridsz)+6.0)) Then
 								DebugLog it\itemtemplate\name
 								TranslateEntity it\collider,0.0,0.3,0.0,True
 								ResetEntity it\collider
@@ -4317,7 +4319,7 @@ Function UpdateEvents()
 							PointEntity e\room\NPC[0]\Collider, Curr096\Collider
 						ElseIf e\EventState >= 70*10 And e\EventState < 70*20
 							Curr096\State=Min(Max(1,Curr096\State),3)
-							Curr096\State2=Max(Curr096\State2,70*12)
+							Curr096\State2=Max(Curr096\State2,70*9.1)
 							If e\EventState-FPSfactor =< 70*15 Then ;walk to the doorway
 								If e\EventState > 70*15 Then
 									e\room\NPC[0]\State=14
@@ -4343,7 +4345,6 @@ Function UpdateEvents()
 								If PlayerRoom = e\room Then LightBlink = (e\room\NPC[0]\Reload)+Rnd(0.5,2.0)
 								Curr096\Target = e\room\NPC[0]
 							Else
-								If e\EventState>70*22 Then Curr096\State = 4
 								If e\room\NPC[0]\State=13 Then
 									e\room\NPC[0]\State=14
 									e\room\NPC[0]\PathStatus = FindPath(e\room\NPC[0], EntityX(e\room\obj,True),0.4,EntityZ(e\room\obj,True))
@@ -4352,7 +4353,7 @@ Function UpdateEvents()
 								EndIf
 							EndIf
 						EndIf
-						
+
 						If AnimTime(Curr096\obj)>25 And AnimTime(Curr096\obj)<150 Then
 							FreeSound_Strict e\Sound : e\Sound = 0
 							e\Sound=LoadSound_Strict("SFX\Character\Guard\096ServerRoom2.ogg")
@@ -6720,6 +6721,9 @@ Function UpdateEvents()
 							SetAnimTime e\room\Objects[7],297
 							e\EventState = 1
 						EndIf
+					EndIf
+					
+					If e\EventState > 0 Then
 						If EntityDistance(Collider, e\room\Objects[6]) < 2.5 And e\EventState > 0 Then
 							PlaySound_Strict(LoadTempSound("SFX\SCP\079\TestroomWarning.ogg"))
 							For i = 0 To 5
@@ -6780,7 +6784,7 @@ Function UpdateEvents()
 			Case "tunnel2"
 				;[Block]
 				If PlayerRoom = e\room Then
-					If Curr173\Idle > 1 Then
+					If Curr173\Idle > 1 Lor EntityDistance(Collider, Curr173\Collider) < 8 Then
 						RemoveEvent(e)
 						Exit
 					Else		
@@ -7515,10 +7519,8 @@ Function UpdateEvents()
 					PositionEntity pp,976,128,-640,False
 					
 					For it.Items = Each Items
-						If (Not it\Picked)
-							If EntityDistance(it\collider,e\room\Objects[0])<0.75
-								Pick1162% = False
-							EndIf
+						If (Not it\Picked) And EntityDistance(it\collider,e\room\Objects[0])<0.75 And EntityVisible(Collider, it\collider)
+							Pick1162% = False
 						EndIf
 					Next
 					
@@ -8512,6 +8514,9 @@ Function UpdateEvents()
 End Function
 
 Function UpdateDimension1499()
+	; Saving while wearing 1499 in the PD, 860 or the 1123 cutscene causes very weird behavior, bandaid fix.
+	If NTF_1499PrevRoom\RoomTemplate\Name = "pocketdimension" Lor NTF_1499PrevRoom\RoomTemplate\Name = "room860" Lor NTF_1499PrevRoom\RoomTemplate\Name = "room1123" Then CanSave = False
+
 	Local e.Events,n.NPCs,n2.NPCs,r.Rooms,it.Items,i%,j%,du.Dummy1499,du2.Dummy1499,temp%,scale#,x%,y%
 	
 	For e.Events = Each Events
