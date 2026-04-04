@@ -1576,8 +1576,8 @@ Function UpdateLauncher()
 	For i = 1 To gfxDriverCount
 		GfxDrivers(i) = GfxDriverName(i)
 	Next
-	
-	BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.png", 1.0)
+
+	MenuMeterIMG% = LoadImage_Strict("GFX\blinkmeter.png", 1.0)
 	
 	AppTitle "SCP - Containment Breach Launcher"
 
