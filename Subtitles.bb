@@ -227,7 +227,7 @@ Function CreateSubtitleToken(entry.SubtitleEntry, soundPathGroup$, tokenType)
 		Local soundPath$ = Trim(Mid(soundPathGroup, offset, toChar-offset))
 		Local t.SubtitleToken = GetSubtitleToken(soundPath)
 
-		If t <> Null And t\fromFile And (1 Shl tokenType) Then 
+		If t <> Null And ((t\fromFile And (1 Shl tokenType)) <> 0) Then 
 			DebugLog("Token already exists: "+soundPath)
 		Else
 			If t = Null Then
