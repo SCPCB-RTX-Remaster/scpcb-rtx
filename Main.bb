@@ -10060,7 +10060,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					EndIf
 			End Select
 			RemoveItem(item)
-		Case "firstaid", "firstaid2" ; TODO Missing small and very fine
+		Case "firstaid", "firstaid2"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.005, z, 90, Rand(360), 0)
@@ -10075,6 +10075,31 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					it2 = CreateItem("finefirstaid", x, y, z)
 				Case "very fine"
 					it2 = CreateItem("veryfinefirstaid", x, y, z)
+			End Select
+			RemoveItem(item)
+		Case "finefirstaid"
+			Select setting
+				Case "rough"
+					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.005, z, 90, Rand(360), 0)
+					d\Size = 0.12 : ScaleSprite(d\obj, d\Size, d\Size)
+				Case "coarse"
+					it2 = CreateItem("firstaid", x, y, z)
+				Case "1:1"
+					it2 = CreateItem("firstaid2", x, y, z)
+				Case "fine", "very fine"
+					it2 = CreateItem("veryfinefirstaid", x, y, z)
+			End Select
+			RemoveItem(item)
+		Case "veryfinefirstaid"
+			Select setting
+				Case "rough"
+					it2 = CreateItem("firstaid", x, y, z)
+				Case "coarse"
+					it2 = CreateItem("finefirstaid", x, y, z)
+				Case "1:1"
+					it2 = CreateItem("pill", x, y, z)
+				Case "fine", "very fine"
+					it2 = CreateItem("scp500death", x, y, z)
 			End Select
 			RemoveItem(item)
 		Case "key1", "key2", "key3", "key4", "key5"
