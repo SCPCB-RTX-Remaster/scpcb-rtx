@@ -4731,7 +4731,7 @@ Function MovePlayer()
 	UpdateInfect()
 	
 	If Bloodloss > 0 Then
-		If Rnd(200)<Min(Injuries,4.0) Then
+		If Injuries > 1.0 And Rnd(200)<Min(Injuries,4.0) Then
 			pvt = CreatePivot()
 			PositionEntity pvt, EntityX(Collider)+Rnd(-0.05,0.05),EntityY(Collider)-0.05,EntityZ(Collider)+Rnd(-0.05,0.05)
 			TurnEntity pvt, 90, 0, 0
