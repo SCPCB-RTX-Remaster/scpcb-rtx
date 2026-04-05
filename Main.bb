@@ -5198,6 +5198,7 @@ Function DrawGUI()
 				Case WearingNightVision=1 Color 0,255,0
 				Case WearingNightVision=2 Color 0,0,255
 				Case WearingNightVision=3 Color 255,0,0
+				Default Color 255,255,255
 			End Select
 			SetFont Font3
 			If KeypadMSG <> "" Then 
