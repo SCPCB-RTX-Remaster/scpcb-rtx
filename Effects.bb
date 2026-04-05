@@ -13,11 +13,9 @@ EndIf
 Function InitPostProcess()
 	ScreenTexture = CreateTexture(GraphicWidth, GraphicHeight, 1 + 1024)
 	
-	GammaEffect = LoadEffect(DetermineModdedPath("GFX\shaders\Gamma.fx"))
-	DebugLog GetEffectError()
+	GammaEffect = LoadEffect_Strict("GFX\shaders\Gamma.fx")
 
-	FXAAEffect = LoadEffect(DetermineModdedPath("GFX\shaders\FXAA.fx"))
-	DebugLog GetEffectError()
+	FXAAEffect = LoadEffect_Strict("GFX\shaders\FXAA.fx")
 	
 	PostEffectQuad = CreateFullscreenQuad()
 	EntityTexture(PostEffectQuad, ScreenTexture, 0, 0)
