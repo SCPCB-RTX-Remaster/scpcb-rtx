@@ -3524,15 +3524,18 @@ While IsRunning
 			EndIf
 		EndIf
 
+		DrawGUI()
+
 		If Using294 Lor SelectedDoor <> Null Lor SelectedScreen <> Null Then
 			UpdateSubtitles(FPSfactor2)
 		Else
 			UpdateSubtitles(FPSfactor)
 		EndIf
+
+		RenderSubtitles()
 		DrawSubtitles()
-		
-		DrawGUI()
-		
+
+
 		UpdateConsole()
 		
 		If PlayerRoom <> Null Then
@@ -11868,8 +11871,6 @@ Function RenderWorld2()
 			SetFont Font1
 		EndIf
 	EndIf
-
-	RenderSubtitles()
 
 	CatchErrors("RenderWorld2")
 End Function
