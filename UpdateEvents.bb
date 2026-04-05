@@ -6786,19 +6786,15 @@ Function UpdateEvents()
 				;[End Block]
 			Case "tunnel2"
 				;[Block]
-				If PlayerRoom = e\room Then
+				If PlayerRoom = e\room And e\EventState = 0 Then
 					If Curr173\Idle > 1 Lor EntityDistance(Collider, Curr173\Collider) < 8 Then
 						RemoveEvent(e)
 						Exit
-					Else		
-						If e\EventState = 0 Then
-							If Distance(EntityX(Collider), EntityZ(Collider), EntityX(e\room\obj), EntityZ(e\room\obj)) < 3.5 Then
-								PlaySound_Strict(LightSFX)
-								
-								LightBlink = Rnd(0.0,1.0)*(e\EventState/200)
-								e\EventState = 1
-							End If
-						End If	
+					Else If Distance(EntityX(Collider), EntityZ(Collider), EntityX(e\room\obj), EntityZ(e\room\obj)) < 3.5 Then
+						PlaySound_Strict(LightSFX)
+						
+						LightBlink = Rnd(0.0,1.0)*(e\EventState/200)
+						e\EventState = 1
 					EndIf
 				EndIf
 				
