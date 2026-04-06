@@ -27,7 +27,7 @@ SoundExtensions[2] = "mp3"
 ;more informative alternative to MAVs outside of debug mode, makes it immiediately obvious whether or not someone is loading resources
 ;likely to cause more crashes than 'clean' CB, as this prevents anyone from loading any assets that don't exist, regardless if they are ever used
 ;added zero checks since blitz load functions return zero sometimes even if the filetype exists
-Function LoadImage_Strict(file$)
+Function LoadImage_Strict%(file$)
 	Local ext$ = File_GetExtension(file)
 	Local fileNoExt$ = Left(file, Len(file) - Len(ext))
 	Local tmp%
@@ -52,13 +52,19 @@ Function LoadImage_Strict(file$)
 		Next
 	Next
 
-	If FileType(file$)<>1 Then RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
-	tmp = LoadImage(file$)
-	Return tmp
-	;attempt to load the image again
-	If tmp = 0 Then tmp2 = LoadImage(file)
-	DebugLog "Attempting to load again: "+file
-	Return tmp2
+	If FileType(file$) = 1 Then
+		Return LoadImage(file$)
+	Else
+		For i = 0 To ImageExtensionCount-1
+			usedExtension$ = ImageExtensions[i]
+			Local path$ = fileNoExt + usedExtension
+			If FileType(path) = 1 Then
+				Return LoadImage(path)
+			EndIf
+		Next
+	EndIf
+
+	RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
 End Function
 
 
