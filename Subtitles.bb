@@ -914,6 +914,7 @@ Function DrawSubtitles()
 		EndIf
 	Next
 
+	Color 255,255,255
 	SetFont Font1
 End Function
 
