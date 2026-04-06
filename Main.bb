@@ -5188,6 +5188,7 @@ Function DrawGUI()
 				Case WearingNightVision=1 Color 0,255,0
 				Case WearingNightVision=2 Color 0,0,255
 				Case WearingNightVision=3 Color 255,0,0
+				Default Color 255,255,255
 			End Select
 			SetFont Font3
 			If KeypadMSG <> "" Then 
@@ -10050,7 +10051,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					EndIf
 			End Select
 			RemoveItem(item)
-		Case "firstaid", "firstaid2" ; TODO Missing small and very fine
+		Case "firstaid", "firstaid2", "finefirstaid", "veryfinefirstaid"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.005, z, 90, Rand(360), 0)
