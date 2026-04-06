@@ -704,7 +704,7 @@ Function UpdateConsole()
 							CreateConsoleMsg("- notarget")
 							CreateConsoleMsg("- teleport [room name] [index]")
 							CreateConsoleMsg("- roomlist")
-							CreateConsoleMsg("- spawnitem [item name] [count]")
+							CreateConsoleMsg("- spawnitem [item name]")
 							CreateConsoleMsg("- itemlist")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Use "+Chr(34)+"help 2/3"+Chr(34)+" to find more commands.")
@@ -801,8 +801,6 @@ Function UpdateConsole()
 							CreateConsoleMsg("Spawns an item at the player's location.")
 							CreateConsoleMsg("Any name that can appear in your inventory")
 							CreateConsoleMsg("is a valid parameter.")
-							CreateConsoleMsg("The quantity of the item to be spawned can")
-							CreateConsoleMsg("optionally be specified as the second parameter.")
 							CreateConsoleMsg("Example: spawnitem Key Card Omni")
 							CreateConsoleMsg("******************************")
 						Case "itemlist", "items"
@@ -1088,26 +1086,17 @@ Function UpdateConsole()
 					Next
 				Case "spawnitem"
 					;[Block]
-					Local itemCountStr$ = Piece(ConsoleInput, 3, " ")
-					Local itemCount% = 1
-					If itemCountStr <> "" Then itemCount = Int(itemCountStr)
-					Local itt.ItemTemplates = FindItemTemplate(Piece(ConsoleInput, 2, " "))
+					Local itt.ItemTemplates = FindItemTemplate(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
 					If itt = Null Then
 						CreateConsoleMsg("Item not found.",255,150,0)
 					Else
-						If itemCount <> 1 Then 
-							CreateConsoleMsg(itemCount + " " + itt\displayname + " spawned.")
-						Else
 							CreateConsoleMsg(itt\displayname + " spawned.")
-						EndIf
-						For i = 0 To itemCount-1
-							it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
-							EntityType(it\collider, HIT_ITEM)
+						it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
+						EntityType(it\collider, HIT_ITEM)
 
-							If itt\name = "snavulti" Lor itt\name = "fineradio" Lor itt\name = "veryfineradio" Then
-								it\state = 101
-							EndIf
-						Next
+						If itt\name = "snavulti" Lor itt\name = "fineradio" Lor itt\name = "veryfineradio" Then
+							it\state = 101
+						EndIf
 					End If
 					;[End Block]
 				Case "itemlist", "items"
