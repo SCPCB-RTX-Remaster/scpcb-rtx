@@ -99,6 +99,7 @@ Include "DevilParticleSystem.bb"
 
 Global SteamLastStatus%
 Global SteamActive% = GetOptionInt("general", "enable steam") And (Not HasCLIFlag("nosteam"))
+Global SteamRichPresenceActive% = SteamActive And GetOptionInt("general", "enable steam rich presence") And (Not HasCLIFlag("nosteamrp"))
 If SteamActive Then
 	If Steam_RestartAppIfNecessary(2178380) Then Return
 	If Steam_Init() <> 0 Then RuntimeErrorExt("Steam failed to initialize")
@@ -3636,12 +3637,12 @@ While IsRunning
 	
 	CatchErrors("Main loop / uncaught")
 
-	If SteamActive Lor DiscordActive Then
+	If SteamRichPresenceActive Lor DiscordActive Then
 		PlayerArea = GetCurrentPlayerArea()
 	EndIf
 
 	Local newAreaStr$
-	If SteamActive Then
+	If SteamRichPresenceActive Then
 		If SteamLastStatus <> PlayerArea Then
 			Local displayBase$
 			If PlayerArea = -1 Then
