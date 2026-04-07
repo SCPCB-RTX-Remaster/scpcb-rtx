@@ -56,10 +56,23 @@ Function LoadImage_Strict%(file$, scale#=0, flags%=0)
 		Next
 	Next
 
-	If FileType(file$)<>1 Then RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
-	tmp = LoadImage(file$, flags)
-	If scale <> 0 Then ScaleImageFromFile(tmp, fileNoExt, scale)
-	Return tmp
+	If FileType(file$) = 1 Then
+		tmp = LoadImage(file$, flags)
+		If scale <> 0 Then ScaleImageFromFile(tmp, fileNoExt, scale)
+		Return tmp
+	Else
+		For i = 0 To ImageExtensionCount-1
+			usedExtension$ = ImageExtensions[i]
+			Local path$ = fileNoExt + usedExtension
+			If FileType(path) = 1 Then
+				tmp = LoadImage(path, flags)
+				If scale <> 0 Then ScaleImageFromFile(tmp, fileNoExt, scale)
+				Return tmp
+			EndIf
+		Next
+	EndIf
+
+	RuntimeErrorExt "Image " + Chr(34) + file$ + Chr(34) + " missing."
 End Function
 
 Function ScaleImageFromFile(img%, path$, scale#)

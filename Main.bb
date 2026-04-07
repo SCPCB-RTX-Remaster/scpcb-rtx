@@ -66,7 +66,7 @@ Function HasCLIFlag%(name$)
 	pos = Instr(cmd, name + " ")
 	If pos = 1 Then Return True
 	pos = Instr(cmd, " " + name)
-	If pos = Len(cmd) - Len(name) Then Return True
+	If pos <> 0 And pos = Len(cmd) - Len(name) Then Return True
 	Return cmd = name
 End Function
 
@@ -98,6 +98,7 @@ Include "DevilParticleSystem.bb"
 
 Global SteamLastStatus%
 Global SteamActive% = GetOptionInt("general", "enable steam") And (Not HasCLIFlag("nosteam"))
+Global SteamRichPresenceActive% = SteamActive And GetOptionInt("general", "enable steam rich presence") And (Not HasCLIFlag("nosteamrp"))
 If SteamActive Then
 	If Steam_RestartAppIfNecessary(2178380) Then Return
 	If Steam_Init() <> 0 Then RuntimeErrorExt("Steam failed to initialize")
@@ -738,6 +739,7 @@ Function UpdateConsole()
 							CreateConsoleMsg("- showfps")
 							CreateConsoleMsg("- debughud")
 							CreateConsoleMsg("- camerafog [near] [far]")
+							CreateConsoleMsg("- viewbob [value]")
 							CreateConsoleMsg("- fov [value]")
 							CreateConsoleMsg("- gamma [value]")
 							CreateConsoleMsg("- playmusic [clip + .wav/.ogg]")
@@ -990,6 +992,12 @@ Function UpdateConsole()
 						CreateConsoleMsg("******************************")							
 					EndIf
 					;[End Block]
+				Case "viewbob"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+
+					ViewBobScale = Float(StrTemp)
+					;[End Block]
 				Case "fov"
 					;[Block]
 					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
@@ -1081,22 +1089,17 @@ Function UpdateConsole()
 					Next
 				Case "spawnitem"
 					;[Block]
-					Local itemCountStr$ = Piece(ConsoleInput, 3, " ")
-					Local itemCount% = 1
-					If itemCountStr <> 0 Then itemCount = Int(itemCountStr)
-					Local itt.ItemTemplates = FindItemTemplate(Piece(ConsoleInput, 2, " "))
+					Local itt.ItemTemplates = FindItemTemplate(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
 					If itt = Null Then
 						CreateConsoleMsg("Item not found.",255,150,0)
 					Else
-						CreateConsoleMsg(itt\displayname + " spawned.")
-						For i = 0 To itemCount
-							it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
-							EntityType(it\collider, HIT_ITEM)
+							CreateConsoleMsg(itt\displayname + " spawned.")
+						it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
+						EntityType(it\collider, HIT_ITEM)
 
-							If itt\name = "snavulti" Lor itt\name = "fineradio" Lor itt\name = "veryfineradio" Then
-								it\state = 101
-							EndIf
-						Next
+						If itt\name = "snavulti" Lor itt\name = "fineradio" Lor itt\name = "veryfineradio" Then
+							it\state = 101
+						EndIf
 					End If
 					;[End Block]
 				Case "itemlist", "items"
@@ -1784,20 +1787,16 @@ End Function
 
 ConsoleR = 0 : ConsoleG = 255 : ConsoleB = 255
 CreateConsoleMsg("Console commands: ")
+CreateConsoleMsg("  - help [1-3]")
 CreateConsoleMsg("  - teleport [room name]")
 CreateConsoleMsg("  - godmode [on/off]")
 CreateConsoleMsg("  - noclip [on/off]")
-CreateConsoleMsg("  - noclipspeed [x] (default = 2.0)")
-CreateConsoleMsg("  - wireframe [on/off]")
-CreateConsoleMsg("  - debughud [on/off]")
 CreateConsoleMsg("  - camerafog [near] [far]")
+CreateConsoleMsg("  - showmap [on/off/2]")
 CreateConsoleMsg(" ")
-CreateConsoleMsg("  - status")
 CreateConsoleMsg("  - heal")
-CreateConsoleMsg(" ")
 CreateConsoleMsg("  - spawnitem [item name]")
 CreateConsoleMsg(" ")
-CreateConsoleMsg("  - 173speed [x] (default = 35)")
 CreateConsoleMsg("  - disable173/enable173")
 CreateConsoleMsg("  - disable106/enable106")
 CreateConsoleMsg("  - 173state/106state/096state")
@@ -3525,15 +3524,18 @@ While IsRunning
 			EndIf
 		EndIf
 
+		DrawGUI()
+
 		If Using294 Lor SelectedDoor <> Null Lor SelectedScreen <> Null Then
 			UpdateSubtitles(FPSfactor2)
 		Else
 			UpdateSubtitles(FPSfactor)
 		EndIf
+
+		RenderSubtitles()
 		DrawSubtitles()
-		
-		DrawGUI()
-		
+
+
 		UpdateConsole()
 		
 		If PlayerRoom <> Null Then
@@ -3601,12 +3603,12 @@ While IsRunning
 	
 	CatchErrors("Main loop / uncaught")
 
-	If SteamActive Lor DiscordActive Then
+	If SteamRichPresenceActive Lor DiscordActive Then
 		PlayerArea = GetCurrentPlayerArea()
 	EndIf
 
 	Local newAreaStr$
-	If SteamActive Then
+	If SteamRichPresenceActive Then
 		If SteamLastStatus <> PlayerArea Then
 			Local displayBase$
 			If PlayerArea = -1 Then
@@ -4688,7 +4690,7 @@ Function MovePlayer()
 	UpdateInfect()
 	
 	If Bloodloss > 0 Then
-		If Rnd(200)<Min(Injuries,4.0) Then
+		If Injuries > 1.0 And Rnd(200)<Min(Injuries,4.0) Then
 			pvt = CreatePivot()
 			PositionEntity pvt, EntityX(Collider)+Rnd(-0.05,0.05),EntityY(Collider)-0.05,EntityZ(Collider)+Rnd(-0.05,0.05)
 			TurnEntity pvt, 90, 0, 0
@@ -5152,6 +5154,7 @@ Function DrawGUI()
 				Case WearingNightVision=1 Color 0,255,0
 				Case WearingNightVision=2 Color 0,0,255
 				Case WearingNightVision=3 Color 255,0,0
+				Default Color 255,255,255
 			End Select
 			SetFont Font3
 			If KeypadMSG <> "" Then 
@@ -9988,7 +9991,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					EndIf
 			End Select
 			RemoveItem(item)
-		Case "firstaid", "firstaid2" ; TODO Missing small and very fine
+		Case "firstaid", "firstaid2", "finefirstaid", "veryfinefirstaid"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.005, z, 90, Rand(360), 0)
@@ -11797,8 +11800,6 @@ Function RenderWorld2()
 			SetFont Font1
 		EndIf
 	EndIf
-
-	RenderSubtitles()
 
 	CatchErrors("RenderWorld2")
 End Function

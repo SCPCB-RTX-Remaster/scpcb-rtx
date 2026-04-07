@@ -194,7 +194,19 @@ Function LoadModdedTextureNonStrict%(file$, flags%)
 		Next
 	Next
 
-    Return LoadTexture(file, flags)
+    tmp = LoadTexture(file, flags)
+    If tmp <> 0 Then Return tmp
+
+    For i = 0 To ImageExtensionCount-1
+        usedExtension$ = ImageExtensions[i]
+        Local path$ = fileNoExt + usedExtension
+        If FileType(path) = 1 Then
+            tmp = LoadTexture(path, flags)
+            If tmp <> 0 Then Return tmp
+        EndIf
+    Next
+
+    Return 0
 End Function
 
 Function LoadModdedMeshNonStrict%(File$, parent%=0)

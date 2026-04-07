@@ -553,9 +553,9 @@ Function LoadSubtitleEntities()
 	EntityOrder(SubBox\sprite, -2000)
 	MoveEntity(SubBox\sprite, 0.0, 0.0, 1.0)
 
-	SubBox\screenWidth = GraphicsWidth() * 0.5
-	SubBox\screenLeft = (GraphicsWidth() * 0.5)+1-(SubBox\screenWidth*0.5)
-	SubBox\screenTop = GraphicsHeight() * 0.8
+	SubBox\screenWidth = GraphicWidth * 0.5
+	SubBox\screenLeft = (GraphicWidth * 0.5)+1-(SubBox\screenWidth*0.5)
+	SubBox\screenTop = GraphicHeight * 0.8
 
 	SubBox\targetHeight = SubBox\screenTop + SubtitleTextHeight
 	SubBox\targetTop = SubBox\screenTop
@@ -914,6 +914,7 @@ Function DrawSubtitles()
 		EndIf
 	Next
 
+	Color 255,255,255
 	SetFont Font1
 End Function
 
