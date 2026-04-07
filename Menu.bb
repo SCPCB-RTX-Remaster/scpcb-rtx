@@ -1344,7 +1344,7 @@ Function UpdateMainMenu()
 							UpdateModErrorCode = 0
 						EndIf
 					Else If ModUIState = 1 Then
-						DrawFrame(x, y, 420 * MenuScale, 285 * MenuScale)
+						DrawFrame(x, y, 420 * MenuScale, 305 * MenuScale)
 						RowText(I_Loc\Mods_UploadConfirm, x + 20 * MenuScale, y + 15 * MenuScale, 380 * MenuScale, 200 * MenuScale)
 						If DrawButton(x + 22.5 * MenuScale, y + 100 * MenuScale, 100 * MenuScale, 30 * MenuScale, I_Loc\Menu_Yes, False) Then
 							WriteTagsToMod(SelectedMod)
@@ -1363,7 +1363,7 @@ Function UpdateMainMenu()
 						EndIf
 						DrawTagSelection(x + 10 * MenuScale, y + 160 * MenuScale, 380 * MenuScale)
 					Else If ModUIState = 2 Then
-						DrawFrame(x, y, 420 * MenuScale, 335 * MenuScale)
+						DrawFrame(x, y, 420 * MenuScale, 355 * MenuScale)
 						RowText(I_Loc\Mods_UpdateConfirm, x + 20 * MenuScale, y + 15 * MenuScale, 400 * MenuScale, 200 * MenuScale)
 						ModChangelog = InputBox(x + 20 * MenuScale, y + 80 * MenuScale, 380 * MenuScale, 30 * MenuScale, ModChangelog, 99)
 						Text(x + 20 * MenuScale, y + 125 * MenuScale, I_Loc\Mods_Keepdesc)
@@ -1426,7 +1426,7 @@ Function UpdateMainMenu()
 	SetFont Font1
 End Function
 
-Const TAG_COUNT = 8
+Const TAG_COUNT = 9
 Global TagActive%[TAG_COUNT]
 Global TagSteamName$[TAG_COUNT]
 TagSteamName[0] = "Textures"
@@ -1437,6 +1437,18 @@ TagSteamName[4] = "Items"
 TagSteamName[5] = "SCP-294 Drinks"
 TagSteamName[6] = "Loading Screens"
 TagSteamName[7] = "Custom Maps"
+TagSteamName[8] = "Shaders"
+
+Global TagPermutation%[TAG_COUNT]
+TagPermutation[0] = 0
+TagPermutation[1] = 1
+TagPermutation[2] = 2
+TagPermutation[3] = 8
+TagPermutation[4] = 3
+TagPermutation[5] = 4
+TagPermutation[6] = 5
+TagPermutation[7] = 6
+TagPermutation[8] = 7
 
 Function ReadTagsFromMod(m.Mods)
 	For i = 0 To TAG_COUNT-1
@@ -1479,15 +1491,16 @@ Function DrawTagSelection(x%, y%, width%)
 	y = y + 25 * MenuScale
 
 	Local xStep% = (width - 20 * MenuScale) / 3
-	Local xBegin% = x + width - 40 * MenuScale - xStep * 2
+	Local xBegin% = x + width - 30 * MenuScale - xStep * 2
 	For i = 0 To TAG_COUNT-1
+		Local tagIdx% = TagPermutation[i]
 		Local myX% = xBegin + (i Mod 3) * xStep
 		Local row% = i / 3
-		Local myY% = y + row * 30 * MenuScale
-		If i = 6 Then myX = x + StringWidth(TagSteamName[i]) + 20 * MenuScale
 		If i = 7 Then myX = myX + xStep
-		Text(myX - StringWidth(I_Loc\Mods_Tag[i+1]) - 5, myY, I_Loc\Mods_Tag[i+1])
-		TagActive[i] = DrawTick(myX, myY, TagActive[i])
+		If i = 8 Then row = row + 1
+		Local myY% = y + row * 30 * MenuScale
+		Text(myX - StringWidth(I_Loc\Mods_Tag[tagIdx+1]) - 5, myY, I_Loc\Mods_Tag[tagIdx+1])
+		TagActive[tagIdx] = DrawTick(myX, myY, TagActive[tagIdx])
 	Next
 End Function
 

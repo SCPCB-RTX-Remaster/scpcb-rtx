@@ -154,7 +154,7 @@ Type LocalizationTable
     Field Mods_Viewterms$
     Field Mods_Keepdesc$
     Field Mods_Tags$
-    Field Mods_Tag$[8]
+    Field Mods_Tag$[9]
     Field Mods_Nomods$
     Field LoadGame_Load$
     Field LoadGame_Delete$
@@ -643,6 +643,7 @@ Function LoadLocalization(loc.LocalizationTable, file$)
                             Case "tag_6" If loc\Mods_Tag[6] = "" Then loc\Mods_Tag[6] = value
                             Case "tag_7" If loc\Mods_Tag[7] = "" Then loc\Mods_Tag[7] = value
                             Case "tag_8" If loc\Mods_Tag[8] = "" Then loc\Mods_Tag[8] = value
+                            Case "tag_9" If loc\Mods_Tag[9] = "" Then loc\Mods_Tag[9] = value
                             Case "nomods" If loc\Mods_Nomods = "" Then loc\Mods_Nomods = value
                         End Select
                     Case "Load Game"
