@@ -492,8 +492,10 @@ Function LoadGame(file$)
 	
 	Local playedTime = ReadInt(f)
 	If SpeedRunMode Then
-		If PrevSave <> file Then
-			TimerStopped = 2
+		If PrevSave <> file Lor PreMadeSaveLoaded Then
+			PlayTime = playedTime
+			PreMadeSaveLoaded = True
+			TimerStopped = False
 		EndIf
 	Else
 		PlayTime = playedTime
@@ -1777,6 +1779,8 @@ Function LoadGameQuick(file$)
 	Local e.Events
 	For e.Events = Each Events
 		If e\Sound <> 0 Then FreeSound_Strict e\Sound
+		If e\SoundCHN_isStream Then StopStream_Strict(e\SoundCHN)
+		If e\SoundCHN2_isStream Then StopStream_Strict(e\SoundCHN2)
 		Delete e
 	Next
 	

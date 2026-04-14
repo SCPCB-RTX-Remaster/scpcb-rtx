@@ -1,4 +1,4 @@
-Const VersionNumber$ = "1.3.12"
+Const VersionNumber$ = "1.3.12.1"
 ;Only change this if the version given isn't working with the current build version - ENDSHN
 Const CompatibleNumber$ = "1.3.12"
 
@@ -64,7 +64,7 @@ Function HasCLIFlag%(name$)
 	pos = Instr(cmd, name + " ")
 	If pos = 1 Then Return True
 	pos = Instr(cmd, " " + name)
-	If pos = Len(cmd) - Len(name) Then Return True
+	If pos <> 0 And pos = Len(cmd) - Len(name) Then Return True
 	Return cmd = name
 End Function
 
@@ -94,7 +94,9 @@ Include "Blitz_File_FileName.bb"
 
 Include "DevilParticleSystem.bb"
 
+Global SteamLastStatus%
 Global SteamActive% = GetOptionInt("general", "enable steam") And (Not HasCLIFlag("nosteam"))
+Global SteamRichPresenceActive% = SteamActive And GetOptionInt("general", "enable steam rich presence") And (Not HasCLIFlag("nosteamrp"))
 If SteamActive Then
 	If Steam_RestartAppIfNecessary(2178380) Then Return
 	If Steam_Init() <> 0 Then RuntimeErrorExt("Steam failed to initialize")
@@ -107,12 +109,16 @@ If DiscordActive Then
 	If DiscordActive Then BlitzcordSetLargeImage("logo")
 EndIf
 
+; Used for rich presence
+Global PlayerArea%
+
 Global IsRestart% = False
 .Start
 Global IsRunning% = True
 Global ShouldRestart% = False
 
 Include "ModManager.bb"
+Global HasDubbedAudio%
 Global ModsEnabled% = GetOptionInt("general", "enable mods") And (Not HasCLIFlag("nomods"))
 If ModsEnabled Then ReloadMods()
 
@@ -122,8 +128,13 @@ Global ConsoleFont%
 Global MenuWhite%, MenuBlack%
 Global ButtonSFX% = LoadSound_Strict("SFX\Interact\Button.ogg")
 
+Global DubbedAudio% = GetOptionInt("audio", "dubbed audio")
+Global UsesDubbedAudio% = DubbedAudio And HasDubbedAudio
+
 Global EnableSFXRelease% = GetOptionInt("audio", "sfx release")
-Global EnableSFXRelease_Prev% = EnableSFXRelease%
+
+Global SubtitlesEnabled% = GetOptionInt("audio", "subtitles")
+Global ClosedCaptionsEnabled% = GetOptionInt("audio", "closed captions")
 
 Global CanOpenConsole% = GetOptionInt("console", "enabled")
 
@@ -159,11 +170,10 @@ Global MTFDisabled% = 0
 
 Global BorderlessWindowed% = GetOptionInt("graphics", "borderless windowed")
 Global RealGraphicWidth%,RealGraphicHeight%
-Global AspectRatioRatio#
 
 ; For borderless windowed
 Global ScaledGraphicWidth%,ScaledGraphicHeight%
-Global ScaledOffsetX%,ScaledOffsetY%
+Global ScaledOffsetX%=0,ScaledOffsetY%=0
 
 ApplyWindowModeCLIOverrides()
 
@@ -204,6 +214,7 @@ For m.ActiveMods = Each ActiveMods
 Next
 LoadLocalization(I_Loc, StringsFile)
 
+
 ; Exclusive fullscreen ONLY supports the reported resolutions
 If (LauncherEnabled Lor HasCLIFlag("launcher")) And (Not IsRestart) And (Not HasCLIFlag("nolauncher")) Lor Fullscreen And (Not GfxMode3DExists(GraphicWidth, GraphicHeight, 32-16*Bit16Mode)) Then
 	UpdateLauncher()
@@ -219,8 +230,6 @@ If BorderlessWindowed
 	RealGraphicWidth = DesktopWidth()
 	RealGraphicHeight = DesktopHeight()
 	
-	AspectRatioRatio = (Float(GraphicWidth)/Float(GraphicHeight))/(Float(RealGraphicWidth)/Float(RealGraphicHeight))
-
 	Local scaleX# = Float(RealGraphicWidth) / GraphicWidth, scaleY# = Float(RealGraphicHeight) / GraphicHeight
 	Local scale# = Min(scaleX, scaleY)
 	ScaledGraphicWidth% = scale * GraphicWidth
@@ -233,9 +242,10 @@ If BorderlessWindowed
 
 	Fullscreen = False
 Else
-	AspectRatioRatio = 1.0
 	RealGraphicWidth = GraphicWidth
 	RealGraphicHeight = GraphicHeight
+	ScaledGraphicWidth = GraphicWidth
+	ScaledGraphicHeight = GraphicHeight
 	If Fullscreen Then
 		Graphics3DExt(GraphicWidth, GraphicHeight, 0, 1)
 	Else
@@ -267,6 +277,8 @@ Global CurrFrameLimit# = (Framelimit%-19)/100.0
 
 Global ScreenGamma# = GetOptionFloat("graphics", "screengamma")
 ;If Fullscreen Then UpdateScreenGamma()
+
+Global ViewBobScale# = GetOptionFloat("graphics", "view bob")
 
 Global FOV% = GetOptionInt("graphics", "fov")
 Const DEFAULT_FOV% = 59
@@ -305,10 +317,10 @@ PlayStartupVideos()
 
 ;[Block]
 
-Global CursorIMG% = LoadImage_Strict("GFX\cursor.png")
+Global CursorIMG% = LoadImage_Strict("GFX\cursor.png", 1.0)
 
 Global SelectedLoadingScreen.LoadingScreens, LoadingScreenAmount% = 0, LoadingScreenText%
-Global LoadingBack% = LoadImage_Strict("Loadingscreens\loadingback.jpg")
+Global LoadingBack% = LoadImage_Strict("Loadingscreens\loadingback.jpg", 1.0)
 InitLoadingScreens()
 
 Font1% = LoadFont_Strict("GFX\font\cour\Courier New.ttf", Int(19 * MenuScale))
@@ -322,10 +334,18 @@ Global CreditsFont%,CreditsFont2%
 
 ConsoleFont% = Font1
 
+Include "Subtitles.bb"
+LoadSubtitles()
+
 SetFont Font2
 
-Global BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.jpg")
-ScaleImage(BlinkMeterIMG, HUDScale, HUDScale)
+Global BlinkMeterIMG% = LoadImage_Strict("GFX\blinkmeter.png", HUDScale)
+Global MenuMeterIMG%
+If HUDScale = MenuScale Then
+	MenuMeterIMG = BlinkMeterIMG
+Else
+	MenuMeterIMG = LoadImage_Strict("GFX\blinkmeter.png", MenuScale)
+EndIf
 
 DrawLoading(0, True)
 
@@ -452,6 +472,7 @@ Global SpeedRunMode% = GetOptionInt("general", "speed run mode")
 Global PlayTime%
 ; 0 = Running; 1 = Stopped; 2 = Pre-made save loaded; 3 = Ending reached
 Global TimerStopped% = True
+Global PreMadeSaveLoaded% = False
 Global ConsoleFlush%
 Global ConsoleFlushSnd% = 0, ConsoleMusFlush% = 0, ConsoleMusPlay% = 0
 
@@ -725,13 +746,17 @@ Function UpdateConsole()
 							CreateConsoleMsg("- showfps")
 							CreateConsoleMsg("- debughud")
 							CreateConsoleMsg("- camerafog [near] [far]")
+							CreateConsoleMsg("- viewbob [value]")
 							CreateConsoleMsg("- fov [value]")
 							CreateConsoleMsg("- gamma [value]")
 							CreateConsoleMsg("- playmusic [clip + .wav/.ogg]")
 							CreateConsoleMsg("- camerapick")
 							CreateConsoleMsg("- ending")
+							CreateConsoleMsg("- unlockcheckpoints")
+							CreateConsoleMsg("- togglewarheadlever")
 							CreateConsoleMsg("- unlockexits")
 							CreateConsoleMsg("- omni")
+							CreateConsoleMsg("- showmap")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Use "+Chr(34)+"help [command name]"+Chr(34)+" to get more information about a command.")
 							CreateConsoleMsg("******************************")
@@ -816,7 +841,7 @@ Function UpdateConsole()
 							CreateConsoleMsg("Spawns an NPC at the player's location.")
 							CreateConsoleMsg("Valid parameters are:")
 							CreateConsoleMsg("008zombie / 049 / 049-2 / 066 / 096 / 106 / 173")
-							CreateConsoleMsg("/ 178-1 / 372 / 513-1 / 966 / 1499-1 / class-d")
+							CreateConsoleMsg("/ 372 / 513-1 / 966 / 1048-a / 1499-1 / class-d")
 							CreateConsoleMsg("/ guard / mtf / apache / tentacle")
 							CreateConsoleMsg("******************************")
 						Case "revive","undead","resurrect"
@@ -879,6 +904,8 @@ Function UpdateConsole()
 							CreateConsoleMsg("Toggles getting guaranteed Key Card Omnis")
 							CreateConsoleMsg("from SCP-914, unless a valid parameter")
 							CreateConsoleMsg("is specified (on/off).")
+							CreateConsoleMsg("Using " + Chr(34) + "omni 2" + Chr(34) + " allows")
+							CreateConsoleMsg("the option to persist between runs.")
 							CreateConsoleMsg("A Key Card Omni can be obtained from SCP-914")
 							CreateConsoleMsg("by refining a Level 5 Key Card on Fine")
 							CreateConsoleMsg("or any Key Card on Very Fine.")
@@ -1001,6 +1028,43 @@ Function UpdateConsole()
 							CreateConsoleMsg("Izumi Kato is the original artist")
 							CreateConsoleMsg("Izumi Kato is the original artist")
 							CreateConsoleMsg("******************************")
+						Case "showmap"
+							CreateConsoleMsg("HELP - showmap")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("Toggles drawing a 2D version of the map")
+							CreateConsoleMsg("layout on screen unless a valid parameter")
+							CreateConsoleMsg("is specified (on/off).")
+							CreateConsoleMsg("Using " + Chr(34) + "showmap 2" + Chr(34) + " allows")
+							CreateConsoleMsg("the option to persist between runs.")
+							CreateConsoleMsg("")
+
+							For i% = 3 To 1 Step -1
+								ConsoleR = 255 : ConsoleG = 255 : ConsoleB = 255
+								Select i
+									Case 3 CreateConsoleMsg("Entrance Zone")
+									Case 2 CreateConsoleMsg("Heavy Containment Zone")
+									Case 1 CreateConsoleMsg("Light Containment Zone")
+								End Select
+
+								For rt.RoomTemplates = Each RoomTemplates
+									If rt\R <> 255 Lor rt\G <> 255 Or rt\B <> 255 Then
+										For j% = 0 To ZONEAMOUNT-1
+											If rt\zone[j] = i Then
+												ConsoleR = rt\R : ConsoleG = rt\G : ConsoleB = rt\B
+												CreateConsoleMsg(rt\Name)
+												ConsoleR = 255 : ConsoleG = 255 : ConsoleB = 255
+												Exit
+											EndIf
+										Next
+									EndIf
+								Next
+
+								If i <> 1 Then CreateConsoleMsg("")
+							Next
+
+							ConsoleR = 0 : ConsoleG = 255 : ConsoleB = 255
+							CreateConsoleMsg("******************************")
+
 						Default
 							CreateConsoleMsg("There is no help available for that command.",255,150,0)
 					End Select
@@ -1067,6 +1131,12 @@ Function UpdateConsole()
 						CreateConsoleMsg("******************************")							
 					EndIf
 					;[End Block]
+				Case "viewbob"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+
+					ViewBobScale = Float(StrTemp)
+					;[End Block]
 				Case "fov"
 					;[Block]
 					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
@@ -1114,6 +1184,8 @@ Function UpdateConsole()
 					Local roomIndex% = Int(Piece(ConsoleInput, 3, " "))
 
 					Select roomName
+						Case "room008", "scp-008"
+							roomName = "008"
 						Case "895", "scp-895", "room895"
 							roomName = "coffin"
 						Case "scp-914", "room914"
@@ -1160,7 +1232,7 @@ Function UpdateConsole()
 					If itt = Null Then
 						CreateConsoleMsg("Item not found.",255,150,0)
 					Else
-						CreateConsoleMsg(itt\displayname + " spawned.")
+							CreateConsoleMsg(itt\displayname + " spawned.")
 						it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
 						EntityType(it\collider, HIT_ITEM)
 
@@ -1683,7 +1755,7 @@ Function UpdateConsole()
 					Next
 					Next 
 					;[End Block]
-				Case "toggle_warhead_lever"
+				Case "toggle_warhead_lever", "togglewarheadlever"
 					;[Block]
 					For e.Events = Each Events
 						If e\EventName = "room2nuke" Then
@@ -1691,6 +1763,45 @@ Function UpdateConsole()
 							Exit
 						EndIf
 					Next
+					;[End Block]
+				Case "unlockcheckpoints"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+					Select StrTemp
+						Case "lcz"
+							For e.Events = Each Events
+								If e\EventName = "room2sl" Then
+									e\EventState3 = 0.0
+									UpdateLever(e\room\Levers[0])
+									RotateEntity(e\room\Levers[0], 0.0, EntityYaw(e\room\Levers[0]), 0.0)
+									Exit
+								EndIf
+							Next
+							CreateConsoleMsg("The Heavy Containment Zone is now unlocked.")	
+						Case "hcz"
+							For e.Events = Each Events
+								If e\EventName = "008" Then
+									e\EventState = 2.0
+									UpdateLever(e\room\Objects[1])
+									RotateEntity(e\room\Objects[1], 0.0, EntityYaw(e\room\Objects[1]), 0.0)
+									Exit
+								EndIf
+							Next	
+							CreateConsoleMsg("The Entrance Zone is now unlocked.")	
+						Default
+							For e.Events = Each Events
+								If e\EventName = "room2sl" Then
+									e\EventState3 = 0.0
+									UpdateLever(e\room\Levers[0])
+									RotateEntity(e\room\Levers[0], 0.0, EntityYaw(e\room\Levers[0]), 0.0)
+								ElseIf e\EventName = "008" Then
+									e\EventState = 2.0
+									UpdateLever(e\room\Objects[1])
+									RotateEntity(e\room\Objects[1], 0.0, EntityYaw(e\room\Objects[1]), 0.0)
+								EndIf
+							Next
+							CreateConsoleMsg("The Heavy Containment Zone and Entrance Zone are now unlocked.")	
+					End Select
 					;[End Block]
 				Case "unlockexits"
 					;[Block]
@@ -1909,22 +2020,52 @@ Function UpdateConsole()
 					CreateConsoleMsg("Set BlinkEffect to: " + BlinkEffect + "and BlinkEffect timer: " + BlinkEffectTimer)
 					;[End Block]
 				Case "omni"
+					;[Block]
 					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
 					
 					Select StrTemp
 						Case "on", "1", "true"
-							GuaranteedOmni% = True						
+							GuaranteedOmni% = True
 						Case "off", "0", "false"
-							GuaranteedOmni% = False	
+							GuaranteedOmni% = False
+						Case "2"
+							GuaranteedOmni% = 2
 						Default
 							GuaranteedOmni% = Not GuaranteedOmni%
 					End Select
 					
-					If GuaranteedOmni% Then
+					If GuaranteedOmni% = 2 Then
+						CreateConsoleMsg("GUARANTEED KEY CARD OMNI ON (PERSISTENT)")	
+					Else If GuaranteedOmni% Then
 						CreateConsoleMsg("GUARANTEED KEY CARD OMNI ON")	
 					Else
 						CreateConsoleMsg("GUARANTEED KEY CARD OMNI OFF")
 					EndIf
+					;[End Block]
+				Case "showmap"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+
+					Select StrTemp
+						Case "on", "1", "true"
+							ShowMap% = True						
+						Case "off", "0", "false"
+							ShowMap% = False
+						Case "2"
+							ShowMap% = 2
+						Default
+							ShowMap% = Not ShowMap%
+					End Select
+
+					If ShowMap% = 2 Then
+						CreateConsoleMsg("SHOW MAP ON (PERSISTENT)")
+					Else If ShowMap% Then
+						CreateConsoleMsg("SHOW MAP ON")
+					Else
+						CreateConsoleMsg("SHOW MAP OFF")
+					EndIf
+					If ShowMap% Then CreateConsoleMsg("TYPE " + Chr(34) + "help showmap" + Chr(34) + " FOR A LIST OF ROOM COLORS")
+					;[End Block]
 				Case "mav"
 					RuntimeErrorExt("Violation Access Memory")
 				Case "jorge"
@@ -1987,20 +2128,16 @@ End Function
 
 ConsoleR = 0 : ConsoleG = 255 : ConsoleB = 255
 CreateConsoleMsg("Console commands: ")
+CreateConsoleMsg("  - help [1-3]")
 CreateConsoleMsg("  - teleport [room name]")
 CreateConsoleMsg("  - godmode [on/off]")
 CreateConsoleMsg("  - noclip [on/off]")
-CreateConsoleMsg("  - noclipspeed [x] (default = 2.0)")
-CreateConsoleMsg("  - wireframe [on/off]")
-CreateConsoleMsg("  - debughud [on/off]")
 CreateConsoleMsg("  - camerafog [near] [far]")
+CreateConsoleMsg("  - showmap [on/off/2]")
 CreateConsoleMsg(" ")
-CreateConsoleMsg("  - status")
 CreateConsoleMsg("  - heal")
-CreateConsoleMsg(" ")
 CreateConsoleMsg("  - spawnitem [item name]")
 CreateConsoleMsg(" ")
-CreateConsoleMsg("  - 173speed [x] (default = 35)")
 CreateConsoleMsg("  - disable173/enable173")
 CreateConsoleMsg("  - disable106/enable106")
 CreateConsoleMsg("  - 173state/106state/096state")
@@ -2215,10 +2352,8 @@ Global NoTarget% = False
 Global GuaranteedOmni% = False
 
 Global NVGImages[2]
-NVGImages[0] = LoadImage_Strict("GFX\battery_green.png")
-ScaleImage(NVGImages[0], HUDScale, HUDScale)
-NVGImages[1] = LoadImage_Strict("GFX\battery_blue.png")
-ScaleImage(NVGImages[1], HUDScale, HUDScale)
+NVGImages[0] = LoadImage_Strict("GFX\battery_green.png", HUDScale)
+NVGImages[1] = LoadImage_Strict("GFX\battery_blue.png", HUDScale)
 
 Global Wearing1499% = False
 Global AmbientLight%, AmbientLightNVG%
@@ -3804,9 +3939,19 @@ While IsRunning
 				UpdateMenuState()
 			EndIf
 		EndIf
-		
+
 		DrawGUI()
-		
+
+		If Using294 Lor SelectedDoor <> Null Lor SelectedScreen <> Null Then
+			UpdateSubtitles(FPSfactor2)
+		Else
+			UpdateSubtitles(FPSfactor)
+		EndIf
+
+		RenderSubtitles()
+		DrawSubtitles()
+
+
 		UpdateConsole()
 		
 		If PlayerRoom <> Null Then
@@ -3839,10 +3984,13 @@ While IsRunning
 			
 			Local messageOpacity% = Min(MsgTimer / 2, 255)
 			If (Not temp%)
+				; Push text up if subtitles box has lots of text.
+				Local h# = (GraphicHeight / 2) + 200
+				If SubtitlesEnabled Then h = Min(h, SubBox\curTop-SubtitleTextHeight*2)
 				Color 0,0,0
-				Text((GraphicWidth / 2)+1, (GraphicHeight / 2) + 201, Msg, True, False)
+				Text((GraphicWidth / 2)+1, h+1, Msg, True, False)
 				Color messageOpacity, messageOpacity, messageOpacity
-				Text((GraphicWidth / 2), (GraphicHeight / 2) + 200, Msg, True, False)
+				Text((GraphicWidth / 2), h, Msg, True, False)
 			Else
 				Color 0,0,0
 				Text((GraphicWidth / 2)+1, (GraphicHeight * 0.94) + 1, Msg, True, False)
@@ -3871,19 +4019,50 @@ While IsRunning
 	
 	CatchErrors("Main loop / uncaught")
 
-	If SteamActive Then Steam_Update()
+	If SteamRichPresenceActive Lor DiscordActive Then
+		PlayerArea = GetCurrentPlayerArea()
+	EndIf
+
+	Local newAreaStr$
+	If SteamRichPresenceActive Then
+		If SteamLastStatus <> PlayerArea Then
+			Local displayBase$
+			If PlayerArea = -1 Then
+				Steam_SetRichPresence("steam_display", "#StatusMenus")
+			Else If SteamLastStatus = -1 Then
+				Steam_SetRichPresence("steam_display", "#StatusGame")
+				Steam_SetRichPresence("difficulty", SelectedDifficulty\name)
+			EndIf
+			Select PlayerArea
+				Case -1 newAreaStr = "Menu"
+				Case 0 newAreaStr = "LCZ"
+				Case 1 newAreaStr = "HCZ"
+				Case 2 newAreaStr = "EZ"
+				Case 3 newAreaStr = "jorge"
+				Case 4 newAreaStr = "intro"
+				Case 5 newAreaStr = "860"
+				Case 100 newAreaStr = "1499"
+				Case 101 newAreaStr = "PD"
+				Case 102 newAreaStr = "GateA"
+				Case 103 newAreaStr = "GateB"
+				Case 104 newAreaStr = "MT"
+			End Select
+			Steam_SetRichPresence("gamestatus", newAreaStr)
+			SteamLastStatus = PlayerArea
+		EndIf
+
+		Steam_Update()
+	EndIf
+
 	If DiscordActive Then
-		If MilliSecs() > DiscordCooldown Then
-			If MainMenuOpen Then
-				If DiscordLastStatus <> -1 Then
-					BlitzcordSetActivityDetails("Browsing the menus")
-					BlitzcordSetLargeText("")
-					BlitzcordSetSmallImage("")
-					BlitzcordSetTimestampStart(BlitzcordGetCurrentTimestamp())
-					BlitzcordUpdateActivity()
-					DiscordCooldown = MilliSecs() + 5000
-					DiscordLastStatus = -1
-				EndIf
+		If PlayerArea <> DiscordLastStatus And MilliSecs() > DiscordCooldown Then
+			If PlayerArea = -1 Then
+				BlitzcordSetActivityDetails("Browsing the menus")
+				BlitzcordSetLargeText("")
+				BlitzcordSetSmallImage("")
+				BlitzcordSetTimestampStart(BlitzcordGetCurrentTimestamp())
+				BlitzcordUpdateActivity()
+				DiscordCooldown = MilliSecs() + 5000
 			Else
 				If DiscordLastStatus = -1 Then
 					BlitzcordSetLargeText(GetSeedString(False))
@@ -3892,37 +4071,26 @@ While IsRunning
 					BlitzcordSetTimestampStart(BlitzcordGetCurrentTimestamp())
 				EndIf
 
-				Local newArea% = PlayerZone
-				Select PlayerRoom\RoomTemplate\Name
-					Case "173" newArea = 4
-					Case "dimension1499" newArea = 100
-					Case "pocketdimension" newArea = 101
-					Case "gatea" newArea = 102
-					Case "exit1" newArea = 103
-					Case "room2tunnel" If EntityY(Collider,True)>4.0 Then newArea = 104
+				Select PlayerArea
+					Case 0 newAreaStr = "Roaming the Light Containment Zone"
+					Case 1 newAreaStr = "Roaming the Heavy Containment Zone"
+					Case 2 newAreaStr = "Roaming the Entrance Zone"
+					Case 3 newAreaStr = "jorge has been expecting you"
+					Case 4 newAreaStr = "Being tested on SCP-173"
+					Case 5 newAreaStr = "Traversing a blue-hued forest"
+					Case 100 newAreaStr = "Wearing a GP-5 Gas Mask"
+					Case 101 newAreaStr = "Trapped in the Pocket Dimension"
+					Case 102 newAreaStr = "Escaping through Gate A"
+					Case 103 newAreaStr = "Escaping through Gate B"
+					Case 104 newAreaStr = "Lost in the Maintenance Tunnels"
 				End Select
-				If newArea <> DiscordLastStatus Then
-					Local newAreaStr$
-					Select newArea
-						Case 0 newAreaStr = "Roaming the Light Containment Zone"
-						Case 1 newAreaStr = "Roaming the Heavy Containment Zone"
-						Case 2 newAreaStr = "Roaming the Entrance Zone"
-						Case 3 newAreaStr = "jorge has been expecting you"
-						Case 4 newAreaStr = "Being tested on SCP-173"
-						Case 5 newAreaStr = "Traversing a blue-hued forest"
-						Case 100 newAreaStr = "Wearing a GP-5 Gas Mask"
-						Case 101 newAreaStr = "Trapped in the Pocket Dimension"
-						Case 102 newAreaStr = "Escaping through Gate A"
-						Case 103 newAreaStr = "Escaping through Gate B"
-						Case 104 newAreaStr = "Lost in the Maintenance Tunnels"
-					End Select
-					BlitzcordSetActivityDetails(newAreaStr)
-					BlitzcordUpdateActivity()
-					DiscordCooldown = MilliSecs() + 5000
-					DiscordLastStatus = newArea
-				EndIf
+				BlitzcordSetActivityDetails(newAreaStr)
+				BlitzcordUpdateActivity()
+				DiscordCooldown = MilliSecs() + 5000
 			EndIf
+			DiscordLastStatus = PlayerArea
 		EndIf
+
 		BlitzcordRunCallbacks()
 	EndIf
 
@@ -3944,6 +4112,19 @@ Function Restart()
 	ClearLoadedINIFiles()
 	IsRunning = False
 	ShouldRestart = True
+End Function
+
+Function GetCurrentPlayerArea%()
+	If MainMenuOpen Then Return -1
+	Select PlayerRoom\RoomTemplate\Name
+		Case "173" Return 4
+		Case "dimension1499" Return 100
+		Case "pocketdimension" Return 101
+		Case "gatea" Return 102
+		Case "exit1" Return 103
+		Case "room2tunnel" If EntityY(Collider,True)>4.0 Then Return 104
+		Default Return PlayerZone
+	End Select
 End Function
 
 ;----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4299,7 +4480,7 @@ Function DrawEnding()
 	End Select
 	
 	ShouldPlay = 66
-	
+
 	Cls
 	
 	If EndingTimer<-200 Then
@@ -4313,6 +4494,9 @@ Function DrawEnding()
 		;EndIf
 		
 		If EndingScreen = 0 Then
+			SubBox\screenTop = GraphicsHeight() * 0.9
+			RecalculateSubtitleBoxTarget()
+
 			EndingScreen = LoadImage_Strict("GFX\endingscreen.pt")
 			
 			ShouldPlay = 23
@@ -4398,11 +4582,12 @@ Function DrawEnding()
 					
 					Text x, y, I_Loc\Menu_EndEnding+" " + Upper(SelectedEnding)
 					Text x, y+20*MenuScale, I_Loc\Menu_EndTime+" " + FormatDuration(PlayTime, SpeedRunMode)
-					Text x, y+40*MenuScale, I_Loc\Menu_EndScps+" " + scpsEncountered
-					Text x, y+60*MenuScale, I_Loc\Menu_EndAchv+" " + achievementsUnlocked+"/"+(MAXACHIEVEMENTS)
-					Text x, y+80*MenuScale, I_Loc\Menu_EndRooms+" " + roomsfound+"/"+roomamount
-					Text x, y+100*MenuScale, I_Loc\Menu_EndDocs+" " +docsfound+"/"+docamount
-					Text x, y+120*MenuScale, I_Loc\Menu_End914+" " +RefinedItems			
+					Text x, y+40*MenuScale, GetSeedString()
+					Text x, y+60*MenuScale, I_Loc\Menu_EndScps+" " + scpsEncountered
+					Text x, y+80*MenuScale, I_Loc\Menu_EndAchv+" " + achievementsUnlocked+"/"+(MAXACHIEVEMENTS)
+					Text x, y+100*MenuScale, I_Loc\Menu_EndRooms+" " + roomsfound+"/"+roomamount
+					Text x, y+120*MenuScale, I_Loc\Menu_EndDocs+" " +docsfound+"/"+docamount
+					Text x, y+140*MenuScale, I_Loc\Menu_End914+" " +RefinedItems			
 					
 					x = GraphicWidth / 2 - width / 2
 					y = GraphicHeight / 2 - height / 2
@@ -4448,7 +4633,11 @@ Function DrawEnding()
 				ShouldPlay = 24
 				DrawCredits()
 			EndIf
-			
+		EndIf
+
+		If EndingTimer > -2000 And SelectedEnding <> "" Then
+			UpdateSubtitles(FPSfactor2)
+			DrawSubtitles()
 		EndIf
 		
 	EndIf
@@ -4918,7 +5107,7 @@ Function MovePlayer()
 	UpdateInfect()
 	
 	If Bloodloss > 0 Then
-		If Rnd(200)<Min(Injuries,4.0) Then
+		If Injuries > 1.0 And Rnd(200)<Min(Injuries,4.0) Then
 			pvt = CreatePivot()
 			PositionEntity pvt, EntityX(Collider)+Rnd(-0.05,0.05),EntityY(Collider)-0.05,EntityZ(Collider)+Rnd(-0.05,0.05)
 			TurnEntity pvt, 90, 0, 0
@@ -5001,8 +5190,8 @@ Function MouseLook()
 		EndIf
 		;EndIf
 		
-		Local up# = (Sin(Shake) / (20.0+CrouchState*20.0))*0.6;, side# = Cos(Shake / 2.0) / 35.0		
-		Local roll# = Max(Min(Sin(Shake/2)*2.5*Min(Injuries+0.25,3.0),8.0),-8.0)
+		Local up# = (Sin(Shake) / (20.0+CrouchState*20.0))*0.6*ViewBobScale;, side# = Cos(Shake / 2.0) / 35.0		
+		Local roll# = Max(Min(Sin(Shake/2)*2.5*Min(Injuries+0.25,3.0),8.0),-8.0)*ViewBobScale
 		
 		;käännetään kameraa sivulle jos pelaaja on vammautunut
 		;RotateEntity Collider, EntityPitch(Collider), EntityYaw(Collider), Max(Min(up*30*Injuries,50),-50)
@@ -5472,6 +5661,7 @@ Function DrawGUI()
 				Case WearingNightVision=1 Color 0,255,0
 				Case WearingNightVision=2 Color 0,0,255
 				Case WearingNightVision=3 Color 255,0,0
+				Default Color 255,255,255
 			End Select
 			SetFont Font3
 			If KeypadMSG <> "" Then 
@@ -6609,8 +6799,7 @@ Function DrawGUI()
 					If SelectedItem\state <= 100 Then SelectedItem\state = Max(0, SelectedItem\state - FPSfactor * 0.004)
 					
 					If SelectedItem\itemtemplate\img=0 Then
-						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath)	
-						ScaleImage(SelectedItem\itemtemplate\img, HUDScale, HUDScale)
+						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath, HUDScale)	
 					EndIf
 					
 					;radiostate(5) = has the "use the number keys" -message been shown yet (true/false)
@@ -6633,12 +6822,12 @@ Function DrawGUI()
 					
 					If SelectedItem\state > 0 Then
 						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Or CoffinDistance < 4.0 Then
-							ResumeChannel(RadioCHN(5))
+							ResumeChannelWithSubtitles(RadioCHN(5))
 							If ChannelPlaying(RadioCHN(5)) = False Then RadioCHN(5) = PlaySound_Strict(RadioStatic)	
 						Else
 							Select Int(SelectedItem\state2)
 								Case 0 ;randomkanava
-									ResumeChannel(RadioCHN(0))
+									ResumeChannelWithSubtitles(RadioCHN(0))
 									strtemp = "        " + I_Loc\HUD_RadioUsertrack + " - "
 									If (Not EnableUserTracks)
 										If ChannelPlaying(RadioCHN(0)) = False Then RadioCHN(0) = PlaySound_Strict(RadioStatic)
@@ -6694,7 +6883,7 @@ Function DrawGUI()
 								Case 1 ;hälytyskanava
 									DebugLog RadioState(1) 
 									
-									ResumeChannel(RadioCHN(1))
+									ResumeChannelWithSubtitles(RadioCHN(1))
 									strtemp = "        " + I_Loc\HUD_RadioCb + "          "
 									If ChannelPlaying(RadioCHN(1)) = False Then
 										
@@ -6709,7 +6898,7 @@ Function DrawGUI()
 									EndIf
 									
 								Case 2 ;scp-radio
-									ResumeChannel(RadioCHN(2))
+									ResumeChannelWithSubtitles(RadioCHN(2))
 									strtemp = "        " + I_Loc\HUD_RadioRadio + "          "
 									If ChannelPlaying(RadioCHN(2)) = False Then
 										RadioState(2)=RadioState(2)+1
@@ -6721,7 +6910,7 @@ Function DrawGUI()
 										EndIf
 									EndIf 
 								Case 3
-									ResumeChannel(RadioCHN(3))
+									ResumeChannelWithSubtitles(RadioCHN(3))
 									strtemp = "             " + I_Loc\HUD_RadioEmergency + "         "
 									If ChannelPlaying(RadioCHN(3)) = False Then RadioCHN(3) = PlaySound_Strict(RadioStatic)
 									
@@ -6773,10 +6962,10 @@ Function DrawGUI()
 										End Select
 									EndIf
 								Case 4
-									ResumeChannel(RadioCHN(6)) ;taustalle kohinaa
+									ResumeChannelWithSubtitles(RadioCHN(6)) ;taustalle kohinaa
 									If ChannelPlaying(RadioCHN(6)) = False Then RadioCHN(6) = PlaySound_Strict(RadioStatic)									
 									
-									ResumeChannel(RadioCHN(4))
+									ResumeChannelWithSubtitles(RadioCHN(4))
 									If ChannelPlaying(RadioCHN(4)) = False Then 
 										If RemoteDoorOn = False And RadioState(8) = False Then
 											RadioCHN(4) = PlaySound_Strict(LoadTempSound("SFX\radio\Chatter3.ogg"))	
@@ -6853,7 +7042,7 @@ Function DrawGUI()
 									
 									
 								Case 5
-									ResumeChannel(RadioCHN(5))
+									ResumeChannelWithSubtitles(RadioCHN(5))
 									If ChannelPlaying(RadioCHN(5)) = False Then RadioCHN(5) = PlaySound_Strict(RadioStatic)
 							End Select 
 							
@@ -6872,7 +7061,7 @@ Function DrawGUI()
 							Text(x+60*HUDScale, y, I_Loc\HUD_RadioChannel)						
 							
 							If SelectedItem\itemtemplate\name = "veryfineradio" Then ;"KOODIKANAVA"
-								ResumeChannel(RadioCHN(0))
+								ResumeChannelWithSubtitles(RadioCHN(0))
 								If ChannelPlaying(RadioCHN(0)) = False Then RadioCHN(0) = PlaySound_Strict(RadioStatic)
 								
 								;radiostate(7)=kuinka mones piippaus menossa
@@ -6903,11 +7092,15 @@ Function DrawGUI()
 									If KeyHit(i) Then
 										If SelectedItem\state2 <> i-2 Then ;pausetetaan nykyinen radiokanava
 											PlaySound_Strict RadioSquelch
-											If RadioCHN(Int(SelectedItem\state2)) <> 0 Then PauseChannel(RadioCHN(Int(SelectedItem\state2)))
+											If RadioCHN(Int(SelectedItem\state2)) <> 0 Then
+												PauseChannelWithSubtitles(RadioCHN(Int(SelectedItem\state2)))
+											EndIf
 										EndIf
 										SelectedItem\state2 = i-2
 										;jos nykyistä kanavaa ollaan soitettu, laitetaan jatketaan toistoa samasta kohdasta
-										If RadioCHN(SelectedItem\state2)<>0 Then ResumeChannel(RadioCHN(SelectedItem\state2))
+										If RadioCHN(SelectedItem\state2)<>0 Then
+											ResumeChannelWithSubtitles(RadioCHN(SelectedItem\state2))
+										EndIf
 									EndIf
 								Next
 								
@@ -7400,8 +7593,7 @@ Function DrawGUI()
 				Case "badge", "oldbadge"
 					;[Block]
 					If SelectedItem\itemtemplate\img=0 Then
-						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath)	
-						;ScaleImage(SelectedItem\itemtemplate\img, MenuScale, MenuScale)
+						SelectedItem\itemtemplate\img=LoadImage_Strict(SelectedItem\itemtemplate\imgpath, MenuScale)	
 					EndIf
 					
 					DrawImage(SelectedItem\itemtemplate\img, GraphicWidth / 2 - ImageWidth(SelectedItem\itemtemplate\img) / 2, GraphicHeight / 2 - ImageHeight(SelectedItem\itemtemplate\img) / 2)
@@ -7498,8 +7690,7 @@ Function DrawGUI()
 					If SelectedItem\itemtemplate\group = "paper" Lor SelectedItem\itemtemplate\name = "ticket" Then
 						;[Block]
 						If SelectedItem\itemtemplate\img = 0 Then
-							SelectedItem\itemtemplate\img = LoadImage_Strict(SelectedItem\itemtemplate\imgpath)
-							ScaleImage(SelectedItem\itemtemplate\img, MenuScale, MenuScale)
+							SelectedItem\itemtemplate\img = LoadImage_Strict(SelectedItem\itemtemplate\imgpath, MenuScale)
 							Local buf%
 							Select SelectedItem\itemtemplate\name
 								Case "burntnote" 
@@ -7604,7 +7795,9 @@ Function DrawGUI()
 	If SelectedItem = Null Then
 		For i = 0 To 6
 			If RadioCHN(i) <> 0 Then 
-				If ChannelPlaying(RadioCHN(i)) Then PauseChannel(RadioCHN(i))
+				If ChannelPlaying(RadioCHN(i)) Then
+					PauseChannelWithSubtitles(RadioCHN(i))
+				EndIf
 			EndIf
 		Next
 	EndIf
@@ -7642,6 +7835,8 @@ Function DrawHUD()
 	If Not HUDenabled Then Return
 
 	If SpeedRunMode Then DrawTimer()
+
+	If ShowMap Then DrawMap()
 
 	Local width% = 204 * HUDScale
 	x% = HUDStartX + 80 * HUDScale
@@ -7755,30 +7950,39 @@ Function DrawHUD()
 	EndIf
 End Function
 
+Global ShowMap% = False
+
+Function DrawMap()
+	Local cellSize% = 20 * HUDScale
+	Local startX% = HUDEndX - (MapWidth + 1) * cellSize
+	Local startY% = HUDEndY - (MapHeight + 1) * cellSize
+
+	For r.Rooms = Each Rooms					
+		If PlayerRoom\x = r\x And PlayerRoom\z = r\z Then
+			Color 0, 255, 0
+		Else
+			Color r\RoomTemplate\r, r\RoomTemplate\g, r\RoomTemplate\b
+		EndIf
+		
+		Rect(startX + ((18 - (r\x / 8)) * cellSize), startY + ((r\z / 8) * cellSize), cellSize, cellSize, 1)
+	Next
+End Function
+
 Function DrawTimer()
 	SetFont(Font2)
-	Local durText$
-	If TimerStopped = 0 Lor TimerStopped = 3 Then
-		durText$ = FormatDuration(PlayTime)
-	Else If TimerStopped = 1 Then
-		durText = "The seventh seal has been broken"
-	Else
-		durText$ = I_Loc\HUD_SpeedrunSaveloaded
-	EndIf
+	Local durText$ = FormatDuration(PlayTime)
 	Local x% = HUDEndX - StringWidth(durText) - 24 * HUDScale
 	Local y% = HUDStartY + 24 * HUDScale
 	Color 0, 0, 0
 	Text(x + 3 * HUDScale, y + 3 * HUDScale, durText)
-	If TimerStopped And TimerStopped<>3 Then
-		Color 255, 0, 0
+	If UsedConsole Then
+		Color 150, 150, 150
+	Else If First ActiveMods <> Null Then
+		Color 200, 200, 200
+	Else If PreMadeSaveLoaded Then
+		Color 175, 175, 175
 	Else
-		If UsedConsole Then
-			Color 150, 150, 150
-		Else If First ActiveMods <> Null Then
-			Color 200, 200, 200
-		Else
-			Color 255, 255, 255
-		EndIf
+		Color 255, 255, 255
 	EndIf
 	Text(x, y, durText)
 	SetFont(Font1)
@@ -7911,7 +8115,6 @@ Function DrawMenu()
 				MouseHit1 = False
 				SaveOptionsINI()
 				
-				AntiAlias Opt_AntiAlias
 				TextureLodBias TextureFloat#
 			EndIf
 			
@@ -8002,6 +8205,15 @@ Function DrawMenu()
 
 					y=y+50*MenuScale
 
+					ViewBobScale = SlideBar(x + 270*MenuScale, y+6*MenuScale,100*MenuScale, ViewBobScale*100, 6)/100
+					Color 255,255,255
+					Text(x, y, I_Loc\OptionName_Viewbob)
+					If (MouseOn(x+270*MenuScale,y+6*MenuScale,100*MenuScale+14,20) And OnSliderID=0) Lor OnSliderID=6
+						DrawOptionsTooltip(tx,ty,tw,th,"viewbob")
+					EndIf
+
+					y=y+50*MenuScale
+
 					Local SlideBarFOV# = FOV-40
 					SlideBarFOV = SlideBar(x + 270*MenuScale, y+6*MenuScale,100*MenuScale, SlideBarFOV*2.0, 4)/2.0
 					FOV = Int(SlideBarFOV+40)
@@ -8037,16 +8249,46 @@ Function DrawMenu()
 						DrawOptionsTooltip(tx,ty,tw,th,"soundvol",PrevSFXVolume)
 					EndIf
 					
-					y = y + 30*MenuScale
-					
-					Color 100,100,100
-					Text x, y, I_Loc\OptionName_Sfxautorelease
-					EnableSFXRelease = DrawTick(x + 270 * MenuScale, y + MenuScale, EnableSFXRelease,True)
-					If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
-						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"sfxautorelease")
+					y = y + 50*MenuScale
+
+					If HasDubbedAudio Then
+						Color 100,100,100
+						Text x, y, I_Loc\OptionName_LocalAudio
+						DubbedAudio = DrawTick(x + 270 * MenuScale, y + MenuScale, DubbedAudio, True)
+						If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+							DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"localaudio")
+						EndIf
+
+						UsesDubbedAudio = DubbedAudio
+						
+						y = y + 50*MenuScale
 					EndIf
 					
+					Color 255,255,255
+					Text x, y, I_Loc\OptionName_Subtitles
+					Local subtitlesWereEnabled = SubtitlesEnabled
+					SubtitlesEnabled = DrawTick(x + 270 * MenuScale, y + MenuScale, SubtitlesEnabled)
+					If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"subtitles")
+					EndIf
+					
+					If (Not SubtitlesEnabled) Then
+						ClosedCaptionsEnabled = False
+						If subtitlesWereEnabled Then ClearSubtitles() : RecalculateSubtitleBoxTarget()
+					EndIf
+
 					y = y + 30*MenuScale
+					
+					Color 255,255,255
+					Text x, y, I_Loc\OptionName_Closedcaptions
+					ClosedCaptionsEnabled = DrawTick(x + 270 * MenuScale, y + MenuScale, ClosedCaptionsEnabled)
+					If MouseOn(x+270*MenuScale,y+MenuScale,20*MenuScale,20*MenuScale) And OnSliderID=0
+						DrawOptionsTooltip(tx,ty,tw,th+220*MenuScale,"closedcaptions")
+					EndIf
+
+					If ClosedCaptionsEnabled Then SubtitlesEnabled = True
+					
+					y = y + 50*MenuScale
 					
 					Color 100,100,100
 					Text x, y, I_Loc\OptionName_Usertrack
@@ -8464,7 +8706,7 @@ Function DrawMenu()
 					MenuOpen = False
 					MainMenuOpen = True
 					MainMenuTab = 0
-					PrevSave = CurrSave
+					PrevSave = ""
 					CurrSave = ""
 					TimerStopped = True
 					FlushKeys()
@@ -8529,25 +8771,17 @@ Function LoadEntities()
 		TempSounds[i]=0
 	Next
 	
-	PauseMenuIMG% = LoadImage_Strict("GFX\menu\pausemenu.jpg")
-	ScaleImage PauseMenuIMG,MenuScale,MenuScale
+	PauseMenuIMG% = LoadImage_Strict("GFX\menu\pausemenu.jpg", MenuScale)
 	
-	SprintIcon% = LoadImage_Strict("GFX\sprinticon.png")
-	ScaleImage(SprintIcon, HUDScale, HUDScale)
-	BlinkIcon% = LoadImage_Strict("GFX\blinkicon.png")
-	ScaleImage(BlinkIcon, HUDScale, HUDScale)
-	CrouchIcon% = LoadImage_Strict("GFX\sneakicon.png")
-	ScaleImage(CrouchIcon, HUDScale, HUDScale)
-	HandIcon% = LoadImage_Strict("GFX\handsymbol.png")
-	ScaleImage(HandIcon, HUDScale, HUDScale)
-	HandIcon2% = LoadImage_Strict("GFX\handsymbol2.png")
-	ScaleImage(HandIcon2, HUDScale, HUDScale)
+	SprintIcon% = LoadImage_Strict("GFX\sprinticon.png", HUDScale)
+	BlinkIcon% = LoadImage_Strict("GFX\blinkicon.png", HUDScale)
+	CrouchIcon% = LoadImage_Strict("GFX\sneakicon.png", HUDScale)
+	HandIcon% = LoadImage_Strict("GFX\handsymbol.png", HUDScale)
+	HandIcon2% = LoadImage_Strict("GFX\handsymbol2.png", HUDScale)
 
-	StaminaMeterIMG% = LoadImage_Strict("GFX\staminameter.jpg")
-	ScaleImage(StaminaMeterIMG, HUDScale, HUDScale)
+	StaminaMeterIMG% = LoadImage_Strict("GFX\staminameter.png", HUDScale)
 
-	Panel294 = LoadImage_Strict("GFX\294panel.jpg")
-	ScaleImage(Panel294, HUDScale, HUDScale)
+	Panel294 = LoadImage_Strict("GFX\294panel.jpg", HUDScale)
 
 	Load294()
 
@@ -8635,6 +8869,8 @@ Function LoadEntities()
 	HideEntity(NVBlink)
 	
 	FogNVTexture = LoadTexture_Strict("GFX\fogNV.jpg", 1)
+
+	LoadSubtitleEntities()
 	
 	DrawLoading(5)
 	
@@ -9058,6 +9294,7 @@ Function InitNewGame()
 	
 	PlayTime = 0
 	TimerStopped = False
+	PreMadeSaveLoaded = False
 
 	HideDistance# = 15.0
 	
@@ -9555,7 +9792,9 @@ Function NullGame(playbuttonsfx%=True)
 	DeafPlayer% = False
 	DeafTimer# = 0.0
 	
-	GuaranteedOmni% = False
+	If GuaranteedOmni <> 2 Then GuaranteedOmni = False Else UsedConsole = True
+
+	If ShowMap <> 2 Then ShowMap = False Else UsedConsole = True
 
 	IsZombie% = False
 	
@@ -9594,7 +9833,7 @@ Function PlaySound2%(SoundHandle%, cam%, entity%, range# = 10, volume# = 1.0)
 			Local panvalue# = Sin(-DeltaYaw(cam,entity))
 			soundchn% = PlaySound_Strict (SoundHandle)
 			
-			ChannelVolume(soundchn, volume# * (1 - dist#)*SFXVolume#)
+			UpdateChannelVolumeWithSubtitles(soundchn, volume# * (1 - dist#))
 			ChannelPan(soundchn, panvalue)			
 		EndIf
 	EndIf
@@ -9618,12 +9857,12 @@ Function LoopSound2%(SoundHandle%, Chn%, cam%, entity%, range# = 10, volume# = 1
 				If (Not ChannelPlaying(Chn)) Then Chn% = PlaySound_Strict (SoundHandle)
 			EndIf
 			
-			ChannelVolume(Chn, volume# * (1 - dist#)*SFXVolume#)
+			UpdateChannelVolumeWithSubtitles(Chn, volume# * (1 - dist#))
 			ChannelPan(Chn, panvalue)
 		;EndIf
 	Else
 		If Chn <> 0 Then
-			ChannelVolume (Chn, 0)
+			UpdateChannelVolumeWithSubtitles(Chn, 0)
 		EndIf 
 	EndIf
 	
@@ -9693,14 +9932,14 @@ Function PauseSounds()
 	For e.events = Each Events
 		If e\soundchn <> 0 Then
 			If (Not e\soundchn_isstream)
-				PauseChannel(e\soundchn)
+				PauseChannelWithSubtitles(e\soundchn)
 			Else
 				SetStreamPaused_Strict(e\soundchn,True)
 			EndIf
 		EndIf
 		If e\soundchn2 <> 0 Then
 			If (Not e\soundchn2_isstream)
-				PauseChannel(e\soundchn2)
+				PauseChannelWithSubtitles(e\soundchn2)
 			Else
 				SetStreamPaused_Strict(e\soundchn2,True)
 			EndIf
@@ -9710,14 +9949,14 @@ Function PauseSounds()
 	For n.npcs = Each NPCs
 		If n\soundchn <> 0 Then
 			If (Not n\soundchn_isstream)
-				PauseChannel(n\soundchn)
+				PauseChannelWithSubtitles(n\soundchn)
 			Else
 				SetStreamPaused_Strict(n\soundchn,True)
 			EndIf
 		EndIf
 		If n\soundchn2 <> 0 Then
 			If (Not n\soundchn2_isstream)
-				PauseChannel(n\soundchn2)
+				PauseChannelWithSubtitles(n\soundchn2)
 			Else
 				SetStreamPaused_Strict(n\soundchn2,True)
 			EndIf
@@ -9726,30 +9965,30 @@ Function PauseSounds()
 	
 	For d.doors = Each Doors
 		If d\soundchn <> 0 Then
-			PauseChannel(d\soundchn)
+			PauseChannelWithSubtitles(d\soundchn)
 		EndIf
 	Next
 	
 	For dem.DevilEmitters = Each DevilEmitters
 		If dem\soundchn <> 0 Then
-			PauseChannel(dem\soundchn)
+			PauseChannelWithSubtitles(dem\soundchn)
 		EndIf
 	Next
 	
 	If AmbientSFXCHN <> 0 Then
-		PauseChannel(AmbientSFXCHN)
+		PauseChannelWithSubtitles(AmbientSFXCHN)
 	EndIf
 	
 	If BreathCHN <> 0 Then
-		PauseChannel(BreathCHN)
+		PauseChannelWithSubtitles(BreathCHN)
 	EndIf
 	
 	If CoughCHN <> 0 Then
-		PauseChannel(CoughCHN)
+		PauseChannelWithSubtitles(CoughCHN)
 	EndIf
 	
 	If VomitCHN <> 0 Then
-		PauseChannel(VomitCHN)
+		PauseChannelWithSubtitles(VomitCHN)
 	EndIf
 	
 	If IntercomStreamCHN <> 0
@@ -9761,14 +10000,14 @@ Function ResumeSounds()
 	For e.events = Each Events
 		If e\soundchn <> 0 Then
 			If (Not e\soundchn_isstream)
-				ResumeChannel(e\soundchn)
+				ResumeChannelWithSubtitles(e\soundchn)
 			Else
 				SetStreamPaused_Strict(e\soundchn,False)
 			EndIf
 		EndIf
 		If e\soundchn2 <> 0 Then
 			If (Not e\soundchn2_isstream)
-				ResumeChannel(e\soundchn2)
+				ResumeChannelWithSubtitles(e\soundchn2)
 			Else
 				SetStreamPaused_Strict(e\soundchn2,False)
 			EndIf
@@ -9778,14 +10017,14 @@ Function ResumeSounds()
 	For n.npcs = Each NPCs
 		If n\soundchn <> 0 Then
 			If (Not n\soundchn_isstream)
-				ResumeChannel(n\soundchn)
+				ResumeChannelWithSubtitles(n\soundchn)
 			Else
 				SetStreamPaused_Strict(n\soundchn,False)
 			EndIf
 		EndIf
 		If n\soundchn2 <> 0 Then
 			If (Not n\soundchn2_isstream)
-				ResumeChannel(n\soundchn2)
+				ResumeChannelWithSubtitles(n\soundchn2)
 			Else
 				SetStreamPaused_Strict(n\soundchn2,False)
 			EndIf
@@ -9794,30 +10033,30 @@ Function ResumeSounds()
 	
 	For d.doors = Each Doors
 		If d\soundchn <> 0 Then
-			ResumeChannel(d\soundchn)
+			ResumeChannelWithSubtitles(d\soundchn)
 		EndIf
 	Next
 	
 	For dem.DevilEmitters = Each DevilEmitters
 		If dem\soundchn <> 0 Then
-			ResumeChannel(dem\soundchn)
+			ResumeChannelWithSubtitles(dem\soundchn)
 		EndIf
 	Next
 	
 	If AmbientSFXCHN <> 0 Then
-		ResumeChannel(AmbientSFXCHN)
+		ResumeChannelWithSubtitles(AmbientSFXCHN)
 	EndIf	
 	
 	If BreathCHN <> 0 Then
-		ResumeChannel(BreathCHN)
+		ResumeChannelWithSubtitles(BreathCHN)
 	EndIf
 	
 	If CoughCHN <> 0 Then
-		ResumeChannel(CoughCHN)
+		ResumeChannelWithSubtitles(CoughCHN)
 	EndIf
 	
 	If VomitCHN <> 0 Then
-		ResumeChannel(VomitCHN)
+		ResumeChannelWithSubtitles(VomitCHN)
 	EndIf
 	
 	If IntercomStreamCHN <> 0
@@ -9914,6 +10153,8 @@ Function KillSounds()
 			EndIf
 		Next
 	Next
+
+	ClearSubtitles()
 	
 	DebugLog "Terminated all sounds"
 	
@@ -9976,7 +10217,7 @@ Function GetStepSound(entity%)
     Return 0
 End Function
 
-Function UpdateSoundOrigin2(Chn%, cam%, entity%, range# = 10, volume# = 1.0)
+Function UpdateSoundOrigin(Chn%, cam%, entity%, range# = 10, volume# = 1.0, isSFX = True)
 	If Chn <> 0 Then
 		If ChannelPlaying(Chn) Then
 			range# = Max(range,1.0)
@@ -9988,37 +10229,13 @@ Function UpdateSoundOrigin2(Chn%, cam%, entity%, range# = 10, volume# = 1.0)
 					
 					Local panvalue# = Sin(-DeltaYaw(cam,entity))
 					
-					ChannelVolume(Chn, volume# * (1 - dist#))
+					UpdateChannelVolumeWithSubtitles(Chn, volume# * (1 - dist#), False, isSFX)
 					ChannelPan(Chn, panvalue)
 				Else
-					ChannelVolume (Chn, 0)
+					UpdateChannelVolumeWithSubtitles(Chn, 0)
 				EndIf
 			Else
-				ChannelVolume (Chn, 0)
-			EndIf
-		EndIf
-	EndIf
-End Function
-
-Function UpdateSoundOrigin(Chn%, cam%, entity%, range# = 10, volume# = 1.0)
-	If Chn <> 0 Then
-		If ChannelPlaying(Chn) Then
-			range# = Max(range,1.0)
-			
-			If volume>0 Then
-				
-				Local dist# = EntityDistance(cam, entity) / range#
-				If 1 - dist# > 0 And 1 - dist# < 1 Then
-					
-					Local panvalue# = Sin(-DeltaYaw(cam,entity))
-					
-					ChannelVolume(Chn, volume# * (1 - dist#)*SFXVolume#)
-					ChannelPan(Chn, panvalue)
-				Else
-					ChannelVolume (Chn, 0)
-				EndIf
-			Else
-				ChannelVolume (Chn, 0)
+				UpdateChannelVolumeWithSubtitles(Chn, 0)
 			EndIf
 		EndIf
 	EndIf
@@ -10264,7 +10481,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					EndIf
 			End Select
 			RemoveItem(item)
-		Case "firstaid", "firstaid2" ; TODO Missing small and very fine
+		Case "firstaid", "firstaid2", "finefirstaid", "veryfinefirstaid"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.005, z, 90, Rand(360), 0)
@@ -10528,7 +10745,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 				Case "1:1"
 					it2 = CreateItem("cigarette", x, y, z)
 				Case "fine"
-					it2 = CreateItem("join", x, y, z)
+					it2 = CreateItem("joint", x, y, z)
 				Case "very fine"
 					it2 = CreateItem("smellyjoint", x, y, z)
 			End Select
@@ -10797,11 +11014,11 @@ Function Use294()
 			
 			If ytemp => 0 And ytemp < Keyboard294Height Then
 				If xtemp => 0 And xtemp < Keyboard294Width Then
-					PlaySound_Strict ButtonSFX
 
 					Local oldLayer = Keyboard294ActiveLayer
 
 					strtemp = ""
+					Local wasKeyPressed% = True
 					Local pressedKey$ = Keyboard294(Keyboard294ActiveLayer, xtemp, ytemp)
 					Select pressedKey
 						Case "SPACE"
@@ -10814,6 +11031,8 @@ Function Use294()
 							Keyboard294ActiveLayer = (Keyboard294ActiveLayer + 1) Mod Keyboard294Layers
 						Case "LAYER_DOWN"
 							Keyboard294ActiveLayer = (Keyboard294ActiveLayer - 1 + Keyboard294Layers) Mod Keyboard294Layers
+						Case "DEAD"
+							wasKeyPressed = False
 						Default
 							If Left(pressedKey, 10) = "LAYER_SET_" Then
 								Keyboard294ActiveLayer = Int(Right(pressedKey, Len(pressedKey) - 10))
@@ -10822,7 +11041,9 @@ Function Use294()
 							EndIf
 					End Select
 
-					If Keyboard294ResetLayerOnInput And oldLayer = Keyboard294ActiveLayer Then Keyboard294ActiveLayer = 0
+					If wasKeyPressed And Keyboard294ResetLayerOnInput And oldLayer = Keyboard294ActiveLayer Then Keyboard294ActiveLayer = 0
+
+					If wasKeyPressed PlaySound_Strict ButtonSFX
 				EndIf
 			EndIf
 			
@@ -11312,14 +11533,19 @@ Function Distance#(x1#, y1#, x2#, y2#)
 End Function
 
 
-Function CurveValue#(number#, old#, smooth#)
-	If FPSfactor = 0 Then Return old
+Function CurveValue#(number#, old#, smooth#, factor#)
+
+	If factor = 0 Then Return old
 	
 	If number < old Then
-		Return Max(old + (number - old) * (1.0 / smooth * FPSfactor), number)
+		Return Max(old + (number - old) * (1.0 / smooth * factor), number)
 	Else
-		Return Min(old + (number - old) * (1.0 / smooth * FPSfactor), number)
+		Return Min(old + (number - old) * (1.0 / smooth * factor), number)
 	EndIf
+End Function
+
+Function CurveValue#(number#, old#, smooth#)
+	Return CurveValue(number, old, smooth, FPSfactor)
 End Function
 
 Function CurveAngle#(val#, old#, smooth#)
@@ -11783,6 +12009,7 @@ Function SaveOptionsINI()
 	PutINIValue(OptionFile, "general", "numeric seeds", UseNumericSeeds%)
 	PutINIValue(OptionFile, "controls", "mouse smoothing", MouseSmooth)
 	PutINIValue(OptionFile, "graphics", "hud offset", HUDOffsetScale)
+	PutINIValue(OptionFile, "graphics", "view bob", ViewBobScale)
 	PutINIValue(OptionFile, "graphics", "fov", FOV)
 	
 	PutINIValue(OptionFile, "audio", "music volume", MusicVolume)
@@ -11790,6 +12017,9 @@ Function SaveOptionsINI()
 	PutINIValue(OptionFile, "audio", "sfx release", EnableSFXRelease)
 	PutINIValue(OptionFile, "audio", "enable user tracks", EnableUserTracks%)
 	PutINIValue(OptionFile, "audio", "user track setting", UserTrackMode%)
+	PutINIValue(OptionFile, "audio", "dubbed audio", DubbedAudio)
+	PutINIValue(OptionFile, "audio", "subtitles", SubtitlesEnabled)
+	PutIniValue(OptionFile, "audio", "closed captions", ClosedCaptionsEnabled)
 	
 	PutINIValue(OptionFile, "binds", "Right key", KEY_RIGHT)
 	PutINIValue(OptionFile, "binds", "Left key", KEY_LEFT)
@@ -11883,7 +12113,6 @@ Function Graphics3DExt%(width%,height%,depth%=32,mode%=2)
 		SMALLEST_POWER_TWO = SMALLEST_POWER_TWO * 2.0
 	Wend
 	InitFastResize()
-	AntiAlias GetOptionInt("graphics","antialias")
 	;TextureAnisotropy% (GetOptionInt("graphics","anisotropy"),-1)
 End Function
 
@@ -12155,7 +12384,7 @@ Function IsItemGoodFor1162(itt.ItemTemplates)
 	If itt\group = "paper" Then
 		;if the item is a paper, only allow spawning it if the name contains the word "note" or "log"
 		;(because those are items created recently, which D-9341 has most likely never seen)
-		Return ((Not Instr(itt\name, "note")) And (Not Instr(itt\name, "log"))) And (Not Instr(itt\name, "docL")) And itt\name <> "docDan" And itt\name <> "docStrange" And itt\name <> "doc106_2" And itt\name <> "leaflet"
+		Return ((Not Instr(itt\name, "note")) And (Not Instr(itt\name, "log"))) And (Not Instr(itt\name, "docL")) And itt\name <> "docDan" And itt\name <> "docStrange" And itt\name <> "doc106_2" And itt\name <> "leaflet" And itt\name <> "drawing"
 	EndIf
 	Select itt\name
 		Case "key1", "key2", "key3"
@@ -12250,11 +12479,11 @@ Function CheckTriggers$()
 End Function
 
 Function ScaledMouseX%()
-	Return Float(MouseX()-(RealGraphicWidth*0.5*(1.0-AspectRatioRatio)))*Float(GraphicWidth)/Float(RealGraphicWidth*AspectRatioRatio)
+	Return Float(MouseX()-ScaledOffsetX)/ScaledGraphicWidth*GraphicWidth
 End Function
 
 Function ScaledMouseY%()
-	Return Float(MouseY())*Float(GraphicHeight)/Float(RealGraphicHeight)
+	Return Float(MouseY()-ScaledOffsetY)/ScaledGraphicHeight*GraphicHeight
 End Function
 
 Function PlayAnnouncement(file$) ;This function streams the announcement currently playing

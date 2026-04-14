@@ -1523,6 +1523,8 @@ Type RoomTemplates
 	Field Commonness%, Large%
 	Field SetRoom#, SetRoomPriority%
 	Field DisableDecals%
+
+	Field R%, G%, B%
 	
 	Field TempTriggerboxAmount
 	Field TempTriggerbox[128]
@@ -1572,6 +1574,8 @@ Function CreateRoomTemplate.RoomTemplates(name$)
 	rt\SetRoom = -1
 
 	rt\Name = Lower(name)
+
+	rt\R = 255 : rt\G = 255 : rt\B = 255
 	
 	rt\id = RoomTempID
 	RoomTempID=RoomTempID+1
@@ -1620,6 +1624,9 @@ Function LoadRoomTemplates(file$)
 				Case "disable decals", "disabledecals" rt\DisableDecals = ParseINIInt(value)
 				Case "use volume lighting", "usevolumelighting" rt\UseLightCones = ParseINIInt(value)
 				Case "disable overlap check", "disableoverlapcheck" rt\DisableOverlapCheck = ParseINIInt(value)
+				Case "r" rt\R = Int(value)
+				Case "g" rt\G = Int(value)
+				Case "b" rt\B = Int(value)
 			End Select
 		EndIf
 	Wend
@@ -2079,7 +2086,7 @@ Function FillRoom(r.Rooms)
 			;doors to observation booth
 			d = CreateDoor(r\zone, r\x + 928.0 * RoomScale,0,r\z + 640.0 * RoomScale,0,r,False,False,False,"ABCD")
 			d = CreateDoor(r\zone, r\x + 928.0 * RoomScale,0,r\z - 640.0 * RoomScale,0,r,True,False,False,"ABCD")
-			d\AutoClose = False
+			d\AutoClose = False : d\MTFClose = False
 			
 			;doors to the room itself
 			d = CreateDoor(r\zone, r\x+416.0*RoomScale,0,r\z - 640.0 * RoomScale,0,r,False,False,1)
@@ -2811,6 +2818,7 @@ Function FillRoom(r.Rooms)
 			PositionEntity(r\RoomDoors[0]\buttons[0], r\x - 416.0 * RoomScale, EntityY(r\RoomDoors[0]\buttons[0],True), r\z + 176.0 * RoomScale,True)
 			FreeEntity r\RoomDoors[0]\buttons[1] : r\RoomDoors[0]\buttons[1] = 0
 			r\RoomDoors[0]\AutoClose = False : r\RoomDoors[0]\open = False : r\RoomDoors[0]\locked = True	
+			r\RoomDoors[0]\MTFClose = False 
 			
 			de.Decals = CreateDecal(0, r\x - 808.0 * RoomScale, 0.005, r\z - 72.0 * RoomScale, 90, Rand(360), 0)
 			EntityParent(de\obj, r\obj)
@@ -5166,10 +5174,12 @@ Function FillRoom(r.Rooms)
 			;Doors for room
 			r\RoomDoors[0] = CreateDoor(r\zone,r\x+480.0*RoomScale,r\y,r\z-640.0*RoomScale,90,r,False,False,3)
 			r\RoomDoors[0]\AutoClose = False
+			r\RoomDoors[0]\MTFClose = False
 			PositionEntity r\RoomDoors[0]\buttons[0],r\x+576.0*RoomScale,EntityY(r\RoomDoors[0]\buttons[0],True),r\z-480*RoomScale,True
 			RotateEntity r\RoomDoors[0]\buttons[0],0,270,0
 			r\RoomDoors[1] = CreateDoor(r\zone,r\x+544.0*RoomScale,r\y+480.0*RoomScale,r\z+256.0*RoomScale,270,r,False,False,3)
 			r\RoomDoors[1]\AutoClose = False
+			r\RoomDoors[1]\MTFClose = False
 			FreeEntity r\RoomDoors[1]\obj2 : r\RoomDoors[1]\obj2 = 0
 			d = CreateDoor(r\zone,r\x+1504.0*RoomScale,r\y+480.0*RoomScale,r\z+960.0*RoomScale,0,r)
 			d\AutoClose = False : d\locked = True
@@ -6082,8 +6092,7 @@ Function UpdateScreens()
 					If MouseUp1 Then 
 						SelectedScreen=s
 						SelectedItem = Null
-						s\img = LoadImage_Strict("GFX\screens\"+s\imgpath)
-						ScaleImage(s\img, MenuScale, MenuScale)
+						s\img = LoadImage_Strict("GFX\screens\"+s\imgpath, MenuScale)
 						PlaySound_Strict ButtonSFX
 						MouseUp1=False
 					EndIf
@@ -7054,7 +7063,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	;force more room4s and room2Cs
 	For i = 0 To 2
 		
-		If i = 2 Then y_min = 2 Else y_min = I_Zone\Transition[i]
+		If i = 2 Then y_min = 1 Else y_min = I_Zone\Transition[i]
 		If i = 0 Then y_max = MapHeight - 2 Else y_max = I_Zone\Transition[i - 1] - 2
 		x_min = 1
 		x_max = MapWidth - 2
@@ -7079,7 +7088,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							Case (MapTemp(x,y+1) Or MapTemp(x+1,y+1) Or MapTemp(x-1,y+1) Or MapTemp(x,y+2) Or (i=0 And y=y_max))
 								MapTemp(x,y+1)=1
 								placed=True
-							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTemp(x,y-2) Or (i<2 And y=y_min))
+							Case (MapTemp(x,y-1) Or MapTemp(x+1,y-1) Or MapTemp(x-1,y-1) Or MapTempSafe(x,y-2) Or (i<2 And y=y_min))
 								MapTemp(x,y-1)=1
 								placed=True
 						End Select
@@ -7112,7 +7121,7 @@ Function CreateMap(loadingstart,loadingcount#)
 						Select True ;see if adding some rooms is possible
 							Case MapTemp(x-1,y)>0
 								If (MapTemp(x+1,y-1)+MapTemp(x+1,y+1)+MapTemp(x+2,y))=0 And x<x_max Then
-									If (MapTemp(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
+									If (MapTempSafe(x+1,y-2)+MapTemp(x+2,y-1))=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x+1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x+1)+", "+(y)+")"
@@ -7128,7 +7137,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								EndIf
 							Case MapTemp(x+1,y)>0
 								If (x-2<0 Lor MapTemp(x-2,y)=0) And (MapTemp(x-1,y-1)+MapTemp(x-1,y+1))=0 And x>x_min Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And (y>y_min Or i=2) Then
 										MapTemp(x,y)=2
 										MapTemp(x-1,y)=2
 										DebugLog "ROOM2C forced into slot ("+(x-1)+", "+(y)+")"
@@ -7159,14 +7168,14 @@ Function CreateMap(loadingstart,loadingcount#)
 									EndIf
 								EndIf
 							Case MapTemp(x,y+1)>0
-								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTemp(x,y-2))=0 And (y>y_min Or i=2) Then
-									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTemp(x-1,y-2)=0 And x>x_min Then
+								If (MapTemp(x-1,y-1)+MapTemp(x+1,y-1)+MapTempSafe(x,y-2))=0 And (y>y_min Or i=2) Then
+									If (x-2<0 Lor MapTemp(x-2,y-1)=0) And MapTempSafe(x-1,y-2)=0 And x>x_min Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
 										MapTemp(x-1,y-1)=1
 										placed=True
-									Else If (MapTemp(x+2,y-1)+MapTemp(x+1,y-2))=0 And x<x_max Then
+									Else If (MapTemp(x+2,y-1)+MapTempSafe(x+1,y-2))=0 And x<x_max Then
 										MapTemp(x,y)=2
 										MapTemp(x,y-1)=2
 										DebugLog "ROOM2C forced into slot ("+(x)+", "+(y-1)+")"
@@ -7246,7 +7255,7 @@ Function CreateMap(loadingstart,loadingcount#)
 	
 	temp = 0
 	Local r.Rooms, spacing# = 8.0
-	For y = MapHeight - 1 To 1 Step - 1
+	For y = MapHeight - 1 To 0 Step - 1
 		DrawLoading(loadingstart + Float(MapHeight - 1 - y) / (MapHeight - 1) * loadingcount)
 		
 		;zone% = GetZone(y)
@@ -7269,7 +7278,7 @@ Function CreateMap(loadingstart,loadingcount#)
 			ElseIf MapTemp(x, y) > 0
 				Local angle%
 
-				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTemp(x, y - 1),1)
+				temp = Min(MapTemp(x + 1, y),1) + Min(MapTemp(x - 1, y),1) + Min(MapTemp(x, y + 1),1) + Min(MapTempSafe(x, y - 1),1)
 				
 				Select temp ;viereisiss� ruuduissa olevien huoneiden m��r�
 					Case 1
@@ -7296,7 +7305,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If Rand(2) = 1 Then angle = 90 Else angle = 270
 							r = CreateRoom(zone, ROOM2, x * 8, 0, y * 8, angle, MapName(x, y))
 							MapRoomID(ROOM2)=MapRoomID(ROOM2)+1
-						ElseIf MapTemp(x, y - 1)>0 And MapTemp(x, y + 1)>0
+						ElseIf MapTempSafe(x, y - 1)>0 And MapTemp(x, y + 1)>0
 							If MapRoomID(ROOM2) < MaxRooms And MapName(x,y) = ""  Then
 								If MapRoom(ROOM2, MapRoomID(ROOM2)) <> "" Then MapName(x, y) = MapRoom(ROOM2, MapRoomID(ROOM2))	
 							EndIf
@@ -7312,7 +7321,7 @@ Function CreateMap(loadingstart,loadingcount#)
 								angle = 180
 							ElseIf MapTemp(x + 1, y)>0 And MapTemp(x, y + 1)>0
 								angle = 90
-							ElseIf MapTemp(x - 1, y)>0 And MapTemp(x, y - 1)>0
+							ElseIf MapTemp(x - 1, y)>0 And MapTempSafe(x, y - 1)>0
 								angle = 270
 							Else
 								angle = 0
@@ -7325,7 +7334,7 @@ Function CreateMap(loadingstart,loadingcount#)
 							If MapRoom(ROOM3, MapRoomID(ROOM3)) <> "" Then MapName(x, y) = MapRoom(ROOM3, MapRoomID(ROOM3))	
 						EndIf
 						
-						If (Not MapTemp(x, y - 1)) Then
+						If (Not MapTempSafe(x, y - 1)) Then
 							angle = 180
 						ElseIf (Not MapTemp(x - 1, y))
 							angle = 90
@@ -7580,6 +7589,14 @@ Function CreateMap(loadingstart,loadingcount#)
 		Next
 	Next
 	
+End Function
+
+; Really, really stupid bandaid fix!
+; We basically need to allow the room2c forcing to consider extending rooms on y=1, which means they'll be pushed
+; up to y=0. This requires bounds checking for a select amount of checks that deal with checking y-1.
+Function MapTempSafe(x%,y%)
+	If x<0 Or y<0 Or x>MapWidth Or y>MapHeight Then Return 0
+	Return MapTemp(x,y)
 End Function
 
 Function SetRoom(room_name$,room_type%,pos%,min_pos%,max_pos%) ;place a room without overwriting others

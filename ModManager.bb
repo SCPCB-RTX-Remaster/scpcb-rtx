@@ -1,5 +1,6 @@
 Type ActiveMods
     Field Path$
+    Field IsLocale%
 End Type
 
 Type Mods
@@ -133,6 +134,8 @@ End Function
 Const LOCALIZATIONS_DIR$ = "Localization\"
 
 Function UpdateActiveMods()
+    HasDubbedAudio = False
+
     Local txt$
     Delete Each ActiveMods
     Local mm.ActiveMods
@@ -141,10 +144,20 @@ Function UpdateActiveMods()
     If locale <> "" And FileType(LOCALIZATIONS_DIR + locale) = 2 Then
         mm = New ActiveMods
         mm\Path = LOCALIZATIONS_DIR + locale + "\"
+        mm\IsLocale = True
+        If FileType(mm\Path + "SFX") = 2 Then HasDubbedAudio = True
         txt = "locale " + locale
     EndIf
     For m.Mods = Each Mods
         If m\IsActive Then
+            If locale <> "" And FileType(m\Path + LOCALIZATIONS_DIR + locale) = 2 Then
+                mm.ActiveMods = New ActiveMods
+                mm\Path = m\Path + LOCALIZATIONS_DIR + locale + "\"
+                mm\IsLocale = True
+                If FileType(mm\Path + "SFX") = 2 Then HasDubbedAudio = True
+                If txt <> "" Then txt = txt + ", "
+                txt = txt + m\Id + " locale " + locale
+            EndIf
             mm.ActiveMods = New ActiveMods
             mm\Path = m\Path
             If txt <> "" Then txt = txt + ", "
@@ -152,6 +165,8 @@ Function UpdateActiveMods()
         EndIf
     Next
     SetErrorMsg(10, "Active mods: " + txt)
+
+    UsesDubbedAudio = HasDubbedAudio And DubbedAudio
 End Function
 
 Function LoadModdedTextureNonStrict%(file$, flags%)
@@ -179,7 +194,19 @@ Function LoadModdedTextureNonStrict%(file$, flags%)
 		Next
 	Next
 
-    Return LoadTexture(file, flags)
+    tmp = LoadTexture(file, flags)
+    If tmp <> 0 Then Return tmp
+
+    For i = 0 To ImageExtensionCount-1
+        usedExtension$ = ImageExtensions[i]
+        Local path$ = fileNoExt + usedExtension
+        If FileType(path) = 1 Then
+            tmp = LoadTexture(path, flags)
+            If tmp <> 0 Then Return tmp
+        EndIf
+    Next
+
+    Return 0
 End Function
 
 Function LoadModdedMeshNonStrict%(File$, parent%=0)

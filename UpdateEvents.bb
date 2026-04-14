@@ -92,6 +92,8 @@ Function UpdateEvents()
 							;EntityTexture e\room\NPC[1]\obj, tex
 							;FreeTexture tex
 							ChangeNPCTextureID(e\room\NPC[1],3)
+						Else
+							EntityType e\room\NPC[1]\Collider, HIT_DEAD
 						EndIf
 						PositionEntity e\room\NPC[1]\Collider, e\room\x, 0.5, e\room\z-1.0, True
 						ResetEntity e\room\NPC[1]\Collider
@@ -1205,16 +1207,18 @@ Function UpdateEvents()
 									MoveEntity e\room\NPC[2]\Collider, 0,0,-0.01*FPSfactor
 									
 									;Guard WTF
-									e\room\NPC[0]\State = 12
-									If e\room\NPC[0]\Sound<>0
-										StopChannel(e\room\NPC[0]\SoundChn)
-										FreeSound_Strict(e\room\NPC[0]\Sound)
-										e\room\NPC[0]\Sound = 0
+									If e\room\NPC[0]\State2 <> 0 Then
+										e\room\NPC[0]\State = 12
+										If e\room\NPC[0]\Sound<>0
+											StopChannel(e\room\NPC[0]\SoundChn)
+											FreeSound_Strict(e\room\NPC[0]\Sound)
+											e\room\NPC[0]\Sound = 0
+										EndIf
+										e\room\NPC[0]\Angle = 180
+										e\room\NPC[0]\Sound = LoadSound_Strict("SFX\Room\Intro\Guard\Balcony\WTF"+Rand(1,2)+".ogg")
+										e\room\NPC[0]\SoundChn = PlaySound2(e\room\NPC[0]\Sound,Camera,e\room\NPC[0]\Collider,20)
+										e\room\NPC[0]\State2 = 0
 									EndIf
-									e\room\NPC[0]\Angle = 180
-									e\room\NPC[0]\Sound = LoadSound_Strict("SFX\Room\Intro\Guard\Balcony\WTF"+Rand(1,2)+".ogg")
-									e\room\NPC[0]\SoundChn = PlaySound2(e\room\NPC[0]\Sound,Camera,e\room\NPC[0]\Collider,20)
-									e\room\NPC[0]\State2 = 0
 								Else
 									Animate2(e\room\NPC[1]\obj, AnimTime(e\room\NPC[1]\obj), 0, 19, 0.2, False)
 									If e\room\NPC[2]\Sound=0 Then 
@@ -1581,16 +1585,14 @@ Function UpdateEvents()
 					CoffinDistance = EntityDistance(Collider, e\room\Objects[1])
 					If CoffinDistance < 1.5 Then 
 						GiveAchievement(Achv895)
-						If (Not Contained106) And e\EventName="coffin106" And e\EventState2 = 0 Then
+						If (Not Contained106) And e\EventName="coffin106" And e\EventState2 = 0 And Curr106\State > 0 Then
 							de.Decals = CreateDecal(0, EntityX(e\room\Objects[1],True), -1531.0*RoomScale, EntityZ(e\room\Objects[1],True), 90, Rand(360), 0)
 							de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals()
-							
-							If Curr106\State > 0 Then
-								PositionEntity Curr106\Collider, EntityX(e\room\Objects[1],True), -10240*RoomScale, EntityZ(e\room\Objects[1],True)
-								Curr106\State = -0.1
-								ShowEntity Curr106\obj
-								e\EventState2 = 1
-							EndIf
+
+							PositionEntity Curr106\Collider, EntityX(e\room\Objects[1],True), -10240*RoomScale, EntityZ(e\room\Objects[1],True)
+							Curr106\State = -0.1
+							ShowEntity Curr106\obj
+							e\EventState2 = 1
 						EndIf
 					ElseIf CoffinDistance < 3.0 Then
 						If e\room\NPC[0]=Null Then
@@ -6849,6 +6851,9 @@ dp\camroll = 0.0
 							SetAnimTime e\room\Objects[7],297
 							e\EventState = 1
 						EndIf
+					EndIf
+					
+					If e\EventState > 0 Then
 						If EntityDistance(Collider, e\room\Objects[6]) < 2.5 And e\EventState > 0 Then
 							PlaySound_Strict(LoadTempSound("SFX\SCP\079\TestroomWarning.ogg"))
 							For i = 0 To 5
@@ -6908,19 +6913,15 @@ dp\camroll = 0.0
 				;[End Block]
 			Case "tunnel2"
 				;[Block]
-				If PlayerRoom = e\room Then
+				If PlayerRoom = e\room And e\EventState = 0 Then
 					If Curr173\Idle > 1 Lor EntityDistance(Collider, Curr173\Collider) < 8 Then
 						RemoveEvent(e)
 						Exit
-					Else		
-						If e\EventState = 0 Then
-							If Distance(EntityX(Collider), EntityZ(Collider), EntityX(e\room\obj), EntityZ(e\room\obj)) < 3.5 Then
-								PlaySound_Strict(LightSFX)
-								
-								LightBlink = Rnd(0.0,1.0)*(e\EventState/200)
-								e\EventState = 1
-							End If
-						End If	
+					Else If Distance(EntityX(Collider), EntityZ(Collider), EntityX(e\room\obj), EntityZ(e\room\obj)) < 3.5 Then
+						PlaySound_Strict(LightSFX)
+						
+						LightBlink = Rnd(0.0,1.0)*(e\EventState/200)
+						e\EventState = 1
 					EndIf
 				EndIf
 				
@@ -8639,8 +8640,8 @@ dp\camroll = 0.0
 End Function
 
 Function UpdateDimension1499()
-	; Saving while wearing 1499 in the PD causes very weird behavior, bandaid fix.
-	If NTF_1499PrevRoom\RoomTemplate\Name = "pocketdimension" Then CanSave = False
+	; Saving while wearing 1499 in the PD, 860 or the 1123 cutscene causes very weird behavior, bandaid fix.
+	If NTF_1499PrevRoom\RoomTemplate\Name = "pocketdimension" Lor NTF_1499PrevRoom\RoomTemplate\Name = "room860" Lor NTF_1499PrevRoom\RoomTemplate\Name = "room1123" Then CanSave = False
 
 	Local e.Events,n.NPCs,n2.NPCs,r.Rooms,it.Items,i%,j%,du.Dummy1499,du2.Dummy1499,temp%,scale#,x%,y%
 	

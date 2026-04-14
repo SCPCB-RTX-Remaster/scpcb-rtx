@@ -6,6 +6,7 @@
 		CommanderMark
 		Jesse Ludtke ("MonocleBios")
 		Juan Pablo Arce ("Juanjpro")
+		Kacey Roberts
 		Luggs123
 		Nikita Sidorov ("Jabka")
 		Quote
@@ -116,6 +117,7 @@
 
 		Agent G
 		Euclid Labs
+		Femcube Zero
 		Gage Allen ("Lotims")
 		Haversine
 		Max Taylor
