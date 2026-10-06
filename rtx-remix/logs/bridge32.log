@@ -1,108 +1,113 @@
-[18:39:21.470] info:  [18:39:21.469] info:  No default config found for: T:\Folders in T drive\RTX Remaster\Github\scpcb-rtx\SCP - Containment Breach RTX Remaster.exe
-[18:39:21.470] info:  [18:39:21.470] info:  Trying to open config file: T:\Folders in T drive\RTX Remaster\Github\scpcb-rtx\.trex\bridge.conf
-[18:39:21.477] info:  ==================
-[18:39:21.477] info:  NVIDIA RTX Remix Bridge Client
-[18:39:21.477] info:  ==================
-[18:39:21.488] info:  Version: remix-main+d7a2923c
-[18:39:21.495] info:  Loaded d3d9.dll from T
-[18:39:21.688] info:  DirectInput8 hook attached.
-[18:39:21.702] info:  DirectInput hook attached.
-[18:39:21.703] info:  Initializing new shared memory object.
-[18:39:21.706] info:  Initializing new shared memory object.
-[18:39:21.713] info:  Initializing new shared memory object.
-[18:39:21.743] info:  Initializing new shared memory object.
-[18:39:21.778] info:  Launching server with GUID 5b67843d-8d63-4420-98fa-92f6f55b4981
-[18:39:21.829] info:  Process set as DPI aware
-[18:39:21.829] info:  Sending SYN command, waiting for ACK from server...
-[18:39:22.260] info:  Ack received! Handshake completed! Telling server to continue waiting for commands...
-[18:39:22.285] info:  Creating a NON thread-safe D3D9 device.
-[18:39:22.285] err:   A null pFullscreenDisplayMode was passed to IDirect3D9Ex::CreateDeviceEx().
-[18:39:24.374] info:  Message channel UWM_REMIX_BRIDGE_REGISTER_THREADPROC_MSG handshake complete.
-[18:39:24.378] info:  Remix UI deactivated.
-[18:39:24.531] info:  Creating a NON thread-safe D3D9 device.
-[18:39:24.531] warn:  [WndProc][set] Calling WndProc::set(...) without an intermediate unset(). Calling implicitly...
-[18:39:24.531] err:   A null pFullscreenDisplayMode was passed to IDirect3D9Ex::CreateDeviceEx().
-[18:39:24.696] info:  Client window became active, reenabling timeouts for bridge client...
-[18:39:24.702] info:  Client window became inactive, disabling timeouts for bridge client...
-[18:39:24.707] info:  Remix UI deactivated.
-[18:39:46.463] info:  Client window became active, reenabling timeouts for bridge client...
-[18:39:48.850] info:  Client window became inactive, disabling timeouts for bridge client...
-[18:39:54.477] info:  Client window became active, reenabling timeouts for bridge client...
-[18:41:11.102] info:  Remix UI activated.
-[18:41:11.518] info:  Remix UI deactivated.
-[18:41:12.101] info:  Remix UI activated.
-[18:41:22.203] info:  Remix UI deactivated.
-[18:41:24.702] info:  Client window became inactive, disabling timeouts for bridge client...
-[18:41:26.318] info:  Client window became active, reenabling timeouts for bridge client...
-[18:42:12.863] info:  Remix UI activated.
-[18:42:18.130] info:  Remix UI deactivated.
-[18:42:21.413] info:  Remix UI activated.
-[18:42:36.087] warn:  Still waiting on the Present semaphore to be released...
-[18:42:37.088] warn:  Still waiting on the Present semaphore to be released...
-[18:42:38.090] warn:  Still waiting on the Present semaphore to be released...
-[18:42:39.091] warn:  Still waiting on the Present semaphore to be released...
-[18:42:40.093] warn:  Still waiting on the Present semaphore to be released...
-[18:42:41.095] warn:  Still waiting on the Present semaphore to be released...
-[18:42:42.097] warn:  Still waiting on the Present semaphore to be released...
-[18:42:43.098] warn:  Still waiting on the Present semaphore to be released...
-[18:42:44.099] warn:  Still waiting on the Present semaphore to be released...
-[18:42:45.102] warn:  Still waiting on the Present semaphore to be released...
-[18:42:51.267] info:  Remix UI deactivated.
-[18:43:00.233] info:  Remix UI activated.
-[18:44:50.659] info:  Remix UI deactivated.
-[18:44:56.909] info:  Remix UI activated.
-[18:44:57.592] info:  Remix UI deactivated.
-[18:44:58.793] info:  Remix UI activated.
-[18:45:18.510] info:  Remix UI deactivated.
-[18:45:19.610] info:  Remix UI activated.
-[18:46:04.807] info:  Remix UI deactivated.
-[18:46:05.356] info:  Remix UI activated.
-[18:46:06.290] info:  Remix UI deactivated.
-[18:46:14.623] info:  Remix UI activated.
-[18:46:52.302] info:  Remix UI deactivated.
-[18:47:27.970] info:  Remix UI activated.
-[18:47:45.755] info:  Remix UI deactivated.
-[18:47:47.755] info:  Remix UI activated.
-[18:48:14.809] info:  Remix UI deactivated.
-[18:48:51.043] info:  Client window became inactive, disabling timeouts for bridge client...
-[18:48:51.063] info:  About to unload bridge client.
-[18:48:51.063] info:  Sending Terminate command to server...
-[18:48:51.065] info:  Server notified that it has cleanly terminated. Cleaning up.
-[18:48:51.415] info:  Most recent Device Queue commands sent from Client
-[18:48:51.416] info:  Command sent: Terminate
-[18:48:51.416] info:  Command sent: Bridge_UnlinkResource
-[18:48:51.416] info:  Command sent: IDirect3DTexture9_Destroy
-[18:48:51.417] info:  Command sent: Bridge_UnlinkResource
-[18:48:51.417] info:  Command sent: IDirect3DTexture9_Destroy
-[18:48:51.417] info:  Command sent: Bridge_UnlinkResource
-[18:48:51.417] info:  Command sent: IDirect3DTexture9_Destroy
-[18:48:51.417] info:  Command sent: Bridge_UnlinkResource
-[18:48:51.417] info:  Command sent: IDirect3DTexture9_Destroy
-[18:48:51.417] info:  Command sent: Bridge_UnlinkResource
-[18:48:51.417] info:  Most recent Device Queue commands received by Server
-[18:48:51.418] info:  Command received: Terminate
-[18:48:51.418] info:  Command received: Bridge_UnlinkResource
-[18:48:51.418] info:  Command received: IDirect3DTexture9_Destroy
-[18:48:51.418] info:  Command received: Bridge_UnlinkResource
-[18:48:51.418] info:  Command received: IDirect3DTexture9_Destroy
-[18:48:51.418] info:  Command received: Bridge_UnlinkResource
-[18:48:51.418] info:  Command received: IDirect3DTexture9_Destroy
-[18:48:51.418] info:  Command received: Bridge_UnlinkResource
-[18:48:51.418] info:  Command received: IDirect3DTexture9_Destroy
-[18:48:51.418] info:  Command received: Bridge_UnlinkResource
-[18:48:51.418] info:  Most recent Module Queue commands sent from Client
-[18:48:51.419] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.419] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.419] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Most recent Module Queue commands received by Server
-[18:48:51.427] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
-[18:48:51.427] info:  Shutdown cleanup successful, exiting now!
-[18:48:51.427] info:  DirectInput8 hook detached.
-[18:48:51.427] info:  DirectInput hook detached.
-[18:48:51.427] info:  [Uptime]: 569s
+[22:01:10.278] info:  [22:01:10.275] info:  No default config found for: C:\SCPCB-RTX-Remaster\scpcb-rtx\SCP - Containment Breach RTX Remaster.exe
+[22:01:10.278] info:  [22:01:10.275] info:  Trying to open config file: C:\SCPCB-RTX-Remaster\scpcb-rtx\.trex\bridge.conf
+[22:01:10.279] info:  ==================
+[22:01:10.279] info:  NVIDIA RTX Remix Bridge Client
+[22:01:10.279] info:  ==================
+[22:01:10.279] info:  Version: remix-main+d7a2923c
+[22:01:10.279] info:  Loaded d3d9.dll from C
+[22:01:10.452] info:  DirectInput8 hook attached.
+[22:01:10.466] info:  DirectInput hook attached.
+[22:01:10.466] info:  Initializing new shared memory object.
+[22:01:10.468] info:  Initializing new shared memory object.
+[22:01:10.470] info:  Initializing new shared memory object.
+[22:01:10.503] info:  Initializing new shared memory object.
+[22:01:10.536] info:  Launching server with GUID 345b4e66-6c42-4946-b07b-7e0ea5aadcd6
+[22:01:10.540] info:  Process set as DPI aware
+[22:01:10.540] info:  Sending SYN command, waiting for ACK from server...
+[22:01:10.765] info:  Ack received! Handshake completed! Telling server to continue waiting for commands...
+[22:01:10.793] info:  Creating a NON thread-safe D3D9 device.
+[22:01:10.793] err:   A null pFullscreenDisplayMode was passed to IDirect3D9Ex::CreateDeviceEx().
+[22:01:12.218] info:  Message channel UWM_REMIX_BRIDGE_REGISTER_THREADPROC_MSG handshake complete.
+[22:01:12.229] info:  Remix UI deactivated.
+[22:01:12.242] info:  Creating a NON thread-safe D3D9 device.
+[22:01:12.242] warn:  [WndProc][set] Calling WndProc::set(...) without an intermediate unset(). Calling implicitly...
+[22:01:12.242] err:   A null pFullscreenDisplayMode was passed to IDirect3D9Ex::CreateDeviceEx().
+[22:01:12.487] info:  Client window became active, reenabling timeouts for bridge client...
+[22:01:12.493] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:01:12.496] info:  Remix UI deactivated.
+[22:01:21.921] info:  Remix UI activated.
+[22:01:23.321] info:  Remix UI deactivated.
+[22:01:41.719] info:  Client window became active, reenabling timeouts for bridge client...
+[22:01:43.971] info:  Remix UI activated.
+[22:01:46.049] info:  Remix UI deactivated.
+[22:01:46.566] info:  Remix UI activated.
+[22:01:52.462] info:  Remix UI deactivated.
+[22:02:54.679] info:  Remix UI activated.
+[22:02:55.609] info:  Remix UI deactivated.
+[22:02:57.898] info:  Remix UI activated.
+[22:03:32.234] info:  Remix UI deactivated.
+[22:03:33.545] info:  Remix UI activated.
+[22:03:36.956] info:  Remix UI deactivated.
+[22:03:37.794] info:  Remix UI activated.
+[22:03:41.412] info:  Remix UI deactivated.
+[22:09:12.842] info:  Remix UI activated.
+[22:09:15.947] info:  Remix UI deactivated.
+[22:09:18.362] info:  Remix UI activated.
+[22:09:18.880] info:  Remix UI deactivated.
+[22:09:32.659] info:  Remix UI activated.
+[22:09:34.577] info:  Remix UI deactivated.
+[22:10:38.259] info:  Remix UI activated.
+[22:11:08.169] info:  Remix UI deactivated.
+[22:11:08.735] info:  Remix UI activated.
+[22:11:09.041] info:  Remix UI deactivated.
+[22:11:10.172] info:  Remix UI activated.
+[22:11:41.946] info:  Remix UI deactivated.
+[22:11:43.442] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:11:56.192] info:  Client window became active, reenabling timeouts for bridge client...
+[22:11:57.021] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:11:58.841] info:  Client window became active, reenabling timeouts for bridge client...
+[22:12:04.125] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:12:12.186] info:  Client window became active, reenabling timeouts for bridge client...
+[22:12:13.140] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:12:13.853] info:  Client window became active, reenabling timeouts for bridge client...
+[22:15:46.314] info:  Remix UI activated.
+[22:15:55.423] warn:  Still waiting on the Present semaphore to be released...
+[22:15:56.423] warn:  Still waiting on the Present semaphore to be released...
+[22:15:57.427] warn:  Still waiting on the Present semaphore to be released...
+[22:16:17.447] info:  Remix UI deactivated.
+[22:16:20.698] info:  Remix UI activated.
+[22:16:21.441] info:  Remix UI deactivated.
+[22:16:32.913] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:16:34.213] info:  Client window became active, reenabling timeouts for bridge client...
+[22:16:34.231] info:  Client window became inactive, disabling timeouts for bridge client...
+[22:16:34.246] info:  About to unload bridge client.
+[22:16:34.246] info:  Sending Terminate command to server...
+[22:16:34.250] info:  Server notified that it has cleanly terminated. Cleaning up.
+[22:16:34.632] info:  Most recent Device Queue commands sent from Client
+[22:16:34.633] info:  Command sent: Terminate
+[22:16:34.633] info:  Command sent: Bridge_UnlinkResource
+[22:16:34.633] info:  Command sent: IDirect3DTexture9_Destroy
+[22:16:34.633] info:  Command sent: Bridge_UnlinkResource
+[22:16:34.633] info:  Command sent: IDirect3DTexture9_Destroy
+[22:16:34.633] info:  Command sent: Bridge_UnlinkResource
+[22:16:34.633] info:  Command sent: IDirect3DTexture9_Destroy
+[22:16:34.633] info:  Command sent: Bridge_UnlinkResource
+[22:16:34.633] info:  Command sent: IDirect3DTexture9_Destroy
+[22:16:34.633] info:  Command sent: Bridge_UnlinkResource
+[22:16:34.633] info:  Most recent Device Queue commands received by Server
+[22:16:34.633] info:  Command received: Terminate
+[22:16:34.633] info:  Command received: Bridge_UnlinkResource
+[22:16:34.634] info:  Command received: IDirect3DTexture9_Destroy
+[22:16:34.634] info:  Command received: Bridge_UnlinkResource
+[22:16:34.634] info:  Command received: IDirect3DTexture9_Destroy
+[22:16:34.634] info:  Command received: Bridge_UnlinkResource
+[22:16:34.634] info:  Command received: IDirect3DTexture9_Destroy
+[22:16:34.634] info:  Command received: Bridge_UnlinkResource
+[22:16:34.634] info:  Command received: IDirect3DTexture9_Destroy
+[22:16:34.634] info:  Command received: Bridge_UnlinkResource
+[22:16:34.634] info:  Most recent Module Queue commands sent from Client
+[22:16:34.634] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command sent: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Most recent Module Queue commands received by Server
+[22:16:34.635] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Command received: IDirect3D9Ex_CheckDeviceFormat
+[22:16:34.635] info:  Shutdown cleanup successful, exiting now!
+[22:16:34.635] info:  DirectInput8 hook detached.
+[22:16:34.636] info:  DirectInput hook detached.
+[22:16:34.636] info:  [Uptime]: 924s

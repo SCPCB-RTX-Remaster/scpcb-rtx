@@ -1,4 +1,4 @@
-[ERR][18:39:40] NRC SDK: Loading the default network config data.
+[ERR][22:11:38] NRC SDK: Loading the default network config data.
 
-[ERR][18:39:40] NRC v0.13 (22 January 2025) Context successfully initialized. 
+[ERR][22:11:38] NRC v0.13 (22 January 2025) Context successfully initialized. 
 
